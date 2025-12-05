@@ -8,7 +8,7 @@
 </head>
 <body>
 
-    <div class="stars"></div>
+    <canvas id="starfield"></canvas>
 
     <header>
         <div class="container">
@@ -17,10 +17,11 @@
                     <span>⬢</span> THE TENSOR LAB
                 </div>
                 <div class="nav-links">
-                    <a href="#impact">Impact</a>
+                    <a href="#about">About</a>
                     <a href="#roles">The Crew</a>
-                    <a href="#showcase">Showcase</a>
+                    <a href="#testimonials">Stories</a>
                     <a href="#marketplace">Projects</a>
+                    <a href="#faq">FAQ</a>
                 </div>
             </nav>
         </div>
@@ -39,20 +40,88 @@
 
                 <div class="stats-bar" id="impact">
                     <div>
-                        <span class="stat-number">200+</span>
-                        <span class="stat-label">Applications Received</span>
-                    </div>
-                    <div>
-                        <span class="stat-number">4+</span>
-                        <span class="stat-label">Publications Pending</span>
-                    </div>
-                    <div>
-                        <span class="stat-number">80%</span>
-                        <span class="stat-label">Conference Rate</span>
+                        <span class="stat-number">100%</span>
+                        <span class="stat-label">Skill Growth</span>
                     </div>
                     <div>
                         <span class="stat-number">100%</span>
-                        <span class="stat-label">Match Rate</span>
+                        <span class="stat-label">Confidence Gain</span>
+                    </div>
+                    <div>
+                        <span class="stat-number">83%</span>
+                        <span class="stat-label">Clinical Fluency</span>
+                    </div>
+                    <div>
+                        <span class="stat-number">Top Rated</span>
+                        <span class="stat-label">Mentorship Model</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABOUT / LEADERSHIP -->
+        <section id="about" class="about-section">
+            <div class="container">
+                <div class="about-text-container">
+                    <h2>About The Tensor Lab</h2>
+                    <p>The Tensor Lab for Computational Medicine is a collective of students, researchers, and physicians who volunteer their time, skills, and passion for medical research. We function as an enhancement to the medical student research experience, designed to train future physicians and AI leaders to conduct reproducible, high-impact clinical research that translates from bench to bedside.</p>
+                    
+                    <h3 style="margin-top:3rem; font-size:1.75rem;">The Critical Gap</h3>
+                    <p>The AI revolution is fundamentally reshaping clinical practice, yet a critical gap exists:</p>
+                    
+                    <div class="gap-grid">
+                        <div class="gap-card">
+                            <h4 style="color:var(--text); margin-bottom:0.5rem;">The Skills Gap</h4>
+                            <p style="font-size:0.95rem; color:var(--text-muted);">Most physicians lack the technical expertise to validate and deploy AI, while AI researchers often lack the necessary clinical context.</p>
+                        </div>
+                        <div class="gap-card">
+                            <h4 style="color:var(--text); margin-bottom:0.5rem;">The Relevance Gap</h4>
+                            <p style="font-size:0.95rem; color:var(--text-muted);">Many AI projects lack real-world application; brilliant algorithms do not translate to better patient care without proper clinical context.</p>
+                        </div>
+                    </div>
+                    <p style="margin-top: 2rem;">Tensor Lab exists to cultivate physician-scientists who speak both languages, producing rigorous research that translates AI from the lab to the bedside.</p>
+                </div>
+
+                <div class="leadership-section">
+                    <h3 style="margin-bottom:2rem; text-align:center;">Leadership Team</h3>
+                    <div class="leadership-grid">
+                        <div class="leader-card">
+                            <img src="Portrait Photos/Aaron Ge.png" alt="Aaron Ge" class="leader-img">
+                            <span class="leader-name">Aaron Ge</span>
+                            <span class="leader-role">Technical Director (UMSOM)</span>
+                            <a href="#" target="_blank" class="leader-link">LinkedIn ↗</a>
+                        </div>
+                        <div class="leader-card">
+                            <img src="Portrait Photos/Matt Allen.png" alt="Matt Allen" class="leader-img">
+                            <span class="leader-name">Matt Allen</span>
+                            <span class="leader-role">Executive Director (UCSF)</span>
+                            <a href="#" target="_blank" class="leader-link">LinkedIn ↗</a>
+                        </div>
+                        <div class="leader-card">
+                            <img src="Portrait Photos/Chy Murali.png" alt="Chy Murali" class="leader-img">
+                            <span class="leader-name">Chy Murali</span>
+                            <span class="leader-role">Operational Director (UMSOM)</span>
+                            <a href="#" target="_blank" class="leader-link">LinkedIn ↗</a>
+                        </div>
+                        <div class="leader-card">
+                            <img src="Portrait Photos/Gavin Shu.png" alt="Gavin Shu" class="leader-img">
+                            <span class="leader-name">Gavin Shu</span>
+                            <span class="leader-role">Strategic Director (UCSF)</span>
+                            <a href="#" target="_blank" class="leader-link">LinkedIn ↗</a>
+                        </div>
+                        <div class="leader-card">
+                            <img src="Portrait Photos/Angie Lee.jpeg" alt="Angie Lee" class="leader-img">
+                            <span class="leader-name">Angie Lee</span>
+                            <span class="leader-role">Business Director (UMSOM)</span>
+                            <a href="#" target="_blank" class="leader-link">LinkedIn ↗</a>
+                        </div>
+                    </div>
+                    <div class="director-cta">
+                        <div style="margin-bottom: 1rem; font-size: 2rem;">🚀</div>
+                        <span class="director-badge">Network Growth</span>
+                        <h3>Lead a Chapter</h3>
+                        <p>Bring The Tensor Lab's model to your institution. We are looking for visionary medical and technical students to expand our network.</p>
+                        <a href="https://forms.google.com/placeholder-director" target="_blank" class="btn" style="margin-top:1.5rem;">Apply for Directorship</a>
                     </div>
                 </div>
             </div>
@@ -62,34 +131,145 @@
         <section id="roles">
             <div class="container">
                 <div class="section-header">
-                    <h2>Mission Roles</h2>
-                    <p style="color:var(--text-muted)">The Triad Model ensures rigorous, reproducible research.</p>
+                    <h2>Our Approach: The Triad Model</h2>
+                    <p style="color:var(--text-muted)">We utilize a unique "Triad Model" to ensure every project is publication-ready and clinically significant.</p>
                 </div>
                 <div class="roles-grid">
                     <div class="card">
                         <span class="tag" style="color: #10b981; background: rgba(16, 185, 129, 0.1);">Technical Lead</span>
-                        <h3>Fellow</h3>
-                        <p style="color:var(--text-muted); font-size:0.95rem; margin-top:0.5rem; margin-bottom:1.5rem;">Owns execution, coding, and reproducibility. Guaranteed First Author credit.</p>
+                        <h3>The Fellow</h3>
+                        <p style="color:var(--text-muted); font-size:0.95rem; margin-top:0.5rem; margin-bottom:1.5rem;">Leads technical design and coding, ensures reproducibility, and owns day-to-day execution.</p>
                         <a href="https://forms.google.com/placeholder-fellow" target="_blank" class="btn" style="font-size:0.8rem; padding:0.5rem 1rem; width:100%; margin-top:auto;">Apply for Projects</a>
                     </div>
                     <div class="card">
                         <span class="tag" style="color: #2dd4bf; background: rgba(45, 212, 191, 0.1);">Clinical Guide</span>
-                        <h3>Med Mentor</h3>
-                        <p style="color:var(--text-muted); font-size:0.95rem; margin-top:0.5rem; margin-bottom:1.5rem;">Provides clinical framing. Ensures "bench" work translates to "bedside".</p>
+                        <h3>The Med Mentor</h3>
+                        <p style="color:var(--text-muted); font-size:0.95rem; margin-top:0.5rem; margin-bottom:1.5rem;">Provides the clinical question and framing, guides project scoping, and supports manuscript preparation.</p>
                         <a href="https://forms.google.com/placeholder-mentor" target="_blank" class="btn" style="font-size:0.8rem; padding:0.5rem 1rem; width:100%; margin-top:auto;">Submit Proposal</a>
                     </div>
                     <div class="card">
-                        <span class="tag" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1);">Principal Investigator</span>
-                        <h3>Faculty PI</h3>
-                        <p style="color:var(--text-muted); font-size:0.95rem; margin-top:0.5rem; margin-bottom:1.5rem;">Leaders from UCSF/UMSOM. Provides data, questions, and strategy.</p>
+                        <span class="tag" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1);">Clinical Rigor</span>
+                        <h3>Faculty Mentor</h3>
+                        <p style="color:var(--text-muted); font-size:0.95rem; margin-top:0.5rem; margin-bottom:1.5rem;">Ensures clinical rigor, approves methodology, and advocates for publication strategy.</p>
                         <a href="mailto:contact@tensorlab.org" class="btn" style="font-size:0.8rem; padding:0.5rem 1rem; width:100%; margin-top:auto;">Contact</a>
                     </div>
-                    <div class="card">
-                        <span class="tag" style="color: #ec4899; background: rgba(236, 72, 153, 0.1);">Leadership</span>
-                        <h3>Chapter Director</h3>
-                        <p style="color:var(--text-muted); font-size:0.95rem; margin-top:0.5rem; margin-bottom:1.5rem;">Expand the network. Lead a local chapter at your institution.</p>
-                        <a href="https://forms.google.com/placeholder-director" target="_blank" class="btn" style="font-size:0.8rem; padding:0.5rem 1rem; width:100%; margin-top:auto;">Apply Now</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- TIMELINE -->
+        <section id="timeline" class="timeline-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Summer 2025 Roadmap</h2>
+                    <p style="color:var(--text-muted)">The journey from application to publication.</p>
+                </div>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-date">Feb - Mar 2025</span>
+                            <h3>Applications Open</h3>
+                            <p>Fellows apply for specific projects. Med Mentors submit research proposals.</p>
+                        </div>
                     </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-date">April 2025</span>
+                            <h3>Interviews & Matching</h3>
+                            <p>Technical interviews for fellows. Project matching based on skills and interest.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-date">May 2025</span>
+                            <h3>Orientation & Kickoff</h3>
+                            <p>Teams form. Initial literature review and data access setup.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-date">June - August 2025</span>
+                            <h3>The Research Sprint</h3>
+                            <p>Intensive 10-week coding and analysis period. Weekly standups and PI reviews.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-date">September 2025</span>
+                            <h3>Showcase & Publication</h3>
+                            <p>Final presentations. Abstract submissions to clinical and ML conferences.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TESTIMONIALS -->
+        <section id="testimonials" class="testimonial-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Fellow Stories</h2>
+                    <p style="color:var(--text-muted)">Hear from our inaugural cohort.</p>
+                </div>
+                <div class="testimonial-grid">
+                    <div class="testimonial-card">
+                        <div class="quote-icon">“</div>
+                        <p class="testimonial-text">This experience showed me a greater number of truly meaningful and impactful challenges that combine both fields. It has been invaluable in clearly defining my research direction for PhD applications.</p>
+                        <span class="testimonial-author">Jialong Wu</span>
+                        <span class="testimonial-role">CS Fellow</span>
+                    </div>
+                    <div class="testimonial-card">
+                        <div class="quote-icon">“</div>
+                        <p class="testimonial-text">I learned valuable lessons about communicating technical knowledge to domain experts. Although my current career is not medicine-adjacent, these skills have been deeply helpful.</p>
+                        <span class="testimonial-author">Ashwin Muralidharan</span>
+                        <span class="testimonial-role">Technical Fellow</span>
+                    </div>
+                    <div class="testimonial-card">
+                        <div class="quote-icon">“</div>
+                        <p class="testimonial-text">The guidance from the team greatly improved my research skills. I wouldn’t have reached the final goal of my project without their help.</p>
+                        <span class="testimonial-author">Koushik Rameshbabu</span>
+                        <span class="testimonial-role">Research Fellow</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section id="faq" class="faq-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Frequently Asked Questions</h2>
+                </div>
+                <div class="faq-grid">
+                    <details class="faq-item">
+                        <summary class="faq-summary">Do I need a medical background to apply as a Fellow?</summary>
+                        <div class="faq-answer">
+                            <p>No! We look for strong technical skills (Python, ML frameworks). Your Med Mentor will provide the necessary clinical context.</p>
+                        </div>
+                    </details>
+                    <details class="faq-item">
+                        <summary class="faq-summary">What is the time commitment?</summary>
+                        <div class="faq-answer">
+                            <p>The summer cohort is an intensive 10-week sprint requiring approx. 20-30 hours/week. During the school year, it varies by project.</p>
+                        </div>
+                    </details>
+                    <details class="faq-item">
+                        <summary class="faq-summary">Is this paid?</summary>
+                        <div class="faq-answer">
+                            <p>Currently, this is an unpaid educational fellowship focused on research output, authorship, and career development.</p>
+                        </div>
+                    </details>
+                    <details class="faq-item">
+                        <summary class="faq-summary">Who owns the intellectual property?</summary>
+                        <div class="faq-answer">
+                            <p>We believe in Open Science. Code is typically open-sourced, and data privacy is strictly managed by the PI's institution.</p>
+                        </div>
+                    </details>
                 </div>
             </div>
         </section>
@@ -222,29 +402,7 @@
         <button class="btn" style="margin-top:1rem; border:1px solid white; background:transparent;">Download PDF</button>
     </div>
 
-    <script>
-        function filterProjects(category) {
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
-            document.querySelectorAll('.project-card').forEach(card => {
-                card.style.display = (category === 'all' || card.dataset.category === category) ? 'flex' : 'none';
-            });
-        }
-
-        // Modal Logic
-        function openModal(src, title) {
-            const m = document.getElementById("poster-modal");
-            m.style.display = "flex";
-            document.getElementById("modal-img").src = src;
-            document.getElementById("modal-caption").innerText = title;
-        }
-        
-        function closeModal(e) {
-            if (e.target.classList.contains('modal') || e.target.classList.contains('close-modal')) {
-                document.getElementById("poster-modal").style.display = "none";
-            }
-        }
-    </script>
+    <script src="script.js"></script>
 
 </body>
 </html>
