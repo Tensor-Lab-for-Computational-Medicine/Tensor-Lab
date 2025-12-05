@@ -16,7 +16,7 @@ let shootingStars = [];
 
 // Configuration
 const numStars = 500;
-const starSpeed = 0.2; // Base speed
+const starSpeed = 0.1; // Base speed
 const fov = 300; // Field of view for projection
 
 // Expanded Palette
@@ -43,12 +43,18 @@ class Star {
         this.x = random(-width, width);
         this.y = random(-height, height);
         this.z = random(0, width);
-        this.size = random(0.2, 1.5);
+        this.size = random(0.2, 2.0); // Increased max size for variety
         
         // Color chance
         const c = Math.random() > 0.7 ? randomColor() : colors[0];
-        this.color = `rgba(${c.r}, ${c.g}, ${c.b}`;
+        this.rgb = `${c.r}, ${c.g}, ${c.b}`;
         this.opacity = random(0.4, 1);
+
+        // Visual variety: Some stars are 4-pointed "flares"
+        this.isFlare = this.size > 1.2 && Math.random() > 0.6;
+        // Twinkle offset
+        this.twinkleOffset = Math.random() * 1000;
+        this.twinkleSpeed = random(0.002, 0.005);
     }
 
     update() {
@@ -61,7 +67,7 @@ class Star {
 
     draw() {
         // 3D Projection
-        const scale = fov / (this.z + fov); // Standard perspective formula
+        const scale = fov / (this.z + fov);
         const x2d = this.x * scale + width / 2 + mouseX * scale;
         const y2d = this.y * scale + height / 2 + mouseY * scale;
         
@@ -69,11 +75,35 @@ class Star {
 
         // Scale size by proximity
         const r = this.size * scale * 2;
-        const alpha = this.opacity * (1 - this.z / width);
+        
+        // Fade logic
+        const depthRatio = this.z / width;
+        let alpha = this.opacity * (1 - depthRatio * depthRatio);
+        
+        // Twinkle effect
+        const twinkle = Math.sin(Date.now() * this.twinkleSpeed + this.twinkleOffset) * 0.3 + 0.7;
+        alpha *= twinkle;
+
+        // Fade out near camera to prevent popping
+        if (this.z < 100) {
+            alpha *= (this.z / 100);
+        }
 
         ctx.beginPath();
-        ctx.fillStyle = `${this.color}, ${alpha})`;
-        ctx.arc(x2d, y2d, r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${this.rgb}, ${alpha})`;
+
+        if (this.isFlare) {
+            // Draw sparkly 4-pointed star (hypocycloid-ish)
+            const spikeLen = r * 2;
+            ctx.moveTo(x2d, y2d - spikeLen);
+            ctx.quadraticCurveTo(x2d, y2d, x2d + spikeLen, y2d);
+            ctx.quadraticCurveTo(x2d, y2d, x2d, y2d + spikeLen);
+            ctx.quadraticCurveTo(x2d, y2d, x2d - spikeLen, y2d);
+            ctx.quadraticCurveTo(x2d, y2d, x2d, y2d - spikeLen);
+        } else {
+            // Standard circular star
+            ctx.arc(x2d, y2d, r, 0, Math.PI * 2);
+        }
         ctx.fill();
     }
 }
@@ -99,7 +129,7 @@ class Planet {
 
     update() {
         this.z -= starSpeed * 2; // Planets move slower (parallax)
-        if (this.z < 50) { // Don't get too close, looks pixelated/weird
+        if (this.z < 1) { // Allow getting much closer before reset
             this.reset();
         }
     }
@@ -111,6 +141,15 @@ class Planet {
         const r = this.radius * scale;
 
         if (x2d < -r || x2d > width + r || y2d < -r || y2d > height + r) return;
+
+        // Fade out when getting too close to avoid popping/pixelation
+        let alpha = 1;
+        if (this.z < 100) {
+            alpha = Math.max(0, this.z / 100);
+        }
+
+        ctx.save();
+        ctx.globalAlpha = alpha;
 
         // Planet Body Gradient
         const grad = ctx.createRadialGradient(x2d - r/3, y2d - r/3, r/5, x2d, y2d, r);
@@ -131,6 +170,7 @@ class Planet {
             ctx.ellipse(x2d, y2d, r * 2, r * 0.6, this.angle, 0, Math.PI * 2);
             ctx.stroke();
         }
+        ctx.restore();
     }
 }
 
@@ -167,7 +207,15 @@ class Constellation {
         const scale = fov / (this.z + fov);
         const cx = this.x * scale + width / 2 + mouseX * scale;
         const cy = this.y * scale + height / 2 + mouseY * scale;
-        const alpha = (1 - this.z / width);
+        
+        // Fade logic
+        const depthRatio = this.z / width;
+        let alpha = (1 - depthRatio * depthRatio);
+
+        // Near camera fade
+        if (this.z < 100) {
+            alpha *= (this.z / 100);
+        }
 
         if (cx < -100 || cx > width + 100 || cy < -100 || cy > height + 100) return;
 
