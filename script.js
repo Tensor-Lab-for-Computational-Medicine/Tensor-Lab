@@ -377,8 +377,17 @@ function filterProjects(category) {
 function openModal(src, title) {
     const m = document.getElementById("poster-modal");
     m.style.display = "flex";
-    document.getElementById("modal-img").src = src;
+    const frame = document.getElementById("modal-frame");
+    if (frame) frame.src = src;
     document.getElementById("modal-caption").innerText = title;
+    
+    const btn = document.getElementById("download-btn");
+    if (btn) {
+        btn.onclick = function(e) {
+            e.stopPropagation();
+            window.open(src, '_blank');
+        };
+    }
 }
 
 function closeModal(e) {
