@@ -2,6 +2,11 @@ const canvas = document.getElementById('starfield');
 const ctx = canvas.getContext('2d');
 
 let width, height;
+let mouseX = 0;
+let mouseY = 0;
+let targetMouseX = 0;
+let targetMouseY = 0;
+
 let entities = []; // Unified entity list for sorting by depth if needed
 let stars = [];
 let planets = [];
@@ -57,8 +62,8 @@ class Star {
     draw() {
         // 3D Projection
         const scale = fov / (this.z + fov); // Standard perspective formula
-        const x2d = this.x * scale + width / 2;
-        const y2d = this.y * scale + height / 2;
+        const x2d = this.x * scale + width / 2 + mouseX * scale;
+        const y2d = this.y * scale + height / 2 + mouseY * scale;
         
         if (x2d < 0 || x2d > width || y2d < 0 || y2d > height) return;
 
@@ -101,8 +106,8 @@ class Planet {
 
     draw() {
         const scale = fov / (this.z + fov);
-        const x2d = this.x * scale + width / 2;
-        const y2d = this.y * scale + height / 2;
+        const x2d = this.x * scale + width / 2 + mouseX * scale;
+        const y2d = this.y * scale + height / 2 + mouseY * scale;
         const r = this.radius * scale;
 
         if (x2d < -r || x2d > width + r || y2d < -r || y2d > height + r) return;
@@ -160,8 +165,8 @@ class Constellation {
 
     draw() {
         const scale = fov / (this.z + fov);
-        const cx = this.x * scale + width / 2;
-        const cy = this.y * scale + height / 2;
+        const cx = this.x * scale + width / 2 + mouseX * scale;
+        const cy = this.y * scale + height / 2 + mouseY * scale;
         const alpha = (1 - this.z / width);
 
         if (cx < -100 || cx > width + 100 || cy < -100 || cy > height + 100) return;
@@ -329,6 +334,10 @@ function resize() {
 function animate() {
     ctx.clearRect(0, 0, width, height);
 
+    // Smooth mouse movement
+    mouseX += (targetMouseX - mouseX) * 0.1;
+    mouseY += (targetMouseY - mouseY) * 0.1;
+
     // Layer 1: Nebulas (Background)
     ctx.globalCompositeOperation = 'screen';
     nebulas.forEach(n => { n.update(); n.draw(); });
@@ -359,7 +368,57 @@ function animate() {
 }
 
 window.addEventListener('resize', resize);
-document.addEventListener('DOMContentLoaded', init);
+window.addEventListener('mousemove', (e) => {
+    targetMouseX = (e.clientX - width / 2) * 0.05; // Sensitivity
+    targetMouseY = (e.clientY - height / 2) * 0.05;
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    init();
+    setupMobileMenu();
+    setupScrollAnimations();
+    setupStatsAnimation();
+});
+
+// --- UI Logic ---
+
+function setupMobileMenu() {
+    const btn = document.querySelector('.mobile-menu-btn');
+    const nav = document.querySelector('.nav-links');
+    const links = document.querySelectorAll('.nav-links a');
+
+    if (btn && nav) {
+        btn.addEventListener('click', () => {
+            btn.classList.toggle('active');
+            nav.classList.toggle('active');
+            document.body.style.overflow = nav.classList.contains('active') ? 'hidden' : '';
+        });
+
+        links.forEach(link => {
+            link.addEventListener('click', () => {
+                btn.classList.remove('active');
+                nav.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+        });
+    }
+}
+
+function setupScrollAnimations() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('section h2, .card, .role-card-detailed, .poster-card, .timeline-item, .stats-bar').forEach(el => {
+        el.classList.add('scroll-hidden');
+        observer.observe(el);
+    });
+}
+
 
 // --- Site Logic (Preserved) ---
 
@@ -393,5 +452,51 @@ function openModal(src, title) {
 function closeModal(e) {
     if (e.target.classList.contains('modal') || e.target.classList.contains('close-modal')) {
         document.getElementById("poster-modal").style.display = "none";
+        const frame = document.getElementById("modal-frame");
+        if (frame) frame.src = ""; // Clear source to stop loading/playing
     }
+}
+
+// --- New Interactive Features ---
+
+function scrollTestimonials(direction) {
+    const grid = document.querySelector('.testimonial-grid');
+    if (grid) {
+        const scrollAmount = 350 + 32; // card width + gap
+        grid.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+    }
+}
+
+function setupStatsAnimation() {
+    const stats = document.querySelectorAll('.stat-number');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const target = entry.target;
+                const value = parseInt(target.innerText.replace('%', ''));
+                if (!isNaN(value)) {
+                    animateValue(target, 0, value, 2000);
+                }
+                observer.unobserve(target);
+            }
+        });
+    }, { threshold: 0.5 });
+
+    stats.forEach(stat => observer.observe(stat));
+}
+
+function animateValue(obj, start, end, duration) {
+    let startTimestamp = null;
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const current = Math.floor(progress * (end - start) + start);
+        obj.innerHTML = current + "%";
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        } else {
+            obj.innerHTML = end + "%";
+        }
+    };
+    window.requestAnimationFrame(step);
 }
