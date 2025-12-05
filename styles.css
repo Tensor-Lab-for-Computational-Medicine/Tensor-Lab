@@ -84,6 +84,7 @@ section { padding: 5rem 0; }
 .section-header h2 { font-size: 2.5rem; margin-bottom: 0.75rem; }
 
 .grid { display: grid; gap: 2rem; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.roles-grid { display: grid; gap: 2rem; grid-template-columns: repeat(2, 1fr); }
 
 .card {
     background: var(--surface); border: 1px solid var(--border); border-radius: 1rem;
@@ -178,4 +179,5 @@ footer { border-top: 1px solid var(--border); padding: 3rem 0; text-align: cente
     .hero h1 { font-size: 3rem; }
     .stats-bar { grid-template-columns: 1fr 1fr; }
     .form-content { padding: 1.5rem; }
+    .roles-grid { grid-template-columns: 1fr; }
 }
