@@ -185,14 +185,31 @@ class Constellation {
         for(let i=1; i<projectedPoints.length; i++) {
             ctx.lineTo(projectedPoints[i].x, projectedPoints[i].y);
         }
-        ctx.closePath();
+        // Close loop for network effect
+        ctx.lineTo(projectedPoints[0].x, projectedPoints[0].y);
+        
+        // Connect random cross points for "tensor" density
+        if (projectedPoints.length > 3) {
+             ctx.moveTo(projectedPoints[0].x, projectedPoints[0].y);
+             ctx.lineTo(projectedPoints[2].x, projectedPoints[2].y);
+        }
         ctx.stroke();
 
         // Draw 'nodes' (stars) at points
-        ctx.fillStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha})`;
         projectedPoints.forEach(p => {
+            // Core
             ctx.beginPath();
-            ctx.arc(p.x, p.y, 2 * scale, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha})`;
+            ctx.arc(p.x, p.y, 3 * scale, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Glow effect on nodes
+            const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 8 * scale);
+            glow.addColorStop(0, `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha * 0.4})`);
+            glow.addColorStop(1, `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, 0)`);
+            ctx.fillStyle = glow;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 8 * scale, 0, Math.PI * 2);
             ctx.fill();
         });
     }
@@ -378,9 +395,69 @@ document.addEventListener('DOMContentLoaded', () => {
     setupMobileMenu();
     setupScrollAnimations();
     setupStatsAnimation();
+    setupCardGlow();
+    setupBackToTop();
+    setupActiveNav();
 });
 
 // --- UI Logic ---
+
+function setupBackToTop() {
+    const btn = document.getElementById('back-to-top');
+    if (!btn) return;
+
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 500) {
+            btn.classList.add('visible');
+        } else {
+            btn.classList.remove('visible');
+        }
+    });
+
+    btn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+}
+
+function setupActiveNav() {
+    const sections = document.querySelectorAll('section');
+    const navLinks = document.querySelectorAll('.nav-links a:not(.nav-cta)');
+    
+    if (!sections.length || !navLinks.length) return;
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const id = entry.target.getAttribute('id');
+                if (!id) return;
+                
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === `#${id}`) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+        });
+    }, { threshold: 0.2, rootMargin: "-10% 0px -50% 0px" });
+
+    sections.forEach(section => observer.observe(section));
+}
+
+function setupCardGlow() {
+    const cards = document.querySelectorAll('.card, .role-card-detailed, .poster-card, .faq-item');
+    
+    cards.forEach(card => {
+        card.addEventListener('mousemove', e => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            card.style.setProperty('--mouse-x', `${x}px`);
+            card.style.setProperty('--mouse-y', `${y}px`);
+        });
+    });
+}
 
 function setupMobileMenu() {
     const btn = document.querySelector('.mobile-menu-btn');

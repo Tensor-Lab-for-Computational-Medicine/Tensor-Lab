@@ -14,10 +14,10 @@
         <div class="container">
             <nav>
                 <div class="logo">
-                    <img src="Logo.png" alt="Logo" style="height: 40px; width: auto; margin-right: 10px;"> THE TENSOR LAB
+                    <img src="Logo.png" alt="Logo" style="height: 40px; width: auto; margin-right: 10px;" loading="lazy"> THE TENSOR LAB
                 </div>
                 <div class="nav-links">
-                    <a href="#open-roles" style="color: var(--primary);">Join Us</a>
+                    <a href="#open-roles" class="nav-cta">Join Us</a>
                     <a href="#about">About</a>
                     <a href="#roles">The Approach</a>
                     <a href="#testimonials">Stories</a>
@@ -78,7 +78,6 @@
                 <!-- Medical Mentor Section -->
                 <div class="role-detail-section">
                     <div class="role-card-detailed" style="border-color: var(--primary); max-width: 900px; margin: 0 auto;">
-                        <span class="tag" style="color: #2dd4bf; background: rgba(45, 212, 191, 0.1);">Priority Role</span>
                         <h3>Medical Mentor</h3>
                         <span class="role-focus">Clinical Mentorship & Publication Guidance</span>
                         
@@ -197,31 +196,31 @@
                     <h3 style="margin-bottom:2rem; text-align:center;">Leadership Team</h3>
                     <div class="leadership-grid">
                         <div class="leader-card">
-                            <img src="Portrait Photos/Aaron Ge.png" alt="Aaron Ge" class="leader-img">
+                            <img src="Portrait Photos/Aaron Ge.png" alt="Aaron Ge" class="leader-img" loading="lazy">
                             <span class="leader-name">Aaron Ge</span>
                             <span class="leader-role">Technical Director (UMSOM)</span>
                             <a href="https://www.linkedin.com/in/aaron-ge-6395681b2/" target="_blank" class="leader-link">LinkedIn ↗</a>
                         </div>
                         <div class="leader-card">
-                            <img src="Portrait Photos/Matt Allen.png" alt="Matt Allen" class="leader-img">
+                            <img src="Portrait Photos/Matt Allen.png" alt="Matt Allen" class="leader-img" loading="lazy">
                             <span class="leader-name">Matt Allen</span>
                             <span class="leader-role">Executive Director (UCSF)</span>
                             <a href="https://www.linkedin.com/in/matthewallen001/" target="_blank" class="leader-link">LinkedIn ↗</a>
                         </div>
                         <div class="leader-card">
-                            <img src="Portrait Photos/Chy Murali.png" alt="Chy Murali" class="leader-img">
+                            <img src="Portrait Photos/Chy Murali.png" alt="Chy Murali" class="leader-img" loading="lazy">
                             <span class="leader-name">Chy Murali</span>
                             <span class="leader-role">Operational Director (UMSOM)</span>
                             <a href="#" target="_blank" class="leader-link">LinkedIn ↗</a>
                         </div>
                         <div class="leader-card">
-                            <img src="Portrait Photos/Gavin Shu.png" alt="Gavin Shu" class="leader-img">
+                            <img src="Portrait Photos/Gavin Shu.png" alt="Gavin Shu" class="leader-img" loading="lazy">
                             <span class="leader-name">Gavin Shu</span>
                             <span class="leader-role">Strategic Director (UCSF)</span>
                             <a href="https://www.linkedin.com/in/chang-gavin-shu/" target="_blank" class="leader-link">LinkedIn ↗</a>
                         </div>
                         <div class="leader-card">
-                            <img src="Portrait Photos/Angie Lee.jpeg" alt="Angie Lee" class="leader-img">
+                            <img src="Portrait Photos/Angie Lee.jpeg" alt="Angie Lee" class="leader-img" loading="lazy">
                             <span class="leader-name">Angie Lee</span>
                             <span class="leader-role">Business Director (UMSOM)</span>
                             <a href="https://www.linkedin.com/in/angie-christine-lee99/" target="_blank" class="leader-link">LinkedIn ↗</a>
@@ -394,7 +393,7 @@
                     <!-- Poster 1: Shravya -->
                     <div class="poster-card" onclick="openModal('Posters/HospitalReadmission_Dasu%20-%20Shravya%20Dasu.pdf', 'Hospital Readmission Prediction')">
                         <div class="poster-preview">
-                            <img src="Poster Images/Shravya.png" alt="Hospital Readmission Prediction Poster">
+                            <img src="Poster Images/Shravya.png" alt="Hospital Readmission Prediction Poster" loading="lazy">
                         </div>
                         <div class="poster-overlay">
                             <span style="font-size:2rem;">🔍</span>
@@ -410,7 +409,7 @@
                     <!-- Poster 2: Koushik -->
                     <div class="poster-card" onclick="openModal('Posters/RFS_Prediction-Rameshbabu%20-%20Koushik%20Ramesh.pdf', 'RFS Prediction')">
                         <div class="poster-preview">
-                           <img src="Poster Images/Koushik.png" alt="RFS Prediction Poster">
+                           <img src="Poster Images/Koushik.png" alt="RFS Prediction Poster" loading="lazy">
                         </div>
                         <div class="poster-overlay">
                             <span style="font-size:2rem;">🔍</span>
@@ -426,7 +425,7 @@
                     <!-- Poster 3: Jialong -->
                     <div class="poster-card" onclick="openModal('Posters/Jialong%20Wu-Poster%20v1.pdf', 'Clinical Prediction: Statistical vs LLM')">
                         <div class="poster-preview">
-                           <img src="Poster Images/Jialong.png" alt="Statistical vs LLM Models Poster">
+                           <img src="Poster Images/Jialong.png" alt="Statistical vs LLM Models Poster" loading="lazy">
                         </div>
                         <div class="poster-overlay">
                             <span style="font-size:2rem;">🔍</span>
@@ -547,6 +546,8 @@
         <div id="modal-caption" style="color:white; margin-top:1rem; font-size:1.2rem;"></div>
         <button id="download-btn" class="btn" style="margin-top:1rem; border:1px solid white; background:transparent;">Download PDF</button>
     </div>
+
+    <button id="back-to-top" aria-label="Back to top">↑</button>
 
     <script src="script.js"></script>
 
