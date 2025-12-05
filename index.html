@@ -4,192 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Tensor Lab | Computational Medicine</title>
-    <style>
-        /* --- THEME VARIABLES --- */
-        :root {
-            --space-black: #030712;
-            --void-blue: #0b1120;
-            --tensor-teal: #2dd4bf; 
-            --tensor-purple: #8b5cf6; 
-            --tensor-gradient: linear-gradient(135deg, var(--tensor-teal), var(--tensor-purple));
-            --glass-bg: rgba(15, 23, 42, 0.6);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --text-white: #f8fafc;
-            --text-gray: #94a3b8;
-            --glow-shadow: 0 0 25px rgba(45, 212, 191, 0.2);
-        }
-
-        /* --- RESET & BASE --- */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: var(--space-black);
-            color: var(--text-white);
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        /* --- ANIMATED STARFIELD --- */
-        .stars {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1;
-            background: 
-                radial-gradient(1px 1px at 20px 30px, #fff, rgba(0,0,0,0)),
-                radial-gradient(1px 1px at 40px 70px, #fff, rgba(0,0,0,0)),
-                radial-gradient(2px 2px at 90px 40px, #fff, rgba(0,0,0,0));
-            background-repeat: repeat;
-            background-size: 200px 200px;
-            animation: starsMove 150s linear infinite;
-            opacity: 0.6;
-        }
-        @keyframes starsMove { from { transform: translateY(0); } to { transform: translateY(-1000px); } }
-
-        /* --- UTILITIES --- */
-        .container { width: 90%; max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
-        .gradient-text { background: var(--tensor-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        a { color: var(--tensor-teal); text-decoration: none; transition: 0.2s; }
-        
-        /* --- HEADER --- */
-        header {
-            padding: 1.5rem 0;
-            background: rgba(3, 7, 18, 0.8);
-            backdrop-filter: blur(12px);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            border-bottom: 1px solid var(--glass-border);
-        }
-        nav { display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-weight: 800; font-size: 1.2rem; letter-spacing: -0.5px; display: flex; align-items: center; gap: 0.5rem; }
-        .logo span { color: var(--tensor-teal); font-size: 1.5rem; }
-        .nav-links { display: flex; gap: 2rem; }
-        .nav-links a:hover { color: #fff; text-shadow: 0 0 10px var(--tensor-teal); }
-
-        /* --- HERO --- */
-        .hero { padding: 8rem 0 4rem; text-align: center; }
-        .hero h1 { font-size: clamp(2.5rem, 6vw, 5rem); line-height: 1.1; margin-bottom: 1.5rem; font-weight: 800; letter-spacing: -1px; }
-        .hero p { font-size: 1.25rem; color: var(--text-gray); max-width: 650px; margin: 0 auto 2.5rem; }
-        .btn {
-            display: inline-block;
-            background: var(--tensor-gradient);
-            color: white;
-            padding: 1rem 2.5rem;
-            border-radius: 50px;
-            font-weight: 700;
-            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
-            transition: 0.3s;
-            cursor: pointer;
-            border: none;
-        }
-        .btn:hover { transform: translateY(-3px); box-shadow: 0 6px 25px rgba(45, 212, 191, 0.6); }
-
-        /* --- STATS BAR --- */
-        .stats-bar {
-            margin-top: 4rem;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            padding: 2rem;
-            border-radius: 16px;
-            backdrop-filter: blur(10px);
-        }
-        .stat-number { font-size: 2.5rem; font-weight: 800; color: var(--tensor-teal); display: block; }
-        .stat-label { font-size: 0.9rem; color: var(--text-gray); text-transform: uppercase; letter-spacing: 1px; }
-
-        /* --- TRIAD ROLES (THE CREW) --- */
-        .roles-section { padding: 6rem 0; }
-        .section-header { text-align: center; margin-bottom: 4rem; }
-        .section-header h2 { font-size: 2.5rem; margin-bottom: 0.5rem; }
-        .role-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
-        .role-card {
-            background: var(--void-blue);
-            border: 1px solid var(--glass-border);
-            padding: 2rem;
-            border-radius: 12px;
-            transition: 0.3s;
-        }
-        .role-card:hover { border-color: var(--tensor-teal); transform: translateY(-5px); }
-        .role-tag { font-size: 0.8rem; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; font-weight: bold; }
-
-        /* --- POSTER SHOWCASE --- */
-        .poster-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; }
-        .poster-card {
-            aspect-ratio: 3/4;
-            background: #1e293b;
-            border-radius: 8px;
-            overflow: hidden;
-            position: relative;
-            cursor: pointer;
-            border: 1px solid var(--glass-border);
-            transition: 0.3s;
-            group: poster;
-        }
-        .poster-card:hover { transform: scale(1.03); border-color: var(--tensor-teal); box-shadow: var(--glow-shadow); }
-        
-        /* Overlay on hover */
-        .poster-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
-            display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-            opacity: 0; transition: 0.3s;
-            padding: 1rem; text-align: center;
-        }
-        .poster-card:hover .poster-overlay { opacity: 1; }
-
-        /* --- MARKETPLACE (FILTERS & PROJECTS) --- */
-        .filter-bar { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 3rem; }
-        .filter-btn {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--glass-border);
-            color: var(--text-gray);
-            padding: 0.6rem 1.5rem;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: 0.3s;
-            font-family: inherit;
-        }
-        .filter-btn.active, .filter-btn:hover {
-            background: var(--tensor-teal); color: var(--space-black); box-shadow: 0 0 15px rgba(45, 212, 191, 0.4); border-color: var(--tensor-teal);
-        }
-
-        .project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2rem; }
-        .project-card {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 2rem;
-            display: flex; flex-direction: column;
-            transition: 0.3s;
-        }
-        .project-card:hover { border-color: var(--tensor-purple); background: rgba(15, 23, 42, 0.9); }
-        .proj-meta { display: flex; justify-content: space-between; margin-bottom: 1rem; font-size: 0.85rem; color: var(--text-gray); }
-        .tech-stack { font-size: 0.8rem; color: var(--tensor-teal); margin-top: auto; padding-top: 1rem; }
-
-        /* --- MODAL (LIGHTBOX) --- */
-        .modal {
-            display: none; position: fixed; z-index: 1000;
-            left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.95);
-            backdrop-filter: blur(5px);
-            align-items: center; justify-content: center; flex-direction: column;
-        }
-        .modal-content { max-width: 90%; max-height: 80vh; border: 2px solid var(--tensor-teal); border-radius: 8px; }
-        .modal-caption { color: #fff; margin-top: 1rem; font-size: 1.2rem; }
-        .modal-close { position: absolute; top: 2rem; right: 2rem; color: #fff; font-size: 3rem; cursor: pointer; }
-        .download-btn { margin-top: 1rem; background: transparent; border: 1px solid #fff; color: #fff; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
-
-        /* --- MOBILE --- */
-        @media (max-width: 768px) {
-            .hero h1 { font-size: 2.5rem; }
-            .nav-links { display: none; }
-            .stats-bar { grid-template-columns: 1fr 1fr; }
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
@@ -205,7 +20,6 @@
                     <a href="#impact">Impact</a>
                     <a href="#roles">The Crew</a>
                     <a href="#showcase">Showcase</a>
-                    <a href="#timeline">Timeline</a>
                     <a href="#marketplace">Projects</a>
                 </div>
             </nav>
@@ -216,28 +30,27 @@
         <!-- HERO -->
         <section class="hero">
             <div class="container">
-                <h1 class="gradient-text">The Next Generation of<br>Clinical AI Leadership</h1>
+                <h1>The Next Generation of<br>Clinical AI Leadership</h1>
                 <p>Prepare for residency. Accelerate your research. Join the elite network bridging bench to bedside.</p>
-                <div style="margin-top: 2rem;">
+                <div>
                     <a href="#marketplace" class="btn">Explore Projects</a>
-                    <div style="margin-top: 1rem; font-size: 0.9rem; color: var(--tensor-teal);">Applications Open: Summer 2025 Cohort</div>
+                    <div style="margin-top: 1.5rem; font-size: 0.9rem; color: var(--primary);">Applications Open: Summer 2025 Cohort</div>
                 </div>
 
-                <!-- STATS BAR (Corrected) -->
                 <div class="stats-bar" id="impact">
-                    <div class="stat-item">
+                    <div>
                         <span class="stat-number">200+</span>
                         <span class="stat-label">Applications Received</span>
                     </div>
-                    <div class="stat-item">
+                    <div>
                         <span class="stat-number">4+</span>
                         <span class="stat-label">Publications Pending</span>
                     </div>
-                    <div class="stat-item">
+                    <div>
                         <span class="stat-number">80%</span>
-                        <span class="stat-label">Conference Presentation Rate</span>
+                        <span class="stat-label">Conference Rate</span>
                     </div>
-                    <div class="stat-item">
+                    <div>
                         <span class="stat-number">100%</span>
                         <span class="stat-label">Match Rate</span>
                     </div>
@@ -245,228 +58,178 @@
             </div>
         </section>
 
-        <!-- TRIAD ROLES (Restored) -->
-        <section id="roles" class="roles-section">
+        <!-- MISSION ROLES -->
+        <section id="roles">
             <div class="container">
                 <div class="section-header">
                     <h2>Mission Roles</h2>
-                    <p style="color:var(--text-gray)">The Triad Model ensures rigorous, reproducible research.</p>
+                    <p style="color:var(--text-muted)">The Triad Model ensures rigorous, reproducible research.</p>
                 </div>
-                <div class="role-grid">
-                    <div class="role-card">
-                        <span class="role-tag" style="background:#10b981; color:#022c22">Fellow</span>
-                        <h3 style="margin: 1rem 0;">Technical Lead</h3>
-                        <p style="color:var(--text-gray); font-size:0.9rem;">Owns day-to-day execution, coding, and reproducibility. Guaranteed First Author credit on resulting publications.</p>
+                <div class="grid">
+                    <div class="card">
+                        <span class="tag" style="color: #10b981; background: rgba(16, 185, 129, 0.1);">Technical Lead</span>
+                        <h3>Fellow</h3>
+                        <p style="color:var(--text-muted); font-size:0.95rem; margin-top:0.5rem;">Owns execution, coding, and reproducibility. Guaranteed First Author credit.</p>
                     </div>
-                    <div class="role-card">
-                        <span class="role-tag" style="background:#2dd4bf; color:#0f172a">Med Mentor</span>
-                        <h3 style="margin: 1rem 0;">Clinical Guide</h3>
-                        <p style="color:var(--text-gray); font-size:0.9rem;">Provides clinical framing and scoping. Ensures the "bench" work translates to the "bedside." Co-author.</p>
+                    <div class="card">
+                        <span class="tag" style="color: #2dd4bf; background: rgba(45, 212, 191, 0.1);">Clinical Guide</span>
+                        <h3>Med Mentor</h3>
+                        <p style="color:var(--text-muted); font-size:0.95rem; margin-top:0.5rem;">Provides clinical framing. Ensures "bench" work translates to "bedside".</p>
                     </div>
-                    <div class="role-card">
-                        <span class="role-tag" style="background:#f59e0b; color:#451a03">Faculty PI</span>
-                        <h3 style="margin: 1rem 0;">Principal Investigator</h3>
-                        <p style="color:var(--text-gray); font-size:0.9rem;">Established leaders from UCSF/UMSOM. Provides the data, the question, and the publication strategy.</p>
+                    <div class="card">
+                        <span class="tag" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1);">Principal Investigator</span>
+                        <h3>Faculty PI</h3>
+                        <p style="color:var(--text-muted); font-size:0.95rem; margin-top:0.5rem;">Leaders from UCSF/UMSOM. Provides data, questions, and strategy.</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- POSTER SHOWCASE (Interactive) -->
-        <section id="showcase" style="padding: 6rem 0;">
+        <!-- POSTER SHOWCASE -->
+        <section id="showcase">
             <div class="container">
                 <div class="section-header">
                     <h2>2024 Pilot Showcase</h2>
-                    <p style="color:var(--text-gray)">Click any poster to view details and download the PDF.</p>
+                    <p style="color:var(--text-muted)">Click any poster to view details.</p>
                 </div>
                 
-                <div class="poster-grid">
+                <div class="grid">
                     <!-- Poster 1 -->
-                    <div class="poster-card" onclick="openModal('https://via.placeholder.com/600x800/1e293b/2dd4bf?text=Discharge+Summaries+Poster', 'LLM Discharge Summaries')">
+                    <div class="poster-card" onclick="openModal('https://via.placeholder.com/600x800/1e293b/2dd4bf?text=Discharge+Poster', 'LLM Discharge Summaries')">
                         <div class="poster-overlay">
                             <span style="font-size:2rem;">🔍</span>
                             <h4 style="color:white; margin-top:1rem;">View Poster</h4>
                         </div>
-                        <div style="padding:2rem; text-align:center; height:100%; display:flex; flex-direction:column; justify-content:center;">
-                            <h4 style="color:var(--tensor-teal)">LLM Discharge Summaries</h4>
-                            <p style="font-size:0.8rem; color:var(--text-gray); margin-top:0.5rem;">Analyzing 500k notes for risk stratification</p>
+                        <div class="poster-content">
+                            <h4 style="color:var(--primary); margin-bottom:0.5rem;">LLM Discharge Summaries</h4>
+                            <p style="font-size:0.85rem; color:var(--text-muted);">Analyzing 500k notes for risk stratification</p>
                         </div>
                     </div>
                     <!-- Poster 2 -->
-                    <div class="poster-card" onclick="openModal('https://via.placeholder.com/600x800/1e293b/8b5cf6?text=Synthetic+MRI+Poster', 'Synthetic MRI Generation')">
+                    <div class="poster-card" onclick="openModal('https://via.placeholder.com/600x800/1e293b/8b5cf6?text=MRI+Poster', 'Synthetic MRI Generation')">
                         <div class="poster-overlay">
                             <span style="font-size:2rem;">🔍</span>
                             <h4 style="color:white; margin-top:1rem;">View Poster</h4>
                         </div>
-                        <div style="padding:2rem; text-align:center; height:100%; display:flex; flex-direction:column; justify-content:center;">
-                            <h4 style="color:var(--tensor-teal)">Synthetic MRI Data</h4>
-                            <p style="font-size:0.8rem; color:var(--text-gray); margin-top:0.5rem;">Improving MS lesion detection with GANs</p>
+                        <div class="poster-content">
+                            <h4 style="color:var(--primary); margin-bottom:0.5rem;">Synthetic MRI Data</h4>
+                            <p style="font-size:0.85rem; color:var(--text-muted);">Improving MS lesion detection with GANs</p>
                         </div>
                     </div>
                     <!-- Poster 3 -->
-                    <div class="poster-card" onclick="openModal('https://via.placeholder.com/600x800/1e293b/2dd4bf?text=Voice+Biomarkers+Poster', 'Voice Biomarkers')">
+                    <div class="poster-card" onclick="openModal('https://via.placeholder.com/600x800/1e293b/2dd4bf?text=Voice+Poster', 'Voice Biomarkers')">
                         <div class="poster-overlay">
                             <span style="font-size:2rem;">🔍</span>
                             <h4 style="color:white; margin-top:1rem;">View Poster</h4>
                         </div>
-                        <div style="padding:2rem; text-align:center; height:100%; display:flex; flex-direction:column; justify-content:center;">
-                            <h4 style="color:var(--tensor-teal)">Voice Biomarkers</h4>
-                            <p style="font-size:0.8rem; color:var(--text-gray); margin-top:0.5rem;">Predicting depression from audio signals</p>
+                        <div class="poster-content">
+                            <h4 style="color:var(--primary); margin-bottom:0.5rem;">Voice Biomarkers</h4>
+                            <p style="font-size:0.85rem; color:var(--text-muted);">Predicting depression from audio signals</p>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- MARKETPLACE (Restored Filters & Projects) -->
-        <section id="marketplace" class="container" style="padding: 4rem 1rem 8rem;">
-            <div class="section-header">
-                <h2>Mission Marketplace</h2>
-                <p>Select your domain. Apply for the Summer 2025 cohort.</p>
-            </div>
+        <!-- MARKETPLACE -->
+        <section id="marketplace">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Mission Marketplace</h2>
+                    <p style="color:var(--text-muted)">Select your domain. Apply for the Summer 2025 cohort.</p>
+                </div>
 
-            <!-- FILTER CONTROLS -->
-            <div class="filter-bar">
-                <button class="filter-btn active" onclick="filterProjects('all')">All Systems</button>
-                <button class="filter-btn" onclick="filterProjects('vision')">Computer Vision</button>
-                <button class="filter-btn" onclick="filterProjects('llm')">LLMs / NLP</button>
-                <button class="filter-btn" onclick="filterProjects('predict')">Prediction</button>
-                <button class="filter-btn" onclick="filterProjects('genomics')">Genomics</button>
-            </div>
-            
-            <div class="project-grid">
+                <div class="filter-bar">
+                    <button class="filter-btn active" onclick="filterProjects('all')">All Systems</button>
+                    <button class="filter-btn" onclick="filterProjects('vision')">Computer Vision</button>
+                    <button class="filter-btn" onclick="filterProjects('llm')">LLMs / NLP</button>
+                    <button class="filter-btn" onclick="filterProjects('predict')">Prediction</button>
+                    <button class="filter-btn" onclick="filterProjects('genomics')">Genomics</button>
+                </div>
                 
-                <!-- Project: Rauschecker (Vision) -->
-                <div class="project-card" data-category="vision">
-                    <div class="proj-meta">
-                        <span>Neuroradiology</span>
-                        <span style="color:var(--tensor-teal)">UCSF</span>
+                <div class="grid">
+                    <!-- Projects -->
+                    <div class="card project-card" data-category="vision">
+                        <div class="project-meta"><span>Neuroradiology</span> <span style="color:var(--primary)">UCSF</span></div>
+                        <h3 style="margin-bottom:0.5rem;">Brain MRI Segmentation</h3>
+                        <p style="color:var(--text-muted); font-size:0.9rem;">Improve segmentation accuracy for small lesions using Synthetic Data.</p>
+                        <div class="tech">Python, PyTorch, U-Net, GANs</div>
                     </div>
-                    <h3 style="color:white; margin-bottom:0.5rem;">Brain MRI Segmentation</h3>
-                    <p style="color:var(--text-gray); font-size:0.9rem; margin-bottom:1rem;">Improve segmentation accuracy for small lesions in MS and brain cancer using Synthetic Data.</p>
-                    <div class="tech-stack">Stack: Python, PyTorch, U-Net, GANs</div>
-                </div>
 
-                <!-- Project: Snow (Predict/Audio) -->
-                <div class="project-card" data-category="predict">
-                    <div class="proj-meta">
-                        <span>ENT / Head & Neck</span>
-                        <span style="color:var(--tensor-teal)">UMSOM</span>
+                    <div class="card project-card" data-category="predict">
+                        <div class="project-meta"><span>ENT / Head & Neck</span> <span style="color:var(--primary)">UMSOM</span></div>
+                        <h3 style="margin-bottom:0.5rem;">Voice Biomarkers</h3>
+                        <p style="color:var(--text-muted); font-size:0.9rem;">Predict depression and anxiety scores from voice recordings.</p>
+                        <div class="tech">Audio Processing, Transformers</div>
                     </div>
-                    <h3 style="color:white; margin-bottom:0.5rem;">Voice Biomarkers</h3>
-                    <p style="color:var(--text-gray); font-size:0.9rem; margin-bottom:1rem;">Predict depression and anxiety scores from voice recordings; classify respiratory disease from cough audio.</p>
-                    <div class="tech-stack">Stack: Audio Processing, Transformers</div>
-                </div>
 
-                <!-- Project: Schulte (LLM) -->
-                <div class="project-card" data-category="llm">
-                    <div class="proj-meta">
-                        <span>Oncology</span>
-                        <span style="color:var(--tensor-teal)">UCSF</span>
+                    <div class="card project-card" data-category="llm">
+                        <div class="project-meta"><span>Oncology</span> <span style="color:var(--primary)">UCSF</span></div>
+                        <h3 style="margin-bottom:0.5rem;">Clinical Trial Consent AI</h3>
+                        <p style="color:var(--text-muted); font-size:0.9rem;">Simplify complex clinical trial consent forms using LLMs.</p>
+                        <div class="tech">OpenAI API, LangChain, RAG</div>
                     </div>
-                    <h3 style="color:white; margin-bottom:0.5rem;">Clinical Trial Consent AI</h3>
-                    <p style="color:var(--text-gray); font-size:0.9rem; margin-bottom:1rem;">Simplify complex clinical trial consent forms using LLMs. Build assistants to harmonize treatment guidelines.</p>
-                    <div class="tech-stack">Stack: OpenAI API, LangChain, RAG</div>
-                </div>
 
-                <!-- Project: Zhu (Genomics) -->
-                <div class="project-card" data-category="genomics">
-                    <div class="proj-meta">
-                        <span>Genitourinary Oncology</span>
-                        <span style="color:var(--tensor-teal)">UCSF</span>
+                    <div class="card project-card" data-category="genomics">
+                        <div class="project-meta"><span>Genitourinary</span> <span style="color:var(--primary)">UCSF</span></div>
+                        <h3 style="margin-bottom:0.5rem;">Genomic Pattern Analysis</h3>
+                        <p style="color:var(--text-muted); font-size:0.9rem;">Analyze cancer genomic data to identify actionable patterns.</p>
+                        <div class="tech">R, Seurat, Python, Clustering</div>
                     </div>
-                    <h3 style="color:white; margin-bottom:0.5rem;">Genomic Pattern Analysis</h3>
-                    <p style="color:var(--text-gray); font-size:0.9rem; margin-bottom:1rem;">Analyze cancer genomic data to identify actionable patterns. Use single-cell sequencing for tumor profiles.</p>
-                    <div class="tech-stack">Stack: R, Seurat, Python, Clustering</div>
-                </div>
 
-                <!-- Project: Tison (Predict/Signal) -->
-                <div class="project-card" data-category="predict">
-                    <div class="proj-meta">
-                        <span>Cardiology</span>
-                        <span style="color:var(--tensor-teal)">UCSF</span>
+                    <div class="card project-card" data-category="predict">
+                        <div class="project-meta"><span>Cardiology</span> <span style="color:var(--primary)">UCSF</span></div>
+                        <h3 style="margin-bottom:0.5rem;">ECG Signal Processing</h3>
+                        <p style="color:var(--text-muted); font-size:0.9rem;">Reduce false positives in continuous ECG monitoring.</p>
+                        <div class="tech">Time Series Analysis, Signal Processing</div>
                     </div>
-                    <h3 style="color:white; margin-bottom:0.5rem;">ECG Signal Processing</h3>
-                    <p style="color:var(--text-gray); font-size:0.9rem; margin-bottom:1rem;">Reduce false positives in continuous ECG monitoring. Uncover latent phenotypes in telemetry data.</p>
-                    <div class="tech-stack">Stack: Time Series Analysis, Signal Processing</div>
-                </div>
 
-                <!-- Project: Campbell (Predict) -->
-                <div class="project-card" data-category="predict">
-                    <div class="proj-meta">
-                        <span>Emergency Medicine</span>
-                        <span style="color:var(--tensor-teal)">Kaiser</span>
+                    <div class="card project-card" data-category="predict">
+                        <div class="project-meta"><span>Emergency Med</span> <span style="color:var(--primary)">Kaiser</span></div>
+                        <h3 style="margin-bottom:0.5rem;">Cancer Outcome Prediction</h3>
+                        <p style="color:var(--text-muted); font-size:0.9rem;">Develop breast cancer outcome predictors from digital pathology.</p>
+                        <div class="tech">Scikit-Learn, Predictive Modeling</div>
                     </div>
-                    <h3 style="color:white; margin-bottom:0.5rem;">Cancer Outcome Prediction</h3>
-                    <p style="color:var(--text-gray); font-size:0.9rem; margin-bottom:1rem;">Develop breast cancer outcome predictors from digital pathology and clinical data.</p>
-                    <div class="tech-stack">Stack: Scikit-Learn, Predictive Modeling</div>
                 </div>
-
             </div>
         </section>
 
     </main>
 
-    <!-- FOOTER -->
-    <footer style="border-top: 1px solid var(--glass-border); padding: 4rem 0; background: #020617;">
-        <div class="container" style="text-align: center; color: var(--text-gray); font-size: 0.9rem;">
-            <p style="margin-bottom: 1rem;">The Tensor Lab for Computational Medicine</p>
-            <div style="margin-bottom: 2rem;">
-                <a href="#" style="margin: 0 10px;">Twitter</a> • 
-                <a href="#" style="margin: 0 10px;">Discord</a> • 
-                <a href="#" style="margin: 0 10px;">GitHub</a>
+    <footer>
+        <div class="container">
+            <div class="socials">
+                <a href="#">Twitter</a> • <a href="#">Discord</a> • <a href="#">GitHub</a>
             </div>
-            <p style="opacity: 0.6;">Unless otherwise noted, all code is licensed under MIT License.</p>
+            <p>The Tensor Lab for Computational Medicine &copy; 2025</p>
         </div>
     </footer>
 
-    <!-- MODAL CONTAINER -->
-    <div id="poster-modal" class="modal">
-        <span class="modal-close" onclick="closeModal()">&times;</span>
-        <img id="modal-img" class="modal-content" src="" alt="Poster Full Screen">
-        <div id="modal-caption" class="modal-caption"></div>
-        <button class="download-btn">Download PDF</button>
+    <!-- MODAL -->
+    <div id="poster-modal" class="modal" onclick="closeModal(event)">
+        <span class="close-modal" onclick="closeModal(event)">&times;</span>
+        <img id="modal-img" class="modal-content" src="" alt="Poster">
+        <div id="modal-caption" style="color:white; margin-top:1rem; font-size:1.2rem;"></div>
+        <button class="btn" style="margin-top:1rem; border:1px solid white; background:transparent;">Download PDF</button>
     </div>
 
-    <!-- JAVASCRIPT -->
     <script>
-        // --- FILTERING LOGIC ---
         function filterProjects(category) {
-            // Update Buttons
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
-
-            // Update Grid
-            const cards = document.querySelectorAll('.project-card');
-            cards.forEach(card => {
-                if (category === 'all' || card.dataset.category === category) {
-                    card.style.display = 'flex';
-                } else {
-                    card.style.display = 'none';
-                }
+            document.querySelectorAll('.project-card').forEach(card => {
+                card.style.display = (category === 'all' || card.dataset.category === category) ? 'flex' : 'none';
             });
         }
 
-        // --- MODAL LOGIC ---
         const modal = document.getElementById("poster-modal");
-        const modalImg = document.getElementById("modal-img");
-        const captionText = document.getElementById("modal-caption");
-
         function openModal(src, title) {
             modal.style.display = "flex";
-            modalImg.src = src;
-            captionText.innerHTML = title;
+            document.getElementById("modal-img").src = src;
+            document.getElementById("modal-caption").innerText = title;
         }
-
-        function closeModal() {
-            modal.style.display = "none";
-        }
-
-        // Close modal when clicking outside image
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = "none";
-            }
+        function closeModal(e) {
+            if(e.target === modal || e.target.classList.contains('close-modal')) modal.style.display = "none";
         }
     </script>
 
