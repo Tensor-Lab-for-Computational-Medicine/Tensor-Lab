@@ -49,7 +49,7 @@ button { font-family: inherit; }
     position: fixed;
     inset: 0;
     z-index: -1;
-    background-image: url('NASA Photos/overlay.jpg');
+    background-image: url('NASA Photos/Creation.jpg');
     background-size: cover;
     background-position: center;
     opacity: 0.25; /* Increased opacity for visibility */
@@ -365,7 +365,7 @@ section { padding: 6rem 0; }
     border-top: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
 }
-.about-text-container { max-width: 750px; margin: 0 auto; text-align: center; line-height: 1.8; }
+.about-text-container { max-width: 750px; margin: 0 auto; text-align: left; line-height: 1.8; }
 .about-text-container p { font-size: 1.05rem; color: var(--text-muted); line-height: 1.8; }
 .gap-grid {
     display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 3rem; text-align: left;
