@@ -14,17 +14,17 @@ let nebulas = [];
 let shootingStars = [];
 
 // Configuration - Performance Optimized
-const numStars = 300; // Reduced from 800 for performance
-const starSpeed = 0.15; 
+const numStars = 200; // Reduced from 300 for cleaner look
+const starSpeed = 0.02; // Much slower for professional feel
 const fov = 400;
 
-// Palette
+// Palette - Muted & Professional
 const colors = [
     { r: 255, g: 255, b: 255 }, // White
-    { r: 45, g: 212, b: 191 },  // Cyan (Brand)
-    { r: 139, g: 92, b: 246 },  // Purple (Brand)
-    { r: 236, g: 72, b: 153 },  // Pink
-    { r: 59, g: 130, b: 246 }   // Blue
+    { r: 45, g: 212, b: 191 },  // Cyan (Brand) - Muted
+    { r: 167, g: 139, b: 250 }, // Soft Purple (Brand) - Muted
+    { r: 148, g: 163, b: 184 }, // Slate-400 (Greyish Blue)
+    { r: 56, g: 189, b: 248 }   // Sky Blue
 ];
 
 const random = (min, max) => Math.random() * (max - min) + min;
@@ -127,7 +127,7 @@ class Constellation {
         if (cx < -200 || cx > width + 200 || cy < -200 || cy > height + 200) return;
 
         ctx.strokeStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha * 0.4})`;
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 0.5; // Thinner lines
         ctx.beginPath();
 
         const projectedPoints = this.points.map(p => ({
@@ -150,14 +150,10 @@ class Constellation {
         projectedPoints.forEach(p => {
             ctx.beginPath();
             ctx.fillStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha})`;
-            ctx.arc(p.x, p.y, 3 * scale, 0, Math.PI * 2);
+            ctx.arc(p.x, p.y, 1.5 * scale, 0, Math.PI * 2); // Smaller nodes
             ctx.fill();
             
-            // Node Glow
-            ctx.beginPath();
-            ctx.fillStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha * 0.3})`;
-            ctx.arc(p.x, p.y, 8 * scale, 0, Math.PI * 2);
-            ctx.fill();
+            // Removed Node Glow for cleaner look
         });
     }
 }
