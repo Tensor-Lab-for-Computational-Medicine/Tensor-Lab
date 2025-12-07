@@ -372,6 +372,13 @@ section { padding: 6rem 0; }
 }
 .gap-card {
     background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: 0.75rem; border-left: 3px solid var(--primary);
+    transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s; cursor: default;
+}
+.gap-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px -10px rgba(45, 212, 191, 0.2);
+    border-left-color: var(--secondary);
+    background: rgba(255,255,255,0.05);
 }
 
 /* Leadership */

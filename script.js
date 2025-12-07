@@ -386,3 +386,25 @@ function filterProjects(category) {
         }
     });
 }
+
+function filterFAQ(category) {
+    const buttons = document.querySelectorAll('#faq .filter-btn');
+    buttons.forEach(btn => {
+        if (btn.getAttribute('onclick').includes(`'${category}'`)) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    const items = document.querySelectorAll('.faq-item');
+    items.forEach(item => {
+        const itemCategory = item.getAttribute('data-category');
+        if (category === 'all' || itemCategory === category || itemCategory === 'all') {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+            item.removeAttribute('open'); // Close if hidden
+        }
+    });
+}
