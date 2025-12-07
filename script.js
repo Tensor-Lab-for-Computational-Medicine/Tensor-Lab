@@ -7,25 +7,23 @@ let mouseY = 0;
 let targetMouseX = 0;
 let targetMouseY = 0;
 
-let entities = []; // Unified entity list for sorting by depth if needed
 let stars = [];
 let planets = [];
 let constellations = [];
 let nebulas = [];
 let shootingStars = [];
 
-// Configuration
-const numStars = 500;
-const starSpeed = 0.1; // Base speed
-const fov = 300; // Field of view for projection
+// Configuration - Performance Optimized
+const numStars = 300; // Reduced from 800 for performance
+const starSpeed = 0.15; 
+const fov = 400;
 
-// Expanded Palette
+// Palette
 const colors = [
     { r: 255, g: 255, b: 255 }, // White
     { r: 45, g: 212, b: 191 },  // Cyan (Brand)
     { r: 139, g: 92, b: 246 },  // Purple (Brand)
     { r: 236, g: 72, b: 153 },  // Pink
-    { r: 245, g: 158, b: 11 },  // Amber
     { r: 59, g: 130, b: 246 }   // Blue
 ];
 
@@ -43,134 +41,48 @@ class Star {
         this.x = random(-width, width);
         this.y = random(-height, height);
         this.z = random(0, width);
-        this.size = random(0.2, 2.0); // Increased max size for variety
+        this.size = random(0.5, 2.5); // Larger stars
         
-        // Color chance
-        const c = Math.random() > 0.7 ? randomColor() : colors[0];
+        const c = Math.random() > 0.7 ? randomColor() : colors[0]; // More colored stars
         this.rgb = `${c.r}, ${c.g}, ${c.b}`;
-        this.opacity = random(0.4, 1);
+        this.opacity = random(0.5, 1.0); // Brighter
 
-        // Visual variety: Some stars are 4-pointed "flares"
-        this.isFlare = this.size > 1.2 && Math.random() > 0.6;
-        // Twinkle offset
         this.twinkleOffset = Math.random() * 1000;
-        this.twinkleSpeed = random(0.002, 0.005);
+        this.twinkleSpeed = random(0.005, 0.015); // Faster twinkle
     }
 
     update() {
-        this.z -= starSpeed * 5;
+        this.z -= starSpeed * 10; // Much faster movement
         if (this.z < 1) {
             this.init();
-            this.z = width; // Respawn at back
+            this.z = width; 
         }
     }
 
     draw() {
-        // 3D Projection
         const scale = fov / (this.z + fov);
         const x2d = this.x * scale + width / 2 + mouseX * scale;
         const y2d = this.y * scale + height / 2 + mouseY * scale;
         
         if (x2d < 0 || x2d > width || y2d < 0 || y2d > height) return;
 
-        // Scale size by proximity
         const r = this.size * scale * 2;
-        
-        // Fade logic
         const depthRatio = this.z / width;
         let alpha = this.opacity * (1 - depthRatio * depthRatio);
         
-        // Twinkle effect
         const twinkle = Math.sin(Date.now() * this.twinkleSpeed + this.twinkleOffset) * 0.3 + 0.7;
         alpha *= twinkle;
 
-        // Fade out near camera to prevent popping
-        if (this.z < 100) {
-            alpha *= (this.z / 100);
-        }
+        if (this.z < 100) alpha *= (this.z / 100);
 
         ctx.beginPath();
         ctx.fillStyle = `rgba(${this.rgb}, ${alpha})`;
-
-        if (this.isFlare) {
-            // Draw sparkly 4-pointed star (hypocycloid-ish)
-            const spikeLen = r * 2;
-            ctx.moveTo(x2d, y2d - spikeLen);
-            ctx.quadraticCurveTo(x2d, y2d, x2d + spikeLen, y2d);
-            ctx.quadraticCurveTo(x2d, y2d, x2d, y2d + spikeLen);
-            ctx.quadraticCurveTo(x2d, y2d, x2d - spikeLen, y2d);
-            ctx.quadraticCurveTo(x2d, y2d, x2d, y2d - spikeLen);
-        } else {
-            // Standard circular star
-            ctx.arc(x2d, y2d, r, 0, Math.PI * 2);
-        }
-        ctx.fill();
-    }
-}
-
-class Planet {
-    constructor() {
-        this.reset();
-        // Start some planets closer
-        this.z = random(width * 0.5, width * 2); 
-    }
-
-    reset() {
-        // Spawn far away
-        this.x = random(-width * 2, width * 2);
-        this.y = random(-height * 2, height * 2);
-        this.z = width * 2; // Start very far
-        this.radius = random(20, 60);
-        const c = randomColor();
-        this.color = c;
-        this.hasRings = Math.random() > 0.5;
-        this.angle = random(0, Math.PI * 2);
-    }
-
-    update() {
-        this.z -= starSpeed * 2; // Planets move slower (parallax)
-        if (this.z < 1) { // Allow getting much closer before reset
-            this.reset();
-        }
-    }
-
-    draw() {
-        const scale = fov / (this.z + fov);
-        const x2d = this.x * scale + width / 2 + mouseX * scale;
-        const y2d = this.y * scale + height / 2 + mouseY * scale;
-        const r = this.radius * scale;
-
-        if (x2d < -r || x2d > width + r || y2d < -r || y2d > height + r) return;
-
-        // Fade out when getting too close to avoid popping/pixelation
-        let alpha = 1;
-        if (this.z < 100) {
-            alpha = Math.max(0, this.z / 100);
-        }
-
-        ctx.save();
-        ctx.globalAlpha = alpha;
-
-        // Planet Body Gradient
-        const grad = ctx.createRadialGradient(x2d - r/3, y2d - r/3, r/5, x2d, y2d, r);
-        grad.addColorStop(0, `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, 1)`);
-        grad.addColorStop(1, 'rgba(10, 10, 20, 1)');
-
-        ctx.beginPath();
-        ctx.fillStyle = grad;
+        // Optimization: Removed shadowBlur for performance
+        // ctx.shadowBlur = r * 2; 
+        // ctx.shadowColor = `rgba(${this.rgb}, ${alpha})`;
         ctx.arc(x2d, y2d, r, 0, Math.PI * 2);
         ctx.fill();
-
-        // Rings
-        if (this.hasRings) {
-            ctx.beginPath();
-            ctx.strokeStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, 0.6)`;
-            ctx.lineWidth = r * 0.2;
-            // Ellipse for ring
-            ctx.ellipse(x2d, y2d, r * 2, r * 0.6, this.angle, 0, Math.PI * 2);
-            ctx.stroke();
-        }
-        ctx.restore();
+        // ctx.shadowBlur = 0;
     }
 }
 
@@ -185,19 +97,18 @@ class Constellation {
         this.y = random(-height, height);
         this.z = width;
         this.points = [];
-        // Generate a random shape of 3-6 stars
-        const numPoints = Math.floor(random(3, 7));
+        const numPoints = Math.floor(random(3, 6));
         for(let i=0; i<numPoints; i++) {
             this.points.push({
-                ox: random(-100, 100), // Offset X
-                oy: random(-100, 100)  // Offset Y
+                ox: random(-150, 150), 
+                oy: random(-150, 150)
             });
         }
         this.color = randomColor();
     }
 
     update() {
-        this.z -= starSpeed * 5;
+        this.z -= starSpeed * 10;
         if (this.z < 1) {
             this.reset();
         }
@@ -208,19 +119,15 @@ class Constellation {
         const cx = this.x * scale + width / 2 + mouseX * scale;
         const cy = this.y * scale + height / 2 + mouseY * scale;
         
-        // Fade logic
         const depthRatio = this.z / width;
-        let alpha = (1 - depthRatio * depthRatio);
+        let alpha = (1 - depthRatio * depthRatio) * 0.8; // More visible
 
-        // Near camera fade
-        if (this.z < 100) {
-            alpha *= (this.z / 100);
-        }
+        if (this.z < 100) alpha *= (this.z / 100);
 
-        if (cx < -100 || cx > width + 100 || cy < -100 || cy > height + 100) return;
+        if (cx < -200 || cx > width + 200 || cy < -200 || cy > height + 200) return;
 
         ctx.strokeStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha * 0.4})`;
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
 
         const projectedPoints = this.points.map(p => ({
@@ -228,141 +135,30 @@ class Constellation {
             y: cy + p.oy * scale
         }));
 
-        // Connect points
         ctx.moveTo(projectedPoints[0].x, projectedPoints[0].y);
         for(let i=1; i<projectedPoints.length; i++) {
             ctx.lineTo(projectedPoints[i].x, projectedPoints[i].y);
         }
-        // Close loop for network effect
         ctx.lineTo(projectedPoints[0].x, projectedPoints[0].y);
         
-        // Connect random cross points for "tensor" density
         if (projectedPoints.length > 3) {
              ctx.moveTo(projectedPoints[0].x, projectedPoints[0].y);
              ctx.lineTo(projectedPoints[2].x, projectedPoints[2].y);
         }
         ctx.stroke();
 
-        // Draw 'nodes' (stars) at points
         projectedPoints.forEach(p => {
-            // Core
             ctx.beginPath();
             ctx.fillStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha})`;
             ctx.arc(p.x, p.y, 3 * scale, 0, Math.PI * 2);
             ctx.fill();
             
-            // Glow effect on nodes
-            const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 8 * scale);
-            glow.addColorStop(0, `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha * 0.4})`);
-            glow.addColorStop(1, `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, 0)`);
-            ctx.fillStyle = glow;
+            // Node Glow
             ctx.beginPath();
+            ctx.fillStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha * 0.3})`;
             ctx.arc(p.x, p.y, 8 * scale, 0, Math.PI * 2);
             ctx.fill();
         });
-    }
-}
-
-class Nebula {
-    constructor() {
-        this.init();
-    }
-
-    init() {
-        this.x = random(0, width);
-        this.y = random(0, height);
-        this.radius = random(width * 0.2, width * 0.5);
-        const c = randomColor();
-        this.rgb = `${c.r}, ${c.g}, ${c.b}`;
-        this.vx = random(-0.1, 0.1);
-        this.vy = random(-0.1, 0.1);
-        this.opacity = 0;
-        this.targetOpacity = random(0.05, 0.1); // Keep subtle
-        this.fadeIn = true;
-    }
-
-    update() {
-        this.x += this.vx;
-        this.y += this.vy;
-        if (this.x < -this.radius || this.x > width + this.radius) this.vx *= -1;
-        if (this.y < -this.radius || this.y > height + this.radius) this.vy *= -1;
-
-        if (this.fadeIn) {
-            this.opacity += 0.0005;
-            if (this.opacity >= this.targetOpacity) this.fadeIn = false;
-        } else {
-            this.opacity -= 0.0005;
-            if (this.opacity <= 0) {
-                this.fadeIn = true;
-                this.init();
-            }
-        }
-    }
-
-    draw() {
-        // Check if offscreen to save perf
-        if (this.opacity <= 0) return;
-        
-        const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
-        gradient.addColorStop(0, `rgba(${this.rgb}, ${this.opacity})`);
-        gradient.addColorStop(1, `rgba(${this.rgb}, 0)`);
-
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, width, height);
-    }
-}
-
-class ShootingStar {
-    constructor() {
-        this.reset();
-    }
-
-    reset() {
-        this.x = random(0, width);
-        this.y = random(0, height / 2);
-        this.len = random(100, 300);
-        this.speed = random(10, 25);
-        this.size = random(0.5, 2);
-        this.angle = random(Math.PI / 4, Math.PI / 3);
-        this.active = false;
-        this.waitTime = random(100, 600);
-        const c = randomColor();
-        this.color = `rgba(${c.r}, ${c.g}, ${c.b}`;
-    }
-
-    update() {
-        if (this.active) {
-            this.x += Math.cos(this.angle) * this.speed;
-            this.y += Math.sin(this.angle) * this.speed;
-            this.len -= this.speed * 0.4;
-
-            if (this.x > width || this.y > height || this.len < 0) {
-                this.active = false;
-                this.reset();
-            }
-        } else {
-            this.waitTime--;
-            if (this.waitTime <= 0) this.active = true;
-        }
-    }
-
-    draw() {
-        if (!this.active) return;
-        
-        const tailX = this.x - Math.cos(this.angle) * this.len;
-        const tailY = this.y - Math.sin(this.angle) * this.len;
-
-        const gradient = ctx.createLinearGradient(this.x, this.y, tailX, tailY);
-        gradient.addColorStop(0, `${this.color}, 1)`);
-        gradient.addColorStop(1, `${this.color}, 0)`);
-
-        ctx.beginPath();
-        ctx.strokeStyle = gradient;
-        ctx.lineWidth = this.size;
-        ctx.lineCap = 'round';
-        ctx.moveTo(this.x, this.y);
-        ctx.lineTo(tailX, tailY);
-        ctx.stroke();
     }
 }
 
@@ -374,17 +170,8 @@ function init() {
     stars = [];
     for (let i = 0; i < numStars; i++) stars.push(new Star());
 
-    nebulas = [];
-    for (let i = 0; i < 4; i++) nebulas.push(new Nebula());
-
-    planets = [];
-    for (let i = 0; i < 3; i++) planets.push(new Planet()); // Few planets
-
     constellations = [];
-    for (let i = 0; i < 5; i++) constellations.push(new Constellation());
-
-    shootingStars = [];
-    for (let i = 0; i < 2; i++) shootingStars.push(new ShootingStar());
+    for (let i = 0; i < 5; i++) constellations.push(new Constellation()); // More constellations
 
     animate();
 }
@@ -399,42 +186,21 @@ function resize() {
 function animate() {
     ctx.clearRect(0, 0, width, height);
 
-    // Smooth mouse movement
     mouseX += (targetMouseX - mouseX) * 0.1;
     mouseY += (targetMouseY - mouseY) * 0.1;
 
-    // Layer 1: Nebulas (Background)
-    ctx.globalCompositeOperation = 'screen';
-    nebulas.forEach(n => { n.update(); n.draw(); });
-    
-    // Layer 2: Stars & Constellations & Planets (Sorted by Z for depth correctness)
-    // Note: Simple painter's algo: draw furthest first
-    // Merging lists for sorting is expensive every frame, so we layer by type roughly
-    // or just accept some overlap quirkiness for performance.
-    // Given sparse planets, explicit z-sorting isn't super critical but let's be clean.
-    
-    ctx.globalCompositeOperation = 'source-over';
-    
-    // Just draw constellations first (they are wireframes)
+    // Draw constellations
     constellations.forEach(c => { c.update(); c.draw(); });
     
-    // Planets behind some stars, in front of others? 
-    // Actually, since stars are points, drawing planets first is safer so stars don't get hidden behind transparent parts?
-    // Let's just draw planets, then stars.
-    planets.forEach(p => { p.update(); p.draw(); });
+    // Draw stars
     stars.forEach(s => { s.update(); s.draw(); });
 
-    // Layer 3: Shooting Stars (Foreground FX)
-    ctx.globalCompositeOperation = 'lighter';
-    shootingStars.forEach(s => { s.update(); s.draw(); });
-    
-    ctx.globalCompositeOperation = 'source-over';
     requestAnimationFrame(animate);
 }
 
 window.addEventListener('resize', resize);
 window.addEventListener('mousemove', (e) => {
-    targetMouseX = (e.clientX - width / 2) * 0.05; // Sensitivity
+    targetMouseX = (e.clientX - width / 2) * 0.05;
     targetMouseY = (e.clientY - height / 2) * 0.05;
 });
 
@@ -544,20 +310,6 @@ function setupScrollAnimations() {
     });
 }
 
-
-// --- Site Logic (Preserved) ---
-
-function filterProjects(category) {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    const e = window.event;
-    if (e && e.target) {
-         e.target.classList.add('active');
-    }
-    document.querySelectorAll('.project-card').forEach(card => {
-        card.style.display = (category === 'all' || card.dataset.category === category) ? 'flex' : 'none';
-    });
-}
-
 function openModal(src, title) {
     const m = document.getElementById("poster-modal");
     m.style.display = "flex";
@@ -578,17 +330,7 @@ function closeModal(e) {
     if (e.target.classList.contains('modal') || e.target.classList.contains('close-modal')) {
         document.getElementById("poster-modal").style.display = "none";
         const frame = document.getElementById("modal-frame");
-        if (frame) frame.src = ""; // Clear source to stop loading/playing
-    }
-}
-
-// --- New Interactive Features ---
-
-function scrollTestimonials(direction) {
-    const grid = document.querySelector('.testimonial-grid');
-    if (grid) {
-        const scrollAmount = 350 + 32; // card width + gap
-        grid.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+        if (frame) frame.src = ""; 
     }
 }
 
@@ -598,9 +340,11 @@ function setupStatsAnimation() {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 const target = entry.target;
-                const value = parseInt(target.innerText.replace('%', ''));
-                if (!isNaN(value)) {
-                    animateValue(target, 0, value, 2000);
+                const finalValue = parseInt(target.getAttribute('data-value'));
+                const hasPercent = target.innerText.includes('%');
+                
+                if (!isNaN(finalValue)) {
+                    animateValue(target, 0, finalValue, 2000, hasPercent);
                 }
                 observer.unobserve(target);
             }
@@ -610,18 +354,39 @@ function setupStatsAnimation() {
     stats.forEach(stat => observer.observe(stat));
 }
 
-function animateValue(obj, start, end, duration) {
+function animateValue(obj, start, end, duration, hasPercent) {
     let startTimestamp = null;
     const step = (timestamp) => {
         if (!startTimestamp) startTimestamp = timestamp;
         const progress = Math.min((timestamp - startTimestamp) / duration, 1);
         const current = Math.floor(progress * (end - start) + start);
-        obj.innerHTML = current + "%";
+        obj.innerHTML = current + (hasPercent ? "%" : "");
         if (progress < 1) {
             window.requestAnimationFrame(step);
         } else {
-            obj.innerHTML = end + "%";
+            obj.innerHTML = end + (hasPercent ? "%" : "");
         }
     };
     window.requestAnimationFrame(step);
+}
+
+function filterProjects(category) {
+    const buttons = document.querySelectorAll('.filter-btn');
+    buttons.forEach(btn => {
+        if (btn.getAttribute('onclick').includes(`'${category}'`)) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    const cards = document.querySelectorAll('.project-card');
+    cards.forEach(card => {
+        const cardCategory = card.getAttribute('data-category');
+        if (category === 'all' || cardCategory === category) {
+            card.style.display = 'flex';
+        } else {
+            card.style.display = 'none';
+        }
+    });
 }
