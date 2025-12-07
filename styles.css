@@ -217,24 +217,29 @@ nav { display: flex; justify-content: space-between; align-items: center; }
 .hero-bullets {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
+    gap: 2rem;
+    justify-content: center;
+    margin-top: 2rem;
 }
 .hero-bullet {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.5rem 0.85rem;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--border);
+    gap: 0.5rem;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    border: none;
     font-size: 0.95rem;
-    color: var(--text);
+    color: var(--text-muted);
     position: relative;
+    letter-spacing: 0.02em;
 }
 .hero-bullet::before {
-    content: "✓";
+    content: "✦";
     color: var(--primary);
-    font-weight: 800;
+    font-weight: 400;
+    font-size: 0.8rem;
+    opacity: 0.8;
 }
 .hero-ctas {
     display: flex;
@@ -891,6 +896,13 @@ footer {
     .hero h1 { font-size: 3rem; }
     .gap-grid { grid-template-columns: 1fr; }
     .testimonial-wall { grid-template-columns: 1fr; }
+    
+    .role-card-detailed {
+        padding: 1.5rem;
+        margin-left: 0;
+        margin-right: 0;
+        width: 100%;
+    }
     
     /* Timeline Mobile */
     .timeline::before { left: 20px; }
