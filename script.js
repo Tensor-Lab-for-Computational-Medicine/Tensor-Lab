@@ -230,8 +230,17 @@ function setupBackToTop() {
 }
 
 function setupActiveNav() {
+    const header = document.querySelector('header');
     const sections = document.querySelectorAll('section');
     const navLinks = document.querySelectorAll('.nav-links a:not(.nav-cta)');
+    
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 50) {
+            header.classList.add('scrolled');
+        } else {
+            header.classList.remove('scrolled');
+        }
+    });
     
     if (!sections.length || !navLinks.length) return;
 

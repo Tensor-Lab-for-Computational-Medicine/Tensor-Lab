@@ -85,17 +85,31 @@ button { font-family: inherit; }
 /* Header */
 header {
     position: sticky; top: 0; z-index: 50;
-    background: rgba(2, 6, 23, 0.85);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--border);
-    padding: 1rem 0;
+    background: rgba(2, 6, 23, 0.7);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 1.2rem 0;
+    transition: padding 0.3s;
+}
+header.scrolled {
+    padding: 0.8rem 0;
+    background: rgba(2, 6, 23, 0.9);
 }
 nav { display: flex; justify-content: space-between; align-items: center; }
 .logo { font-size: 1.25rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem; }
 .logo span { color: var(--primary); font-size: 1.5rem; }
-.nav-links { display: flex; gap: 2rem; font-weight: 500; align-items: center; }
-.nav-links a { padding: 0.5rem 0; border-bottom: 2px solid transparent; }
-.nav-links a:hover, .nav-links a.active { color: var(--primary); border-bottom-color: var(--primary); }
+.nav-links { display: flex; gap: 2.5rem; font-weight: 500; align-items: center; }
+.nav-links a { 
+    padding: 0.5rem 0; 
+    border-bottom: 2px solid transparent; 
+    font-size: 0.95rem;
+    color: var(--text-muted);
+}
+.nav-links a:hover, .nav-links a.active { 
+    color: var(--primary); 
+    text-shadow: 0 0 20px rgba(45, 212, 191, 0.4);
+}
 
 .nav-cta {
     background: var(--gradient);
@@ -166,7 +180,7 @@ nav { display: flex; justify-content: space-between; align-items: center; }
 }
 
 /* Hero */
-.hero { padding: 8rem 0 5rem; text-align: center; position: relative; }
+.hero { padding: 10rem 0 6rem; text-align: center; position: relative; }
 .hero::before {
     content: '';
     position: absolute;
@@ -177,27 +191,28 @@ nav { display: flex; justify-content: space-between; align-items: center; }
     z-index: -1;
     pointer-events: none;
 }
-.hero-copy { display: flex; flex-direction: column; gap: 1.25rem; align-items: center; text-align: center; }
+.hero-copy { display: flex; flex-direction: column; gap: 1.5rem; align-items: center; text-align: center; }
 .eyebrow {
-    font-size: 0.9rem;
-    letter-spacing: 0.08em;
+    font-size: 1rem;
+    letter-spacing: 0.15em;
     text-transform: uppercase;
     color: var(--primary);
     font-weight: 700;
+    margin-bottom: 0.5rem;
 }
 .hero h1 {
-    font-size: clamp(3rem, 7vw, 5rem);
+    font-size: clamp(3.5rem, 8vw, 6rem);
     line-height: 1.1; margin-bottom: 1.5rem;
     letter-spacing: -0.02em;
     background: var(--gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-    text-shadow: 0 0 50px rgba(45, 212, 191, 0.3);
+    text-shadow: 0 0 80px rgba(45, 212, 191, 0.4);
 }
 .hero-subtitle {
-    font-size: 1.35rem;
+    font-size: 1.5rem;
     color: var(--text-muted);
-    font-weight: 400;
+    font-weight: 300;
     max-width: 800px;
-    line-height: 1.5;
+    line-height: 1.6;
 }
 .hero-bullets {
     display: flex;
@@ -267,16 +282,24 @@ nav { display: flex; justify-content: space-between; align-items: center; }
 .btn {
     display: inline-flex; align-items: center; justify-content: center;
     background: var(--gradient); color: white;
-    padding: 0.8rem 2rem; border-radius: 99px;
+    padding: 1rem 2.5rem; border-radius: 99px;
     font-weight: 600; border: none; cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative; overflow: hidden; z-index: 1;
     text-decoration: none;
+    box-shadow: 0 4px 15px rgba(45, 212, 191, 0.3);
+    letter-spacing: 0.02em;
 }
 .btn-secondary {
     background: transparent;
-    border: 1px solid var(--secondary);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     color: var(--text);
+    box-shadow: none;
+}
+.btn-secondary:hover {
+    border-color: var(--primary);
+    background: rgba(45, 212, 191, 0.1);
+    color: white;
 }
 .btn::after {
     content: ''; position: absolute; inset: 0;
@@ -286,7 +309,7 @@ nav { display: flex; justify-content: space-between; align-items: center; }
 .btn:hover::after { opacity: 1; }
 .btn:hover { 
     transform: translateY(-2px); 
-    box-shadow: 0 0 25px rgba(45, 212, 191, 0.5);
+    box-shadow: 0 8px 25px rgba(45, 212, 191, 0.5);
     color: white;
 }
 
@@ -326,7 +349,7 @@ nav { display: flex; justify-content: space-between; align-items: center; }
 .stat-label { font-size: 0.9rem; color: var(--text); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
 
 /* Components */
-section { padding: 6rem 0; }
+section { padding: 8rem 0; }
 section[id] { scroll-margin-top: 90px; }
 .section-header { text-align: center; margin-bottom: 4rem; }
 .section-header h2 { font-size: 2.5rem; margin-bottom: 0.75rem; position: relative; display: inline-block; }
@@ -371,13 +394,13 @@ section[id] { scroll-margin-top: 90px; }
 }
 
 .card {
-    background: rgba(15, 23, 42, 0.6); 
+    background: rgba(15, 23, 42, 0.4); 
     backdrop-filter: blur(16px);
     border: 1px solid var(--border);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.02);
     border-radius: 1rem;
-    padding: 2rem; 
-    transition: 0.3s; 
+    padding: 2.5rem; 
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
     display: flex; 
     flex-direction: column;
     height: 100%;
@@ -391,7 +414,7 @@ section[id] { scroll-margin-top: 90px; }
     top: 0; left: 0; right: 0; bottom: 0;
     background: radial-gradient(
         800px circle at var(--mouse-x) var(--mouse-y),
-        rgba(45, 212, 191, 0.06),
+        rgba(45, 212, 191, 0.08),
         transparent 40%
     );
     z-index: 0;
@@ -406,8 +429,8 @@ section[id] { scroll-margin-top: 90px; }
 
 .card:hover { 
     border-color: var(--primary); 
-    transform: translateY(-4px) scale(1.01); 
-    box-shadow: 0 0 30px rgba(45, 212, 191, 0.2), inset 0 0 20px rgba(45, 212, 191, 0.05);
+    transform: translateY(-5px); 
+    box-shadow: 0 10px 40px -10px rgba(45, 212, 191, 0.15), inset 0 0 20px rgba(45, 212, 191, 0.05);
 }
 
 .tag {
