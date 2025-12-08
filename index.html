@@ -9,7 +9,7 @@
 <body>
 
     <canvas id="starfield"></canvas>
-    <!-- Pillars of Creation Background (Fixed) -->
+    <!-- Pillars of Creation Background (Visible by default) -->
     <div class="starfield-overlay" style="opacity: 0.4; mix-blend-mode: normal;"></div>
 
     <header>
@@ -79,8 +79,7 @@
 
         <!-- ABOUT / CRITICAL GAP -->
         <div class="parallax-wrapper">
-            <!-- Path Fixed: Pointing to root NASA Photos folder -->
-            <div class="parallax-bg" style="background-image: url('NASA Photos/GSFC_20171208_Archive_e000710~orig.jpg');"></div>
+            <div class="parallax-bg" style="background-image: url('NASA%20Photos/GSFC_20171208_Archive_e000710~orig.jpg');"></div>
             <section id="about" class="about-section">
                 <div class="container">
                     <div class="about-text-container">
@@ -112,14 +111,13 @@
                         <!-- Founders Row -->
                         <div class="leadership-grid" style="margin-bottom: 1.5rem; justify-content: center;">
                             <div class="leader-card">
-                                <!-- Path Fixed: Pointing to root Portrait Photos folder -->
-                                <img src="Portrait Photos/Aaron Ge.jpeg" alt="Aaron Ge" class="leader-img" loading="lazy">
+                                <img src="Portrait%20Photos/Aaron%20Ge.jpeg" alt="Aaron Ge" class="leader-img" loading="lazy">
                                 <span class="leader-name">Aaron Ge</span>
                                 <span class="leader-role">Co-Founder & Technical Director<br><span style="font-size: 0.7em; opacity: 0.8; text-transform: none;">University of Maryland School of Medicine</span></span>
                                 <a href="https://www.linkedin.com/in/aaron-ge-6395681b2/" target="_blank" class="leader-link">LinkedIn ↗</a>
                             </div>
                             <div class="leader-card">
-                                <img src="Portrait Photos/Matt Allen.png" alt="Matt Allen" class="leader-img" loading="lazy">
+                                <img src="Portrait%20Photos/Matt%20Allen.png" alt="Matt Allen" class="leader-img" loading="lazy">
                                 <span class="leader-name">Matt Allen</span>
                                 <span class="leader-role">Co-Founder & Executive Director<br><span style="font-size: 0.7em; opacity: 0.8; text-transform: none;">University of California, San Francisco School of Medicine</span></span>
                                 <a href="https://www.linkedin.com/in/matthewallen001/" target="_blank" class="leader-link">LinkedIn ↗</a>
@@ -128,19 +126,19 @@
                         <!-- Directors Row -->
                         <div class="leadership-grid">
                             <div class="leader-card">
-                                <img src="Portrait Photos/Chy Murali.png" alt="Chy Murali" class="leader-img" loading="lazy">
+                                <img src="Portrait%20Photos/Chy%20Murali.png" alt="Chy Murali" class="leader-img" loading="lazy">
                                 <span class="leader-name">Chy Murali</span>
                                 <span class="leader-role">Operational Director<br><span style="font-size: 0.7em; opacity: 0.8; text-transform: none;">University of Maryland School of Medicine</span></span>
                                 <a href="#" target="_blank" class="leader-link">LinkedIn ↗</a>
                             </div>
                             <div class="leader-card">
-                                <img src="Portrait Photos/Gavin Shu.png" alt="Gavin Shu" class="leader-img" loading="lazy">
+                                <img src="Portrait%20Photos/Gavin%20Shu.png" alt="Gavin Shu" class="leader-img" loading="lazy">
                                 <span class="leader-name">Gavin Shu</span>
                                 <span class="leader-role">Strategic Director<br><span style="font-size: 0.7em; opacity: 0.8; text-transform: none;">University of California, San Francisco School of Medicine</span></span>
                                 <a href="https://www.linkedin.com/in/chang-gavin-shu/" target="_blank" class="leader-link">LinkedIn ↗</a>
                             </div>
                             <div class="leader-card">
-                                <img src="Portrait Photos/Angie Lee.jpeg" alt="Angie Lee" class="leader-img" loading="lazy">
+                                <img src="Portrait%20Photos/Angie%20Lee.jpeg" alt="Angie Lee" class="leader-img" loading="lazy">
                                 <span class="leader-name">Angie Lee</span>
                                 <span class="leader-role">Business Director<br><span style="font-size: 0.7em; opacity: 0.8; text-transform: none;">University of Maryland School of Medicine</span></span>
                                 <a href="https://www.linkedin.com/in/angie-christine-lee99/" target="_blank" class="leader-link">LinkedIn ↗</a>
@@ -151,49 +149,45 @@
             </section>
         </div>
 
-        <!-- TRIAD MODEL -->
-        <div class="parallax-wrapper">
-            <!-- Orion Nebula starts here - Fixed path and opacity -->
-            <div class="parallax-bg" style="background-image: url('NASA Photos/Orion_Nebula_-_Hubble_2006_mosaic_18000.jpg'); opacity: 1.0; mask-image: none; -webkit-mask-image: none;"></div>
-            <section id="roles">
-                <div class="container">
-                    <div class="section-header">
-                        <h2>How It Works</h2>
-                        <p style="color:var(--text-muted)">Projects are organized into triads: a ML student who builds, a medical student who guides, and a physician who ensures it's clinically sound.</p>
+        <!-- TRIAD MODEL (Transparent - Shows Pillars of Creation) -->
+        <section id="roles">
+            <div class="container">
+                <div class="section-header">
+                    <h2>How It Works</h2>
+                    <p style="color:var(--text-muted)">Projects are organized into triads: a ML student who builds, a medical student who guides, and a physician who ensures it's clinically sound.</p>
+                </div>
+                <div class="roles-grid">
+                    <div class="card">
+                        <span class="tag" style="color: #10b981; background: rgba(16, 185, 129, 0.1);">You Build It</span>
+                        <h3>ML Fellow</h3>
+                        <p style="color:var(--text-muted); font-size:0.95rem; margin-top:0.5rem; margin-bottom:1.5rem;">You write the code, run the experiments, and draft the paper. This is your project—you own the technical decisions.</p>
+                        <a href="https://forms.google.com/placeholder-fellow" target="_blank" class="btn" style="font-size:0.8rem; padding:0.5rem 1rem; width:100%; margin-top:auto;">Apply as Fellow</a>
                     </div>
-                    <div class="roles-grid">
-                        <div class="card">
-                            <span class="tag" style="color: #10b981; background: rgba(16, 185, 129, 0.1);">You Build It</span>
-                            <h3>ML Fellow</h3>
-                            <p style="color:var(--text-muted); font-size:0.95rem; margin-top:0.5rem; margin-bottom:1.5rem;">You write the code, run the experiments, and draft the paper. This is your project—you own the technical decisions.</p>
-                            <a href="https://forms.google.com/placeholder-fellow" target="_blank" class="btn" style="font-size:0.8rem; padding:0.5rem 1rem; width:100%; margin-top:auto;">Apply as Fellow</a>
-                        </div>
-                        <div class="card">
-                            <span class="tag" style="color: #2dd4bf; background: rgba(45, 212, 191, 0.1);">Clinical Context</span>
-                            <h3>Medical Student</h3>
-                            <p style="color:var(--text-muted); font-size:0.95rem; margin-top:0.5rem; margin-bottom:1.5rem;">You bring the research question, explain how doctors actually think, and help frame results for a clinical audience. You guide the clinical direction while your ML fellow handles the technical work.</p>
-                            <a href="#open-roles" class="btn" style="font-size:0.8rem; padding:0.5rem 1rem; width:100%; margin-top:auto;">Apply to Join</a>
-                        </div>
-                        <div class="card">
-                            <span class="tag" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1);">Quality Control</span>
-                            <h3>Faculty Physician</h3>
-                            <p style="color:var(--text-muted); font-size:0.95rem; margin-top:0.5rem; margin-bottom:1.5rem;">As a practicing physician, you review methods, ensure the research is clinically valid, and open doors for publication. You provide the clinical expertise that makes the research meaningful.</p>
-                            <a href="mailto:contact@tensorlab.org" class="btn" style="font-size:0.8rem; padding:0.5rem 1rem; width:100%; margin-top:auto;">Partner With Us</a>
-                        </div>
+                    <div class="card">
+                        <span class="tag" style="color: #2dd4bf; background: rgba(45, 212, 191, 0.1);">Clinical Context</span>
+                        <h3>Medical Student</h3>
+                        <p style="color:var(--text-muted); font-size:0.95rem; margin-top:0.5rem; margin-bottom:1.5rem;">You bring the research question, explain how doctors actually think, and help frame results for a clinical audience. You guide the clinical direction while your ML fellow handles the technical work.</p>
+                        <a href="#open-roles" class="btn" style="font-size:0.8rem; padding:0.5rem 1rem; width:100%; margin-top:auto;">Apply to Join</a>
                     </div>
-                    
-                    <div style="max-width: 800px; margin: 3rem auto 0; text-align: center; font-style: italic; color: var(--text-muted);">
-                        <p style="font-size: 1.1rem; margin-bottom: 1rem;">"Working with a medical student taught me how to identify real-world problems by understanding them from a clinical context first. I couldn't have done this research alone."</p>
-                        <span style="font-weight: 600; color: var(--primary);">— Jialong, 2025 Fellow</span>
+                    <div class="card">
+                        <span class="tag" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1);">Quality Control</span>
+                        <h3>Faculty Physician</h3>
+                        <p style="color:var(--text-muted); font-size:0.95rem; margin-top:0.5rem; margin-bottom:1.5rem;">As a practicing physician, you review methods, ensure the research is clinically valid, and open doors for publication. You provide the clinical expertise that makes the research meaningful.</p>
+                        <a href="mailto:contact@tensorlab.org" class="btn" style="font-size:0.8rem; padding:0.5rem 1rem; width:100%; margin-top:auto;">Partner With Us</a>
                     </div>
                 </div>
-            </section>
-        </div>
+                
+                <div style="max-width: 800px; margin: 3rem auto 0; text-align: center; font-style: italic; color: var(--text-muted);">
+                    <p style="font-size: 1.1rem; margin-bottom: 1rem;">"Working with a medical student taught me how to identify real-world problems by understanding them from a clinical context first. I couldn't have done this research alone."</p>
+                    <span style="font-weight: 600; color: var(--primary);">— Jialong, 2025 Fellow</span>
+                </div>
+            </div>
+        </section>
 
-        <!-- OPEN LEADERSHIP POSITIONS -->
+        <!-- OPEN LEADERSHIP POSITIONS (Orion Nebula Starts Here) -->
         <div class="parallax-wrapper">
-            <!-- Orion Nebula - Fixed path and opacity -->
-            <div class="parallax-bg" style="background-image: url('NASA Photos/Orion_Nebula_-_Hubble_2006_mosaic_18000.jpg'); opacity: 1.0; mask-image: none; -webkit-mask-image: none;"></div>
+            <!-- Updated Path to exact filename -->
+            <div class="parallax-bg" style="background-image: url('NASA%20Photos/Orion_Nebula_-_Hubble_2006_mosaic_18000.jpg'); opacity: 1.0; mask-image: none; -webkit-mask-image: none;"></div>
             <section id="open-roles" class="section-surface">
                 <div class="container">
                     <div class="section-header">
@@ -288,6 +282,7 @@
                                     <li>Route applications to mentors for review</li>
                                     <li>Send acceptance letters and onboarding materials</li>
                                     <li>Keep everything running smoothly day-to-day</li>
+                                    <li></li>
                                 </ul>
                                 <div class="role-quals">
                                     <strong>Good fit if:</strong> You're detail-oriented and like building systems that work.
@@ -304,8 +299,7 @@
 
         <!-- TIMELINE -->
         <div class="parallax-wrapper">
-            <!-- Orion Nebula - Fixed path and opacity -->
-            <div class="parallax-bg" style="background-image: url('NASA Photos/Orion_Nebula_-_Hubble_2006_mosaic_18000.jpg'); opacity: 1.0; mask-image: none; -webkit-mask-image: none;"></div>
+            <div class="parallax-bg" style="background-image: url('NASA%20Photos/Orion_Nebula_-_Hubble_2006_mosaic_18000.jpg'); opacity: 1.0; mask-image: none; -webkit-mask-image: none;"></div>
             <section id="timeline" class="timeline-section section-surface">
                 <div class="container">
                     <div class="section-header">
@@ -360,8 +354,7 @@
 
         <!-- FELLOW STORIES -->
         <div class="parallax-wrapper">
-            <!-- Orion Nebula - Fixed path and opacity -->
-            <div class="parallax-bg" style="background-image: url('NASA Photos/Orion_Nebula_-_Hubble_2006_mosaic_18000.jpg'); opacity: 1.0; mask-image: none; -webkit-mask-image: none;"></div>
+            <div class="parallax-bg" style="background-image: url('NASA%20Photos/Orion_Nebula_-_Hubble_2006_mosaic_18000.jpg'); opacity: 1.0; mask-image: none; -webkit-mask-image: none;"></div>
             <section id="testimonials" class="testimonial-section">
                 <div class="container">
                     <div class="section-header">
@@ -400,8 +393,7 @@
 
         <!-- SELECTED WORKS (Marketplace) -->
         <div class="parallax-wrapper">
-            <!-- Orion Nebula - Fixed path and opacity -->
-            <div class="parallax-bg" style="background-image: url('NASA Photos/Orion_Nebula_-_Hubble_2006_mosaic_18000.jpg'); opacity: 1.0; mask-image: none; -webkit-mask-image: none;"></div>
+            <div class="parallax-bg" style="background-image: url('NASA%20Photos/Orion_Nebula_-_Hubble_2006_mosaic_18000.jpg'); opacity: 1.0; mask-image: none; -webkit-mask-image: none;"></div>
             <section id="marketplace" class="section-surface">
                 <div class="container">
                     <div class="section-header">
@@ -514,8 +506,11 @@
                             <div class="tech">BioClinicalBERT, SHAP, NLP</div>
                         </div>
 
-                        <!-- Juan Arturo -->
-                        <div class="card project-card" data-category="vision">
+                    </div>
+                    
+                    <!-- Juan Arturo - Centered with same max-width as grid cards -->
+                    <div style="text-align: center; margin-top: 2rem;">
+                        <div class="card project-card" data-category="vision" style="display: inline-block; width: 100%; max-width: 350px; text-align: left;">
                             <div class="project-meta"><span>Lung Cancer</span> <span style="color:var(--primary)">UCSF</span></div>
                             <h3 style="margin-bottom:0.5rem;">Deep Learning for CT Lung Classification</h3>
                             <div class="team-meta" style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem; background:rgba(255,255,255,0.03); padding:0.5rem; border-radius:0.5rem;">
@@ -529,7 +524,6 @@
                             </div>
                             <div class="tech">InceptionV3, Computer Vision, CNNs</div>
                         </div>
-
                     </div>
                 </div>
             </section>
@@ -537,8 +531,7 @@
 
         <!-- FAQ -->
         <div class="parallax-wrapper">
-            <!-- Orion Nebula - Fixed path and opacity -->
-            <div class="parallax-bg" style="background-image: url('NASA Photos/Orion_Nebula_-_Hubble_2006_mosaic_18000.jpg'); opacity: 1.0; mask-image: none; -webkit-mask-image: none;"></div>
+            <div class="parallax-bg" style="background-image: url('NASA%20Photos/Orion_Nebula_-_Hubble_2006_mosaic_18000.jpg'); opacity: 1.0; mask-image: none; -webkit-mask-image: none;"></div>
             <section id="faq" class="faq-section section-surface">
                 <div class="container">
                     <div class="section-header">
@@ -611,8 +604,7 @@
 
     <!-- FINAL CTA -->
     <div class="parallax-wrapper">
-        <!-- Orion Nebula - Fixed path and opacity -->
-        <div class="parallax-bg" style="background-image: url('NASA Photos/Orion_Nebula_-_Hubble_2006_mosaic_18000.jpg'); opacity: 1.0; mask-image: none; -webkit-mask-image: none;"></div>
+        <div class="parallax-bg" style="background-image: url('NASA%20Photos/Orion_Nebula_-_Hubble_2006_mosaic_18000.jpg'); opacity: 1.0; mask-image: none; -webkit-mask-image: none;"></div>
         <footer id="footer-cta" class="footer-cta section-surface">
             <div class="container">
                 <div class="section-header">
@@ -637,9 +629,7 @@
 
     <footer style="padding-top: 3rem;">
         <div class="container">
-            <div class="socials">
-                <a href="#">Twitter</a> • <a href="https://discord.gg/eHgHRwYu" target="_blank">Discord</a> • <a href="https://github.com/Tensor-Lab-for-Computational-Medicine" target="_blank">GitHub</a>
-            </div>
+            <!-- Socials removed -->
             <p>The Tensor Lab for Computational Medicine &copy; 2025</p>
         </div>
     </footer>
