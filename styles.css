@@ -51,6 +51,7 @@ button { font-family: inherit; }
     background-image: url('NASA Photos/Creation.jpg');
     background-size: cover;
     background-position: center;
+    background-repeat: no-repeat;
     opacity: 0.25; /* Increased opacity for visibility */
     mix-blend-mode: screen; /* Changed from overlay to screen to make it "pop" more against dark bg */
     animation: floatOverlay 60s ease-in-out infinite alternate;
@@ -74,12 +75,13 @@ button { font-family: inherit; }
     top: 0; left: 0; right: 0; bottom: 0;
     background-size: cover;
     background-position: center;
+    background-repeat: no-repeat;
     background-attachment: fixed;
     z-index: -1;
-    opacity: 0.25;
+    opacity: 0.6;
     /* Fade edges to blend with dark theme */
-    mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
-    -webkit-mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+    mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
+    -webkit-mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
 }
 
 /* Header */
