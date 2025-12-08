@@ -42,7 +42,7 @@ class Star {
         this.y = random(-height, height);
         this.z = random(0, width);
         this.size = random(0.5, 2.5); // Larger stars
-        
+
         const c = Math.random() > 0.7 ? randomColor() : colors[0]; // More colored stars
         this.rgb = `${c.r}, ${c.g}, ${c.b}`;
         this.opacity = random(0.5, 1.0); // Brighter
@@ -55,7 +55,7 @@ class Star {
         this.z -= starSpeed * 10; // Much faster movement
         if (this.z < 1) {
             this.init();
-            this.z = width; 
+            this.z = width;
         }
     }
 
@@ -63,13 +63,13 @@ class Star {
         const scale = fov / (this.z + fov);
         const x2d = this.x * scale + width / 2 + mouseX * scale;
         const y2d = this.y * scale + height / 2 + mouseY * scale;
-        
+
         if (x2d < 0 || x2d > width || y2d < 0 || y2d > height) return;
 
         const r = this.size * scale * 2;
         const depthRatio = this.z / width;
         let alpha = this.opacity * (1 - depthRatio * depthRatio);
-        
+
         const twinkle = Math.sin(Date.now() * this.twinkleSpeed + this.twinkleOffset) * 0.3 + 0.7;
         alpha *= twinkle;
 
@@ -98,9 +98,9 @@ class Constellation {
         this.z = width;
         this.points = [];
         const numPoints = Math.floor(random(3, 6));
-        for(let i=0; i<numPoints; i++) {
+        for (let i = 0; i < numPoints; i++) {
             this.points.push({
-                ox: random(-150, 150), 
+                ox: random(-150, 150),
                 oy: random(-150, 150)
             });
         }
@@ -118,7 +118,7 @@ class Constellation {
         const scale = fov / (this.z + fov);
         const cx = this.x * scale + width / 2 + mouseX * scale;
         const cy = this.y * scale + height / 2 + mouseY * scale;
-        
+
         const depthRatio = this.z / width;
         let alpha = (1 - depthRatio * depthRatio) * 0.8; // More visible
 
@@ -136,14 +136,14 @@ class Constellation {
         }));
 
         ctx.moveTo(projectedPoints[0].x, projectedPoints[0].y);
-        for(let i=1; i<projectedPoints.length; i++) {
+        for (let i = 1; i < projectedPoints.length; i++) {
             ctx.lineTo(projectedPoints[i].x, projectedPoints[i].y);
         }
         ctx.lineTo(projectedPoints[0].x, projectedPoints[0].y);
-        
+
         if (projectedPoints.length > 3) {
-             ctx.moveTo(projectedPoints[0].x, projectedPoints[0].y);
-             ctx.lineTo(projectedPoints[2].x, projectedPoints[2].y);
+            ctx.moveTo(projectedPoints[0].x, projectedPoints[0].y);
+            ctx.lineTo(projectedPoints[2].x, projectedPoints[2].y);
         }
         ctx.stroke();
 
@@ -152,7 +152,7 @@ class Constellation {
             ctx.fillStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha})`;
             ctx.arc(p.x, p.y, 1.5 * scale, 0, Math.PI * 2); // Smaller nodes
             ctx.fill();
-            
+
             // Removed Node Glow for cleaner look
         });
     }
@@ -162,7 +162,7 @@ class Constellation {
 
 function init() {
     resize();
-    
+
     stars = [];
     for (let i = 0; i < numStars; i++) stars.push(new Star());
 
@@ -187,7 +187,7 @@ function animate() {
 
     // Draw constellations
     constellations.forEach(c => { c.update(); c.draw(); });
-    
+
     // Draw stars
     stars.forEach(s => { s.update(); s.draw(); });
 
@@ -240,46 +240,51 @@ function setupActiveNav() {
     const header = document.querySelector('header');
     const sections = document.querySelectorAll('section');
     const navLinks = document.querySelectorAll('.nav-links a:not(.nav-cta)');
-    
-    let ticking = false;
+
+    // Header scroll effect
     window.addEventListener('scroll', () => {
-        if (!ticking) {
-            window.requestAnimationFrame(() => {
-                if (window.scrollY > 50) {
-                    header.classList.add('scrolled');
-                } else {
-                    header.classList.remove('scrolled');
-                }
-                ticking = false;
-            });
-            ticking = true;
+        if (window.scrollY > 50) {
+            header.classList.add('scrolled');
+        } else {
+            header.classList.remove('scrolled');
         }
     });
-    
+
+    // Active link highlighting
     if (!sections.length || !navLinks.length) return;
 
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const id = entry.target.getAttribute('id');
-                if (!id) return;
-                
-                navLinks.forEach(link => {
-                    link.classList.remove('active');
-                    if (link.getAttribute('href') === `#${id}`) {
-                        link.classList.add('active');
-                    }
-                });
+    const highlightNav = () => {
+        // Find the section that is currently most "active"
+        // Strategy: The section whose top is closest to a target line (e.g., 100px from top)
+        // but still essentially "on screen" (top < viewHeight/2)
+
+        let current = '';
+        const viewHeight = window.innerHeight;
+
+        sections.forEach(section => {
+            const rect = section.getBoundingClientRect();
+            // Check if section top is above the middle of viewport
+            // AND the section bottom is essentially still on screen (below nav)
+            if (rect.top <= viewHeight * 0.3 && rect.bottom >= 100) {
+                current = section.getAttribute('id');
             }
         });
-    }, { threshold: 0.2, rootMargin: "-10% 0px -50% 0px" });
 
-    sections.forEach(section => observer.observe(section));
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === `#${current}`) {
+                link.classList.add('active');
+            }
+        });
+    };
+
+    window.addEventListener('scroll', highlightNav);
+    highlightNav(); // Initial check
 }
 
 function setupCardGlow() {
     const cards = document.querySelectorAll('.card, .role-card-detailed, .poster-card, .faq-item');
-    
+
     cards.forEach(card => {
         let ticking = false;
         card.addEventListener('mousemove', e => {
@@ -288,7 +293,7 @@ function setupCardGlow() {
                     const rect = card.getBoundingClientRect();
                     const x = e.clientX - rect.left;
                     const y = e.clientY - rect.top;
-                    
+
                     card.style.setProperty('--mouse-x', `${x}px`);
                     card.style.setProperty('--mouse-y', `${y}px`);
                     ticking = false;
@@ -342,10 +347,10 @@ function openModal(src, title) {
     const frame = document.getElementById("modal-frame");
     if (frame) frame.src = src;
     document.getElementById("modal-caption").innerText = title;
-    
+
     const btn = document.getElementById("download-btn");
     if (btn) {
-        btn.onclick = function(e) {
+        btn.onclick = function (e) {
             e.stopPropagation();
             window.open(src, '_blank');
         };
@@ -356,7 +361,7 @@ function closeModal(e) {
     if (e.target.classList.contains('modal') || e.target.classList.contains('close-modal')) {
         document.getElementById("poster-modal").style.display = "none";
         const frame = document.getElementById("modal-frame");
-        if (frame) frame.src = ""; 
+        if (frame) frame.src = "";
     }
 }
 
@@ -368,7 +373,7 @@ function setupStatsAnimation() {
                 const target = entry.target;
                 const finalValue = parseInt(target.getAttribute('data-value'));
                 const hasPercent = target.innerText.includes('%');
-                
+
                 if (!isNaN(finalValue)) {
                     animateValue(target, 0, finalValue, 2000, hasPercent);
                 }
