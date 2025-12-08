@@ -1415,7 +1415,7 @@ footer {
 /* Join Section Layout Refactor */
 .join-split-container {
     display: grid;
-    grid-template-columns: 1fr 2fr;
+    grid-template-columns: 1fr 1fr;
     gap: 2rem;
     align-items: start;
     margin-bottom: 4rem;
