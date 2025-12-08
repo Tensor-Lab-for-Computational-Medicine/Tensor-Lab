@@ -1410,7 +1410,9 @@ footer {
     .hero-card {
         width: 100%;
     }
-}/* Join Section Layout Refactor */
+}
+
+/* Join Section Layout Refactor */
 .join-split-container {
     display: grid;
     grid-template-columns: 1fr 2fr;
@@ -1428,7 +1430,7 @@ footer {
     height: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
 }
 
