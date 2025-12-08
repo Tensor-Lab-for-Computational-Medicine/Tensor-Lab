@@ -1410,4 +1410,34 @@ footer {
     .hero-card {
         width: 100%;
     }
+}/* Join Section Layout Refactor */
+.join-split-container {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 2rem;
+    align-items: start;
+    margin-bottom: 4rem;
+}
+
+.ml-waitlist-card {
+    border: 1px solid var(--primary);
+    border-radius: 1rem;
+    background: rgba(45, 212, 191, 0.05);
+    padding: 2rem;
+    text-align: center;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+@media (max-width: 900px) {
+    .join-split-container {
+        grid-template-columns: 1fr;
+    }
+
+    .ml-waitlist-card {
+        padding: 1.5rem;
+    }
 }
