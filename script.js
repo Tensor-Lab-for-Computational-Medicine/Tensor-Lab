@@ -314,25 +314,50 @@ function setupActiveNav() {
 }
 
 function setupCardGlow() {
-    const cards = document.querySelectorAll('.card, .role-card-detailed, .poster-card, .faq-item');
+    const cards = document.querySelectorAll('.card, .role-card-detailed, .poster-card, .faq-item, .btn'); // Added .btn for liquid effect
 
-    cards.forEach(card => {
-        let ticking = false;
-        card.addEventListener('mousemove', e => {
-            if (!ticking) {
-                window.requestAnimationFrame(() => {
-                    const rect = card.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
+    // Mouse Tracking (Desktop)
+    window.addEventListener('mousemove', e => {
+        const x = e.clientX;
+        const y = e.clientY;
 
-                    card.style.setProperty('--mouse-x', `${x}px`);
-                    card.style.setProperty('--mouse-y', `${y}px`);
-                    ticking = false;
-                });
-                ticking = true;
-            }
+        // Use a single RAF loop for better performance than per-card listeners
+        window.requestAnimationFrame(() => {
+            cards.forEach(card => {
+                const rect = card.getBoundingClientRect();
+                const cardX = x - rect.left;
+                const cardY = y - rect.top;
+                card.style.setProperty('--mouse-x', `${cardX}px`);
+                card.style.setProperty('--mouse-y', `${cardY}px`);
+            });
         });
     });
+
+    // Accelerometer Tracking (Mobile "Virtual Light")
+    if (window.DeviceOrientationEvent) {
+        window.addEventListener('deviceorientation', e => {
+            // Convert tilt (beta/gamma) to a simulated light position
+            // Beta: -180 to 180 (front/back tilt)
+            // Gamma: -90 to 90 (left/right tilt)
+
+            // Normalize tilt to a shift range (e.g., +/- 100px)
+            const shiftX = (e.gamma || 0) * 5;
+            const shiftY = (e.beta || 0) * 5;
+
+            window.requestAnimationFrame(() => {
+                cards.forEach(card => {
+                    const rect = card.getBoundingClientRect();
+                    // Center of card
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+
+                    // Apply tilt offset to the center light source
+                    card.style.setProperty('--mouse-x', `${centerX + shiftX}px`);
+                    card.style.setProperty('--mouse-y', `${centerY + shiftY}px`);
+                });
+            });
+        });
+    }
 }
 
 function setupMobileMenu() {
