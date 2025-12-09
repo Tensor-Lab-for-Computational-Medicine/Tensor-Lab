@@ -73,7 +73,7 @@ button {
     background-size: cover;
     background-position: center top;
     background-repeat: no-repeat;
-    opacity: 0.8;
+    opacity: 0.7;
     /* Increased opacity for visibility */
     mix-blend-mode: normal;
     /* Changed from overlay to screen to make it "pop" more against dark bg */
@@ -124,7 +124,7 @@ button {
 }
 
 .parallax-bg.bg-visible {
-    opacity: 0.6;
+    opacity: 0.7;
 }
 
 /* Header */
