@@ -172,31 +172,26 @@ header nav {
     transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-/* Scrolled "Dynamic Island" State */
+/* Scrolled "Dynamic Island" State - DISABLED (Consistent Size) */
 header.scrolled nav {
-    margin-top: 1rem;
-    padding: 0.75rem 2rem;
-    max-width: fit-content;
-    /* Shrink to fit content */
-    background: rgba(10, 10, 15, 0.6);
-    box-shadow:
-        0 10px 40px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 0 rgba(255, 255, 255, 0.3),
-        inset 0 0 20px rgba(45, 212, 191, 0.05);
-    /* Subtle cyber glow */
+    /* Kept consistent with default state */
+    margin: 1.5rem auto 0;
+    padding: 1rem 2rem;
+    max-width: 1200px;
+    background: rgba(20, 20, 30, 0.4);
 }
 
 header.scrolled .logo span {
-    display: none;
-    /* Hide text logo in compact mode */
+    display: block;
+    /* Always show text */
 }
 
 header.scrolled .logo img {
-    margin-right: 0;
+    margin-right: 10px;
 }
 
 header.scrolled .nav-links {
-    gap: 1.5rem;
+    gap: 2.5rem;
 }
 
 nav {
@@ -235,7 +230,8 @@ nav {
 .nav-links a:hover,
 .nav-links a.active {
     color: var(--primary);
-    text-shadow: 0 0 20px rgba(45, 212, 191, 0.4);
+    /* Teal */
+    text-shadow: 0 0 20px rgba(45, 212, 191, 0.6);
 }
 
 .nav-cta {
@@ -887,25 +883,46 @@ section[id] {
     margin-top: 2rem;
 }
 
+/* Liquid Leadership Cards */
 .leader-card {
-    background: rgba(255, 255, 255, 0.03);
-    padding: 1.5rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--border);
+    background: rgba(20, 20, 30, 0.4);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 2rem;
+    border-radius: 99px;
+    /* Frosted Pill */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
+    transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    width: 100%;
+    max-width: 280px;
+    margin: 0 auto;
+}
+
+.leader-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 15px 40px rgba(45, 212, 191, 0.15), inset 0 0 20px rgba(45, 212, 191, 0.05);
+    border-color: var(--primary);
 }
 
 .leader-img {
-    width: 80px;
-    height: 80px;
+    width: 100px;
+    height: 100px;
     border-radius: 50%;
     object-fit: cover;
     margin-bottom: 0.5rem;
     border: 2px solid var(--primary);
+    box-shadow: 0 0 20px rgba(45, 212, 191, 0.3);
+    transition: transform 0.4s ease;
+}
+
+.leader-card:hover .leader-img {
+    transform: scale(1.1);
 }
 
 .leader-name {
@@ -1023,27 +1040,54 @@ section[id] {
     gap: 2rem;
 }
 
+/* Editorial Glass Testimonials */
 .testimonial-card {
-    background: rgba(255, 255, 255, 0.03);
-    padding: 2rem;
-    border-radius: 1rem;
-    border: 1px solid var(--border);
+    background: rgba(20, 20, 30, 0.3);
+    padding: 3rem;
+    border-radius: 2rem;
+    /* Large gentle corners */
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-left: 1px solid rgba(255, 255, 255, 0.15);
+    /* Specular left */
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    /* Specular top */
     position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(30px);
+    transition: all 0.4s ease;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.testimonial-card:hover {
+    transform: translateY(-5px);
+    background: rgba(20, 20, 30, 0.5);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
 }
 
 .quote-icon {
-    font-size: 2rem;
+    font-size: 8rem;
     color: var(--primary);
-    opacity: 0.3;
+    opacity: 0.05;
     font-family: serif;
     line-height: 1;
+    position: absolute;
+    top: -1rem;
+    left: 1rem;
+    pointer-events: none;
+    z-index: 0;
 }
 
 .testimonial-text {
+    font-family: 'Outfit', sans-serif;
+    /* Editorial font */
+    font-size: 1.25rem;
+    font-weight: 300;
     font-style: italic;
-    color: var(--text-muted);
-    margin: 1rem 0;
-    font-size: 0.95rem;
+    color: var(--text);
+    margin: 1rem 0 2rem;
+    line-height: 1.4;
+    position: relative;
+    z-index: 1;
 }
 
 .testimonial-author {
