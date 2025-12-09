@@ -70,10 +70,10 @@ button {
     inset: 0;
     z-index: -1;
     background-image: url('NASA Photos/Creation 2.jpg');
-    background-size: cover;
+    background-size: 100% auto;
     background-position: center top;
     background-repeat: no-repeat;
-    opacity: 0.25;
+    opacity: 0.4;
     /* Increased opacity for visibility */
     mix-blend-mode: screen;
     /* Changed from overlay to screen to make it "pop" more against dark bg */
