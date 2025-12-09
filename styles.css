@@ -80,6 +80,11 @@ button {
     animation: floatOverlay 60s ease-in-out infinite alternate;
     pointer-events: none;
     will-change: transform;
+    transition: opacity 1.5s ease-in-out;
+}
+
+.starfield-overlay.bg-hidden {
+    opacity: 0 !important;
 }
 
 @keyframes floatOverlay {
@@ -108,11 +113,17 @@ button {
     background-position: center;
     background-repeat: no-repeat;
     z-index: -1;
-    opacity: 0.6;
+    opacity: 0;
+    /* Hidden by default */
     /* Fade edges to blend with dark theme */
     mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
     -webkit-mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
     will-change: transform;
+    transition: opacity 1.5s ease-in-out;
+}
+
+.parallax-bg.bg-visible {
+    opacity: 0.6;
 }
 
 /* Header */

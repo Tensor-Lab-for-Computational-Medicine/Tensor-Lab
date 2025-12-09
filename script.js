@@ -208,7 +208,38 @@ document.addEventListener('DOMContentLoaded', () => {
     setupCardGlow();
     setupBackToTop();
     setupActiveNav();
+    setupBackgroundTransition();
 });
+
+function setupBackgroundTransition() {
+    const triggerSection = document.getElementById('open-roles');
+    const pillarsBg = document.querySelector('.starfield-overlay');
+    const orionBg = document.querySelector('.parallax-bg');
+
+    if (!triggerSection || !pillarsBg || !orionBg) return;
+
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+        if (!ticking) {
+            window.requestAnimationFrame(() => {
+                const rect = triggerSection.getBoundingClientRect();
+                const viewHeight = window.innerHeight;
+
+                // Trigger when the section is entering the viewport (e.g. top is within view)
+                // Adjust threshold as needed. Here: when top is in the bottom 20% of screen or higher.
+                if (rect.top < viewHeight * 0.8) {
+                    pillarsBg.classList.add('bg-hidden');
+                    orionBg.classList.add('bg-visible');
+                } else {
+                    pillarsBg.classList.remove('bg-hidden');
+                    orionBg.classList.remove('bg-visible');
+                }
+                ticking = false;
+            });
+            ticking = true;
+        }
+    });
+}
 
 // --- UI Logic ---
 
