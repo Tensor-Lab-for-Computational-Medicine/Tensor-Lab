@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Approach | The Tensor Lab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <canvas id="starfield"></canvas>
+    <div class="starfield-overlay"></div>
+
+    <header>
+        <div class="container">
+            <nav>
+                <a href="index.html" class="logo">
+                    <img src="Logo.png" alt="Logo" style="height: 40px; width: auto; margin-right: 10px;"
+                        loading="eager">
+                    <div style="display: flex; flex-direction: column; line-height: 1;">
+                        <div style="white-space: nowrap; width: 100%;">THE TENSOR LAB</div>
+                        <div
+                            style="font-size: 0.62rem; color: var(--text-muted); letter-spacing: 0.05em; font-weight: 600; margin-top: 2px; white-space: nowrap; width: 100%;">
+                            FOR COMPUTATIONAL MEDICINE</div>
+                    </div>
+                </a>
+                <div class="nav-links">
+                    <a href="index.html">Home</a>
+                    <a href="team.html">Our Team</a>
+                    <a href="approach.html" class="active">The Approach</a>
+                    <a href="cohort-2025.html">2025 Cohort</a>
+                    <a href="index.html#open-roles" class="nav-cta">Join The Team</a>
+                </div>
+                <button class="mobile-menu-btn" aria-label="Toggle menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="parallax-wrapper">
+            <div class="parallax-bg" style="background-image: url('NASA%20Photos/Orion.png');"></div>
+
+            <!-- TIMELINE -->
+            <section id="timeline" class="timeline-section section-surface">
+                <div class="container">
+                    <div class="section-header">
+                        <h2>How the Summer Works</h2>
+                        <p style="color:var(--text-muted)">From application to paper submission in 6 months.</p>
+                    </div>
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <span class="timeline-date">Dec 2025 – Jan 2026</span>
+                                <h3>Medical Students Submit Projects</h3>
+                                <p>If you're a med student with a research idea, submit a proposal describing the
+                                    clinical problem you want to solve.</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <span class="timeline-date">Feb 2026</span>
+                                <h3>ML Students Apply</h3>
+                                <p>Browse projects and apply to the ones you're interested in. Medical students
+                                    interview applicants and select their fellow.</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <span class="timeline-date">Mar 2026</span>
+                                <h3>Teams Matched</h3>
+                                <p>Once matched, you'll meet your team and start planning the project scope and
+                                    timeline.</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <span class="timeline-date">Apr – May 2026</span>
+                                <h3>Institutional Onboarding</h3>
+                                <p>Members of your team will get neccessary credentials and access to the tools they
+                                    need to get started.</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <span class="timeline-date">Jun – Aug 2026</span>
+                                <h3>10-Week Research Sprint</h3>
+                                <p>Build the model, run experiments, analyze results, and write the paper. This is the
+                                    core of the fellowship.</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <span class="timeline-date">Sep 2026</span>
+                                <h3>Present Your Work</h3>
+                                <p>Share your findings at the Tensor Lab Symposium and submit your paper for
+                                    publication.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FAQ -->
+            <section id="faq" class="faq-section section-surface">
+                <div class="container">
+                    <div class="section-header">
+                        <h2>Common Questions</h2>
+                    </div>
+                    <div class="filter-bar" style="margin-bottom: 2rem;">
+                        <button class="filter-btn active" onclick="filterFAQ('all')">All Questions</button>
+                        <button class="filter-btn" onclick="filterFAQ('clinician')">For Medical Students</button>
+                        <button class="filter-btn" onclick="filterFAQ('engineer')">For CS Students</button>
+                    </div>
+                    <div class="faq-grid">
+                        <!-- General -->
+                        <details class="faq-item" data-category="all">
+                            <summary class="faq-summary">When does the program start?</summary>
+                            <div class="faq-answer">
+                                <p>The fellowship runs June–August 2026 (10 weeks). We'll announce specific dates in
+                                    Spring 2026.</p>
+                            </div>
+                        </details>
+                        <details class="faq-item" data-category="all">
+                            <summary class="faq-summary">Is this remote or in-person?</summary>
+                            <div class="faq-answer">
+                                <p>Mostly remote. You'll meet with your team over Zoom/Discord, but some chapters
+                                    organize optional in-person sessions.</p>
+                            </div>
+                        </details>
+                        <details class="faq-item" data-category="clinician">
+                            <summary class="faq-summary">Do medical students need to know how to code?</summary>
+                            <div class="faq-answer">
+                                <p>No. As a medical student, you bring the research question and clinical expertise. We
+                                    match you with a ML fellow who handles all the coding.</p>
+                            </div>
+                        </details>
+                        <details class="faq-item" data-category="clinician">
+                            <summary class="faq-summary">How much time do medical students spend per week?</summary>
+                            <div class="faq-answer">
+                                <p>About 2-4 hours per week. You'll meet with your fellow regularly to review progress
+                                    and guide the direction of the research.</p>
+                            </div>
+                        </details>
+                        <details class="faq-item" data-category="engineer">
+                            <summary class="faq-summary">Do ML fellows need a medical background?</summary>
+                            <div class="faq-answer">
+                                <p>No. Your medical student partner will teach you everything you need to know about the
+                                    clinical context. We're looking for strong Python/ML skills.</p>
+                            </div>
+                        </details>
+                        <details class="faq-item" data-category="engineer">
+                            <summary class="faq-summary">How much time do ML fellows spend per week?</summary>
+                            <div class="faq-answer">
+                                <p>Plan for 20 hours per week during the 10-week summer sprint. Think of it like a
+                                    serious research internship.</p>
+                            </div>
+                        </details>
+                        <details class="faq-item" data-category="all">
+                            <summary class="faq-summary">Is this paid?</summary>
+                            <div class="faq-answer">
+                                <p>Not yet. Right now, this is an unpaid fellowship focused on research experience and
+                                    publication. We're working on funding for future cohorts.</p>
+                            </div>
+                        </details>
+                        <details class="faq-item" data-category="all">
+                            <summary class="faq-summary">Who owns the code and research?</summary>
+                            <div class="faq-answer">
+                                <p>We believe in open science. Code is open-sourced, and all team members share
+                                    authorship. Patient data stays under the PI's institutional controls.</p>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FINAL CTA -->
+            <footer id="footer-cta" class="footer-cta section-surface">
+                <div class="container">
+                    <div class="section-header">
+                        <h2>Ready to Get Started?</h2>
+                        <p style="color:var(--text-muted)">Join the Summer 2026 cohort and work on AI research that
+                            matters.</p>
+                    </div>
+                    <div class="cta-split">
+                        <div class="cta-column">
+                            <h3>Medical Students</h3>
+                            <p>Have a research idea? Apply to join as a medical student.</p>
+                            <a href="https://forms.gle/gDpZzBH32E6tTneV6" class="btn">Apply to Join</a>
+                        </div>
+                        <div class="cta-column tech">
+                            <h3>ML Students</h3>
+                            <p>Get notified when applications open in February.</p>
+                            <a href="https://forms.gle/N7LEjhRwLdc2VwgJA" target="_blank" class="btn btn-secondary">Join
+                                the Waitlist</a>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </main>
+
+    <footer style="padding-top: 3rem;">
+        <div class="container">
+            <p>The Tensor Lab for Computational Medicine &copy; 2025</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
