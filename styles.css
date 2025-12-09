@@ -69,9 +69,9 @@ button {
     position: fixed;
     inset: 0;
     z-index: -1;
-    background-image: url('NASA Photos/Creation.jpg');
+    background-image: url('NASA Photos/Creation 2.jpg');
     background-size: cover;
-    background-position: center;
+    background-position: center top;
     background-repeat: no-repeat;
     opacity: 0.25;
     /* Increased opacity for visibility */
