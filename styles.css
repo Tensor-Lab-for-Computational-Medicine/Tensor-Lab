@@ -33,16 +33,18 @@ h3,
 .logo,
 .faq-summary {
     font-family: 'Outfit', sans-serif;
+    letter-spacing: -0.01em;
 }
 
 a {
     text-decoration: none;
     color: inherit;
-    transition: 0.2s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 button {
     font-family: inherit;
+    letter-spacing: 0.02em;
 }
 
 :focus-visible {
@@ -132,12 +134,12 @@ header {
     position: sticky;
     top: 0;
     z-index: 50;
-    background: rgba(2, 6, 23, 0.7);
-    backdrop-filter: blur(40px);
-    -webkit-backdrop-filter: blur(40px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(2, 6, 23, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     padding: 1.2rem 0;
-    transition: padding 0.3s;
+    transition: padding 0.3s, background 0.3s;
 }
 
 header.scrolled {
@@ -285,25 +287,26 @@ nav {
 }
 
 .eyebrow {
-    font-size: 1rem;
-    letter-spacing: 0.15em;
+    font-size: 0.85rem;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--primary);
     font-weight: 700;
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    text-shadow: 0 0 20px rgba(45, 212, 191, 0.4);
 }
 
 .hero h1 {
-    font-size: clamp(3.5rem, 8vw, 6rem);
-    line-height: 1.1;
+    font-size: clamp(3.5rem, 8vw, 6.5rem);
+    line-height: 1.05;
     margin-bottom: 1.5rem;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
     background: var(--gradient);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-shadow: 0 0 80px rgba(45, 212, 191, 0.4);
-    filter: brightness(1.2);
+    text-shadow: 0 0 100px rgba(45, 212, 191, 0.5);
+    filter: brightness(1.3);
 }
 
 .hero-subtitle {
@@ -401,21 +404,23 @@ nav {
     color: white;
     padding: 1rem 2.5rem;
     border-radius: 99px;
-    font-weight: 600;
+    font-weight: 700;
     border: none;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
     position: relative;
     overflow: hidden;
     z-index: 1;
     text-decoration: none;
-    box-shadow: 0 4px 15px rgba(45, 212, 191, 0.3);
-    letter-spacing: 0.02em;
+    box-shadow: 0 0 20px rgba(45, 212, 191, 0.4);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-size: 0.9rem;
 }
 
 .btn-secondary {
     background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     color: var(--text);
     box-shadow: none;
 }
@@ -424,6 +429,7 @@ nav {
     border-color: var(--primary);
     background: rgba(45, 212, 191, 0.1);
     color: white;
+    box-shadow: 0 0 30px rgba(45, 212, 191, 0.2);
 }
 
 .btn::after {
@@ -441,8 +447,8 @@ nav {
 }
 
 .btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(45, 212, 191, 0.5);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 0 40px rgba(45, 212, 191, 0.6);
     color: white;
 }
 
@@ -594,13 +600,14 @@ section[id] {
 }
 
 .card {
-    background: rgba(15, 23, 42, 0.4);
-    backdrop-filter: blur(16px);
-    border: 1px solid var(--border);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.02);
-    border-radius: 1rem;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    border-radius: 1.25rem;
     padding: 2.5rem;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -1413,6 +1420,7 @@ footer {
         right: auto;
     }
 }
+
 
 @media (max-width: 540px) {
     .hero-ctas .btn {
