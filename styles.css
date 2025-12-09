@@ -70,17 +70,18 @@ button {
     inset: 0;
     z-index: -1;
     background-image: url('NASA Photos/Creation 2.jpg');
-    background-size: 100% auto;
+    background-size: cover;
     background-position: center top;
     background-repeat: no-repeat;
-    opacity: 0.4;
+    opacity: 0.8;
     /* Increased opacity for visibility */
-    mix-blend-mode: screen;
+    mix-blend-mode: normal;
     /* Changed from overlay to screen to make it "pop" more against dark bg */
     animation: floatOverlay 60s ease-in-out infinite alternate;
     pointer-events: none;
     will-change: transform;
     transition: opacity 1.5s ease-in-out;
+    transform-origin: top center;
 }
 
 .starfield-overlay.bg-hidden {
@@ -93,7 +94,7 @@ button {
     }
 
     100% {
-        transform: scale(1.2) translate(-20px, -10px);
+        transform: scale(1.2);
     }
 }
 
