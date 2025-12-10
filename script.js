@@ -51,3 +51,32 @@ function setupActiveNav() {
         });
     });
 }
+
+function filterProjects(category) {
+    const cards = document.querySelectorAll('.project-card');
+    const buttons = document.querySelectorAll('.filter-btn');
+
+    // Update buttons
+    buttons.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('onclick').includes(category)) {
+            btn.classList.add('active');
+        }
+    });
+
+    // Update cards
+    cards.forEach(card => {
+        const categories = card.getAttribute('data-category'); // 'llm', 'vision', etc.
+        // Assuming single category for now or space separated? Legacy was simple.
+        // If 'all', show all.
+        if (category === 'all' || categories.includes(category)) {
+            card.style.display = 'flex';
+            // Animation reset?
+            card.style.animation = 'none';
+            card.offsetHeight; /* trigger reflow */
+            card.style.animation = 'fadeIn 0.5s ease forwards';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
