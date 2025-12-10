@@ -274,8 +274,8 @@ a {
     margin-bottom: 3rem;
     margin-top: 6rem;
     margin-top: 6rem;
-    text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
-    /* Soft Glow */
+    text-shadow: 0 0 60px rgba(255, 255, 255, 0.2);
+    /* Wider, more subtle glow */
     /* Lower H1 even more */
 }
 
