@@ -622,4 +622,17 @@ a {
     .logo-ribbon {
         gap: 1.5rem;
     }
+
+    /* Responsive tweaks for new content */
+    .article-grid .entry-lists {
+        grid-template-columns: 1fr !important;
+        /* Force stack on mobile */
+        gap: 1rem !important;
+    }
+
+    .entry-lists {
+        grid-template-columns: 1fr;
+    }
 }
+
+```
