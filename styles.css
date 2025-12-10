@@ -885,7 +885,8 @@ section[id] {
 
 /* Liquid Leadership Cards (Standardized) */
 .leader-card {
-    background: rgba(20, 20, 30, 0.4);
+    background: rgba(0, 0, 0, 0.6);
+    /* Blacker background */
     backdrop-filter: blur(40px) saturate(140%);
     -webkit-backdrop-filter: blur(40px) saturate(140%);
     padding: 2rem;
@@ -1047,7 +1048,8 @@ section[id] {
 
 /* Standard Liquid Glass Testimonials */
 .testimonial-card {
-    background: rgba(20, 20, 30, 0.4);
+    background: rgba(0, 0, 0, 0.6);
+    /* Blacker background */
     backdrop-filter: blur(40px) saturate(140%);
     -webkit-backdrop-filter: blur(40px) saturate(140%);
     padding: 2.5rem;

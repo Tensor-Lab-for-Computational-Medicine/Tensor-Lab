@@ -282,29 +282,29 @@ function setupActiveNav() {
     });
 
     // Active link highlighting
+    // Active link highlighting
     if (!sections.length || !navLinks.length) return;
 
     const highlightNav = () => {
-        // Find the section that is currently most "active"
-        // Strategy: The section whose top is closest to a target line (e.g., 100px from top)
-        // but still essentially "on screen" (top < viewHeight/2)
-
         let current = '';
         const viewHeight = window.innerHeight;
 
         sections.forEach(section => {
             const rect = section.getBoundingClientRect();
-            // Check if section top is above the middle of viewport
-            // AND the section bottom is essentially still on screen (below nav)
             if (rect.top <= viewHeight * 0.3 && rect.bottom >= 100) {
                 current = section.getAttribute('id');
             }
         });
 
         navLinks.forEach(link => {
-            link.classList.remove('active');
-            if (link.getAttribute('href') === `#${current}`) {
-                link.classList.add('active');
+            // Only manage active state for hash links (scroll spy)
+            // Leave static page links (e.g. team.html) alone
+            const href = link.getAttribute('href');
+            if (href && href.startsWith('#')) {
+                link.classList.remove('active');
+                if (href === `#${current}`) {
+                    link.classList.add('active');
+                }
             }
         });
     };
