@@ -291,18 +291,34 @@ function setupActiveNav() {
 
         sections.forEach(section => {
             const rect = section.getBoundingClientRect();
+            // Using 30% view height offset to trigger active state slightly before section hits top
             if (rect.top <= viewHeight * 0.3 && rect.bottom >= 100) {
                 current = section.getAttribute('id');
             }
         });
 
+        // Mapping for grouped sections
+        // key: section ID that should trigger the nav link
+        // value: the href of the nav link to activate
+        const sectionStartToNavHref = {
+            'approach': 'roles',        // "Timeline" section keeps "The Approach" (#roles) active
+            'testimonials': 'marketplace' // "Fellow Stories" section keeps "2025 Cohort" (#marketplace) active
+        };
+
         navLinks.forEach(link => {
             // Only manage active state for hash links (scroll spy)
-            // Leave static page links (e.g. team.html) alone
             const href = link.getAttribute('href');
             if (href && href.startsWith('#')) {
                 link.classList.remove('active');
-                if (href === `#${current}`) {
+
+                // Determine the target ID to match against
+                // If the current section is part of a group, map it to the primary nav link ID
+                let targetId = current;
+                if (sectionStartToNavHref[current]) {
+                    targetId = sectionStartToNavHref[current];
+                }
+
+                if (href === `#${targetId}`) {
                     link.classList.add('active');
                 }
             }
