@@ -143,8 +143,9 @@ a {
     padding-bottom: 4rem;
 }
 
+/* Hero Label: Already uppercase, switch to sans */
 .hero-label {
-    font-family: var(--font-mono);
+    font-family: var(--font-sans);
     font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.15em;
@@ -281,6 +282,12 @@ a {
     display: flex;
     flex-direction: column;
     height: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.role-card-detailed:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
 }
 
 .role-card-detailed h4 {
@@ -526,15 +533,23 @@ a {
 }
 
 .nav-item {
-    font-family: var(--font-mono);
-    font-weight: 700;
-    font-size: 0.9rem;
+    font-family: var(--font-sans);
+    /* From Mono */
+    font-weight: 600;
+    font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     display: flex;
     align-items: center;
     gap: 1rem;
     color: var(--ink-light);
+    transition: all 0.2s;
+}
+
+.nav-item:hover {
+    color: var(--ink);
+    transform: translateX(4px);
+    /* Pizazz */
 }
 
 .nav-item:hover,
@@ -584,11 +599,14 @@ a {
 }
 
 .section-label {
-    font-family: var(--font-mono);
+    font-family: var(--font-sans);
+    /* From Mono to Sans */
     color: var(--alert);
     font-size: 0.8rem;
     font-weight: 700;
     margin-bottom: 1rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
 }
 
 .headline {
@@ -601,10 +619,13 @@ a {
 }
 
 .subtitle {
-    font-family: var(--font-mono);
+    font-family: var(--font-sans);
+    /* From Mono to Sans */
     font-size: 1rem;
-    color: var(--ink-light);
+    color: var(--ink);
+    /* Slightly darker */
     margin-bottom: 4rem;
+    max-width: 600px;
 }
 
 /* COMPONENTS (Light Mode) */
@@ -829,8 +850,8 @@ summary::marker {
     border-radius: 50%;
     object-fit: cover;
     margin-bottom: 1rem;
-    /* Removing all borders and backgrounds to fix "black ring" issue with PNGs */
-    background: transparent;
+    /* Unify PNG/JPEG: Use a light zinc background. */
+    background: #f4f4f5;
     border: none;
     box-shadow: none;
 }
