@@ -1,37 +1,22 @@
+/* --- THE COMPUTATIONAL JOURNAL: DESIGN SYSTEM --- */
 :root {
-    /* "Modern Clinical" Palette */
-    /* Primary Colors */
-    --primary: #2563eb;
-    /* Royal Blue - Trust, Action */
-    --primary-dark: #1e40af;
-    /* Darker Blue - Hover */
-    --accent: #0891b2;
-    /* Teal - Subtle Highlights */
+    /* "Swiss Medical" Palette */
+    --paper: #f4f4f0;
+    /* Warm Alabaster - Background */
+    --ink: #18181b;
+    /* Zinc 900 - Text */
+    --ink-light: #52525b;
+    /* Zinc 600 - Secondary Text */
+    --alert: #dc2626;
+    /* Crimson - Accent/Action */
 
-    /* Neutral Scales */
-    --bg-white: #ffffff;
-    /* Main Background */
-    --bg-gray: #f8fafc;
-    /* Secondary Background */
-    --surface-border: #e2e8f0;
-    /* Light Gray Border */
-    --text-main: #0f172a;
-    /* Navy/Black - Headings */
-    --text-body: #334155;
-    /* Slate - Body */
-    --text-muted: #64748b;
-    /* Light Slate - Meta */
+    /* Structural Lines */
+    --hairline: 1px solid rgba(0, 0, 0, 0.08);
+    --border-strong: 1px solid rgba(0, 0, 0, 1);
 
-    /* Gradients */
-    --grad-primary: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-
-    /* Shadows - Clean & Structured */
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-
-    /* Spacing */
-    --section-spacing: 6rem;
+    /* Typography */
+    --font-serif: 'EB Garamond', serif;
+    --font-mono: 'Space Mono', monospace;
 }
 
 * {
@@ -43,24 +28,15 @@
 html {
     scroll-behavior: smooth;
     font-size: 16px;
+    background-color: var(--paper);
+    color: var(--ink);
 }
 
 body {
-    font-family: 'Inter', sans-serif;
-    background-color: var(--bg-white);
-    color: var(--text-body);
-    line-height: 1.6;
+    font-family: var(--font-mono);
+    /* Start with Mono for body */
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
-}
-
-h1,
-h2,
-h3,
-h4,
-.logo {
-    font-family: 'Outfit', sans-serif;
-    color: var(--text-main);
-    letter-spacing: -0.02em;
 }
 
 a {
@@ -69,514 +45,461 @@ a {
     transition: all 0.2s ease;
 }
 
-/* --- UTILITIES --- */
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 2rem;
+/* --- LAYOUT GRID --- */
+.layout-grid {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    /* Fixed Sidebar | Scrolling Feed */
+    min-height: 100vh;
 }
 
-.text-center {
-    text-align: center;
-}
-
-/* --- HEADER (Standard Full Width) --- */
-.top-bar {
-    background-color: var(--text-main);
-    color: white;
-    padding: 0.5rem 0;
-    font-size: 0.8rem;
-    font-weight: 500;
-}
-
-.top-bar .container {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1.5rem;
-}
-
-.top-bar a {
-    color: rgba(255, 255, 255, 0.8);
-    transition: color 0.2s;
-}
-
-.top-bar a:hover {
-    color: white;
-}
-
-header {
+/* --- SIDEBAR (Fixed Manifesto) --- */
+.sidebar {
     position: sticky;
     top: 0;
-    z-index: 1000;
-    background: rgba(255, 255, 255, 0.98);
-    /* Less transp for pro feel */
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--surface-border);
-    padding: 1.25rem 0;
-    /* Taller, more stately */
-}
-
-nav {
+    height: 100vh;
+    border-right: var(--hairline);
+    padding: 3rem 2.5rem;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    background-color: var(--paper);
+    z-index: 50;
+    overflow-y: auto;
+    /* Allow scroll if content is tall */
 }
 
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-weight: 700;
-    font-size: 1.25rem;
-    color: var(--text-main);
-}
-
-.nav-links {
-    display: flex;
-    gap: 2rem;
-    align-items: center;
-}
-
-.nav-links a {
-    font-weight: 500;
-    font-size: 0.95rem;
-    color: var(--text-body);
-}
-
-.nav-links a:hover,
-.nav-links a.active {
-    color: var(--primary);
-}
-
-.nav-cta {
-    background-color: var(--primary);
-    color: white !important;
-    padding: 0.6rem 1.25rem;
-    border-radius: 6px;
-    font-weight: 600;
-}
-
-.nav-cta:hover {
-    background-color: var(--primary-dark);
-}
-
-.mobile-menu-btn {
-    display: none;
-    /* Add JS logic if needed later */
-}
-
-/* --- HERO SECTION --- */
-.hero {
-    padding: 10rem 0 8rem;
-    /* More whitespace */
-    text-align: center;
-    background-color: var(--bg-white);
-    /* "Graph Paper" Medical Grid */
-    background-image:
-        linear-gradient(var(--surface-border) 1px, transparent 1px),
-        linear-gradient(90deg, var(--surface-border) 1px, transparent 1px);
-    background-size: 40px 40px;
-    background-position: center top;
-}
-
-.hero h1 {
-    font-size: clamp(3rem, 6vw, 4.5rem);
-    line-height: 1.1;
-    margin-bottom: 1.5rem;
-    max-width: 900px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.hero-subtitle {
-    font-size: 1.25rem;
-    color: var(--text-body);
-    max-width: 700px;
-    margin: 0 auto 2.5rem;
-}
-
-.hero-bullets {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    flex-wrap: wrap;
-    margin-bottom: 3rem;
-    font-size: 0.95rem;
-    color: var(--text-muted);
-}
-
-.hero-bullet::before {
-    content: "•";
-    color: var(--primary);
-    margin-right: 0.5rem;
-    font-weight: bold;
-}
-
-.hero-ctas {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-bottom: 3rem;
-}
-
-/* --- BUTTONS --- */
-.btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.85rem 2rem;
-    border-radius: 8px;
-    /* Square with slight round */
-    font-weight: 600;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    background-color: var(--primary);
-    color: white;
-    border: 1px solid var(--primary);
-}
-
-.btn:hover {
-    background-color: var(--primary-dark);
-    border-color: var(--primary-dark);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-}
-
-.btn-secondary {
-    background-color: white;
-    color: var(--text-main);
-    border: 1px solid var(--surface-border);
-}
-
-.btn-secondary:hover {
-    background-color: var(--bg-gray);
-    border-color: var(--text-muted);
-    color: var(--text-main);
-}
-
-/* --- PROOF STATS --- */
-.hero-proof {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    margin-top: 1rem;
-}
-
-.proof-item {
-    text-align: center;
-}
-
-.proof-number {
-    display: block;
-    font-size: 2rem;
-    font-weight: 800;
-    color: var(--primary);
-}
-
-.proof-label {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-}
-
-/* --- SECTIONS (Shared) --- */
-section {
-    padding: var(--section-spacing) 0;
-}
-
-/* Alternating Backgrounds */
-section:nth-of-type(even) {
-    background-color: var(--bg-gray);
-    border-top: 1px solid var(--surface-border);
-    border-bottom: 1px solid var(--surface-border);
-}
-
-.section-header {
-    text-align: center;
+/* Logo Area */
+.journal-header {
     margin-bottom: 4rem;
 }
 
-.section-header h2 {
-    font-size: 2.25rem;
-    margin-bottom: 1rem;
-}
-
-.section-header p {
-    font-size: 1.1rem;
-    color: var(--text-muted);
-}
-
-/* --- CARDS (Structured Paper) --- */
-.card,
-.leader-card,
-.testimonial-card,
-.role-card-detailed {
-    background: white;
-    border: 1px solid var(--surface-border);
-    border-radius: 12px;
-    padding: 2rem;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.card:hover,
-.leader-card:hover,
-.testimonial-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-    border-color: var(--primary);
-}
-
-/* --- LEADERSHIP --- */
-.leadership-grid {
+.journal-logo {
     display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 2rem;
-    margin-bottom: 2rem;
+    align-items: center;
+    gap: 1rem;
 }
 
-.leader-card {
-    width: 280px;
-    text-align: center;
-    padding: 2rem 1.5rem;
+.monogram {
+    height: 48px;
+    width: auto;
+    filter: grayscale(1);
+    /* B&W Logo */
 }
 
-.leader-img {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    margin-bottom: 1rem;
-    object-fit: cover;
-    border: 3px solid var(--bg-gray);
+.brand-text {
+    display: flex;
+    flex-direction: column;
 }
 
-.leader-name {
-    display: block;
-    font-weight: 700;
-    font-size: 1.1rem;
-    margin-bottom: 0.25rem;
-}
-
-.leader-role {
-    display: block;
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    line-height: 1.4;
-    margin-bottom: 1rem;
-}
-
-.leader-link {
-    font-size: 0.85rem;
-    color: var(--primary);
+.brand-title {
+    font-family: var(--font-serif);
     font-weight: 500;
+    font-style: italic;
+    font-size: 1.5rem;
+    line-height: 1;
 }
 
-/* --- HOW IT WORKS (Triad) --- */
-.roles-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
+.brand-subtitle {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 0.25rem;
+    color: var(--ink-light);
 }
 
-.tag {
-    display: inline-block;
-    padding: 0.25rem 0.75rem;
-    border-radius: 99px;
-    font-size: 0.75rem;
-    font-weight: 700;
+/* Manifesto */
+.manifesto {
+    margin-bottom: 4rem;
+}
+
+.manifesto-text {
+    font-family: var(--font-serif);
+    font-size: 1.75rem;
+    line-height: 1.1;
+    font-style: italic;
+    margin-bottom: 1.5rem;
+}
+
+.manifesto-detail {
+    font-size: 0.85rem;
+    color: var(--ink-light);
+    line-height: 1.6;
+}
+
+/* Navigation */
+.journal-nav ul {
+    list-style: none;
+}
+
+.journal-nav li {
     margin-bottom: 1rem;
-    /* Reset inline styles in HTML via stronger specificity if needed */
-    background: var(--bg-gray) !important;
-    color: var(--text-main) !important;
-    border: 1px solid var(--surface-border);
 }
 
-/* --- TIMELINE --- */
-.timeline {
-    position: relative;
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.timeline::before {
-    content: '';
-    position: absolute;
-    left: 20px;
-    /* Adjust for dot centering */
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: var(--surface-border);
-}
-
-.timeline-item {
-    padding-left: 3rem;
-    position: relative;
-    margin-bottom: 3rem;
-}
-
-.timeline-dot {
-    position: absolute;
-    left: 11px;
-    top: 0.5rem;
-    width: 20px;
-    height: 20px;
-    background: var(--bg-white);
-    border: 4px solid var(--primary);
-    border-radius: 50%;
-    z-index: 10;
-}
-
-.timeline-date {
-    display: block;
+.nav-item {
+    font-family: var(--font-mono);
     font-weight: 700;
-    color: var(--primary);
-    margin-bottom: 0.5rem;
     font-size: 0.9rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: var(--ink-light);
 }
 
-.timeline-content h3 {
-    font-size: 1.25rem;
+.nav-item:hover,
+.nav-item.active {
+    color: var(--ink);
+}
+
+.nav-num {
+    font-size: 0.7rem;
+    color: var(--alert);
+    width: 20px;
+}
+
+.active-cta {
+    margin-top: 2rem;
+    color: var(--alert);
+}
+
+/* Sidebar Footer */
+.journal-footer {
+    margin-top: auto;
+    padding-top: 2rem;
+    border-top: var(--border-strong);
+}
+
+.institutional-mark {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 1.1rem;
     margin-bottom: 0.5rem;
 }
 
-.timeline-content p {
-    color: var(--text-muted);
-}
-
-/* --- SELECTED WORKS --- */
-.project-meta {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    margin-bottom: 0.75rem;
-    display: flex;
-    justify-content: space-between;
-}
-
-.tech {
-    margin-top: auto;
-    padding-top: 1rem;
-    font-size: 0.8rem;
-    color: var(--primary);
-    font-weight: 600;
-    letter-spacing: 0.02em;
+.copyright {
+    font-size: 0.7rem;
+    color: var(--ink-light);
     text-transform: uppercase;
 }
 
-.project-img {
-    width: 100%;
-    height: 180px;
-    object-fit: cover;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-    border: 1px solid var(--surface-border);
-    background: var(--bg-gray);
+/* --- FEED column --- */
+.feed {
+    padding: 0;
 }
 
-/* --- FAQ --- */
-.faq-grid {
-    max-width: 800px;
-    margin: 0 auto;
+.journal-section {
+    padding: 6rem 4rem;
+    border-bottom: var(--hairline);
+    min-height: 80vh;
+    /* Give sections breath */
 }
 
-.faq-item {
-    border-bottom: 1px solid var(--surface-border);
+.section-label {
+    font-family: var(--font-mono);
+    color: var(--alert);
+    font-size: 0.8rem;
+    font-weight: 700;
     margin-bottom: 1rem;
 }
 
-.faq-summary {
-    padding: 1rem 0;
-    font-weight: 600;
-    cursor: pointer;
-    list-style: none;
-    /* Hide default arrow */
-    position: relative;
+.headline {
+    font-family: var(--font-serif);
+    font-size: 4rem;
+    line-height: 0.95;
+    font-style: italic;
+    margin-bottom: 1rem;
+    max-width: 800px;
 }
 
-.faq-summary::-webkit-details-marker {
-    display: none;
+.subtitle {
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    color: var(--ink-light);
+    margin-bottom: 4rem;
 }
 
-.faq-summary::after {
-    content: '+';
-    position: absolute;
-    right: 0;
-    font-weight: 300;
-    font-size: 1.5rem;
-    color: var(--primary);
-}
-
-details[open] .faq-summary::after {
-    content: '-';
-}
-
-.faq-answer {
-    padding-bottom: 1.5rem;
-    color: var(--text-muted);
-}
-
-/* --- GRID & UTILS --- */
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 2rem;
-}
-
-.role-grid-3 {
+/* --- COMPONENT: Journal Entry (Protocol) --- */
+.article-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 2rem;
+    margin-bottom: 4rem;
 }
 
-/* --- MOBILE --- */
-@media (max-width: 768px) {
-    .nav-links {
+.entry {
+    border-top: var(--border-strong);
+    padding-top: 1rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.entry-meta {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--ink-light);
+    margin-bottom: 0.5rem;
+}
+
+.entry-title {
+    font-family: var(--font-serif);
+    font-size: 2rem;
+    font-style: italic;
+    margin-bottom: 1rem;
+}
+
+.entry-body {
+    font-size: 0.9rem;
+    color: var(--ink-light);
+    margin-bottom: 2rem;
+    flex-grow: 1;
+}
+
+.entry-footer {
+    margin-top: auto;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.tag {
+    font-size: 0.65rem;
+    border: 1px solid var(--ink);
+    padding: 0.2rem 0.5rem;
+    text-transform: uppercase;
+}
+
+/* --- COMPONENT: Docket/Timeline --- */
+.abstract-box {
+    background: white;
+    padding: 2rem;
+    border: var(--hairline);
+}
+
+.abstract-title {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    border-bottom: var(--hairline);
+    padding-bottom: 0.5rem;
+}
+
+.docket-list {
+    list-style: none;
+}
+
+.docket-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: var(--hairline);
+    font-size: 0.9rem;
+}
+
+.docket-time {
+    color: var(--alert);
+    font-weight: 700;
+}
+
+/* --- COMPONENT: Case File (Projects) --- */
+.case-file-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.case-file {
+    border-top: var(--border-strong);
+    padding: 2rem 0;
+}
+
+.case-header {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+}
+
+.case-id {
+    color: var(--alert);
+}
+
+.case-body {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 3rem;
+}
+
+.case-content h3 {
+    font-family: var(--font-serif);
+    font-size: 2.5rem;
+    line-height: 1;
+    font-style: italic;
+    margin-bottom: 1rem;
+}
+
+.case-content p {
+    color: var(--ink-light);
+    max-width: 500px;
+    margin-bottom: 1.5rem;
+}
+
+.case-credits {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    padding: 0.5rem;
+    background: white;
+    display: inline-block;
+    border: var(--hairline);
+}
+
+.case-visual img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    filter: grayscale(100%);
+    transition: filter 0.3s;
+    border: var(--hairline);
+}
+
+.case-file:hover .case-visual img {
+    filter: grayscale(0%);
+}
+
+/* --- COMPONENT: Faculty --- */
+.faculty-list {
+    list-style: none;
+    border-top: var(--border-strong);
+    margin-bottom: 3rem;
+}
+
+.faculty-member {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 0;
+    border-bottom: var(--hairline);
+    font-size: 0.95rem;
+}
+
+.f-name {
+    font-weight: 700;
+}
+
+.f-role {
+    font-family: var(--font-serif);
+    font-style: italic;
+    color: var(--ink-light);
+}
+
+.f-affil {
+    color: var(--alert);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+}
+
+.photo-strip {
+    display: flex;
+    gap: 1px;
+    /* Minimal gap */
+    overflow: hidden;
+}
+
+.photo-strip img {
+    width: 100px;
+    /* Small thumbnails */
+    height: 120px;
+    object-fit: cover;
+    filter: grayscale(100%) contrast(1.2);
+}
+
+/* --- INQUIRY --- */
+.inquiry-box {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 3rem;
+}
+
+.inquiry-box p {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-style: italic;
+    margin-bottom: 2rem;
+}
+
+.cta-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.journal-btn {
+    display: inline-block;
+    padding: 1rem 2rem;
+    background: var(--alert);
+    color: white;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 0.9rem;
+    border: none;
+}
+
+.journal-btn.secondary {
+    background: transparent;
+    border: 1px solid var(--paper);
+}
+
+.journal-btn:hover {
+    background: white;
+    color: var(--ink);
+}
+
+/* --- MOBILE RESPONSIVE --- */
+@media (max-width: 900px) {
+    .layout-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        position: relative;
+        height: auto;
+        padding: 2rem;
+        border-right: none;
+        border-bottom: var(--border-strong);
+    }
+
+    .journal-header {
+        margin-bottom: 2rem;
+    }
+
+    .manifesto {
+        margin-bottom: 2rem;
+    }
+
+    .journal-nav {
+        display: none;
+        /* Hide side nav on mobile, maybe add burger later */
+    }
+
+    .sidebar .journal-footer {
         display: none;
     }
 
-    /* Use JS to toggle */
-    .mobile-menu-btn {
-        display: flex;
-        flex-direction: column;
-        width: 30px;
-        gap: 6px;
-        background: none;
-        border: none;
-        cursor: pointer;
+    .feed .journal-section {
+        padding: 4rem 1.5rem;
     }
 
-    .mobile-menu-btn span {
-        width: 100%;
-        height: 2px;
-        background: var(--text-main);
+    .headline {
+        font-size: 3rem;
     }
 
-    .hero h1 {
-        font-size: 2.5rem;
+    .case-body {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
     }
 
-    .hero-bullets {
-        flex-direction: column;
-        gap: 0.5rem;
-        align-items: center;
-    }
-
-    .timeline::before {
-        left: 10px;
-    }
-
-    .timeline-item {
-        padding-left: 2.5rem;
-    }
-
-    .timeline-dot {
-        left: 1px;
+    .photo-strip {
+        flex-wrap: wrap;
     }
 }

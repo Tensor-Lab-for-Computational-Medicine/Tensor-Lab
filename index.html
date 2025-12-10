@@ -4,754 +4,252 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Tensor Lab | Computational Medicine</title>
+    <title>The Tensor Lab | Journal of Computational Medicine</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Garamond for History, Space Mono for Future -->
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@700;800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
 
+    <div class="layout-grid">
+        <!-- SIDEBAR (Fixed Manifesto) -->
+        <aside class="sidebar">
+            <div class="sidebar-content">
+                <header class="journal-header">
+                    <div class="journal-logo">
+                        <img src="Logo.png" alt="TL Monogram" class="monogram">
+                        <div class="brand-text">
+                            <span class="brand-title">The Tensor Lab</span>
+                            <span class="brand-subtitle">Est. 2025 • Baltimore/SF</span>
+                        </div>
+                    </div>
+                </header>
 
+                <div class="manifesto">
+                    <p class="manifesto-text">
+                        Medicine is a problem of data. <br>
+                        We build the computation to solve it.
+                    </p>
+                    <div class="manifesto-detail">
+                        The Tensor Lab connects medical intuition with machine learning rigor. We are an open research
+                        collective publishing novel work at the intersection of AI and clinical practice.
+                    </div>
+                </div>
 
-    <div class="top-bar">
-        <div class="container">
-            <span>University of Maryland School of Medicine</span>
-            <span>University of California, San Francisco</span>
-        </div>
+                <nav class="journal-nav">
+                    <ul>
+                        <li><a href="#protocol" class="nav-item"><span class="nav-num">01</span> Protocol</a></li>
+                        <li><a href="#case-studies" class="nav-item"><span class="nav-num">02</span> Case Studies</a>
+                        </li>
+                        <li><a href="#faculty" class="nav-item"><span class="nav-num">03</span> Faculty</a></li>
+                        <li><a href="#inquiry" class="nav-item active-cta"><span class="nav-num">>>></span> Join
+                                Collective</a></li>
+                    </ul>
+                </nav>
+
+                <footer class="journal-footer">
+                    <div class="institutional-mark">
+                        UMSOM &times; UCSF
+                    </div>
+                    <div class="copyright">
+                        &copy; 2025 Tensor Lab. <br>Open Science / Open Code.
+                    </div>
+                </footer>
+            </div>
+        </aside>
+
+        <!-- FEED (Scrolling Content) -->
+        <main class="feed">
+
+            <!-- SECTION 01: PROTOCOL -->
+            <section id="protocol" class="journal-section">
+                <div class="section-label">01 // THE PROTOCOL</div>
+                <h2 class="headline">The Triad Model</h2>
+
+                <div class="article-grid">
+                    <article class="entry">
+                        <div class="entry-meta">ROLE: ENGINEER</div>
+                        <h3 class="entry-title">The Architect</h3>
+                        <p class="entry-body">You write the code. You run the experiments. You build the model that sees
+                            what the human eye cannot.</p>
+                        <div class="entry-footer">
+                            <span class="tag">Python</span>
+                            <span class="tag">PyTorch</span>
+                        </div>
+                    </article>
+
+                    <article class="entry">
+                        <div class="entry-meta">ROLE: CLINICIAN</div>
+                        <h3 class="entry-title">The Guide</h3>
+                        <p class="entry-body">You define the problem. You ground the math in biological reality. You
+                            ensure the solution matters to patients.</p>
+                        <div class="entry-footer">
+                            <span class="tag">Pathology</span>
+                            <span class="tag">Clinical Flow</span>
+                        </div>
+                    </article>
+
+                    <article class="entry">
+                        <div class="entry-meta">ROLE: MENTOR</div>
+                        <h3 class="entry-title">The Principal</h3>
+                        <p class="entry-body">Renowned faculty who open doors. They provide the data, the ethics, and
+                            the path to publication.</p>
+                        <div class="entry-footer">
+                            <span class="tag">Grant Support</span>
+                            <span class="tag">Publication</span>
+                        </div>
+                    </article>
+                </div>
+
+                <!-- Abstract / Timeline -->
+                <div class="abstract-box">
+                    <h4 class="abstract-title">ABSTRACT: SUMMER 2026 TIMELINE</h4>
+                    <ul class="docket-list">
+                        <li><span class="docket-time">DEC '25</span> <span class="docket-event">Proposal Submission
+                                (Medical Students)</span></li>
+                        <li><span class="docket-time">FEB '26</span> <span class="docket-event">Technical Application
+                                (ML Engineers)</span></li>
+                        <li><span class="docket-time">JUN '26</span> <span class="docket-event">Research Sprint Begins
+                                (10 Weeks)</span></li>
+                        <li><span class="docket-time">SEP '26</span> <span class="docket-event">Symposium &
+                                Publication</span></li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- SECTION 02: CASE STUDIES -->
+            <section id="case-studies" class="journal-section">
+                <div class="section-label">02 // CASE STUDIES</div>
+                <h2 class="headline">Selected Works</h2>
+                <div class="subtitle">Evidence from the Pilot Cohort (N=10)</div>
+
+                <div class="case-file-list">
+                    <!-- Project 1 -->
+                    <div class="case-file">
+                        <div class="case-header">
+                            <span class="case-id">FIG 1.1</span>
+                            <span class="case-type">NLP / PREDICTION</span>
+                        </div>
+                        <div class="case-body">
+                            <div class="case-content">
+                                <h3>LLMs vs. Traditional ML for Clinical Prediction</h3>
+                                <p>A benchmarking study comparing XGBoost against LLM embeddings for ICU mortality
+                                    prediction. Data indicates structured models still outperform unstructured text
+                                    ingestion for localized tasks.</p>
+                                <div class="case-credits">PI: J. De Almeida &times; Fellow: Jialong</div>
+                            </div>
+                            <div class="case-visual">
+                                <img src="Poster Images/Jialong.png" alt="Data Plot" loading="lazy">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Project 2 -->
+                    <div class="case-file">
+                        <div class="case-header">
+                            <span class="case-id">FIG 1.2</span>
+                            <span class="case-type">COMPUTER VISION</span>
+                        </div>
+                        <div class="case-body">
+                            <div class="case-content">
+                                <h3>RFS Prediction in Head & Neck Cancer</h3>
+                                <p>Evaluating if Deep Learning on PET/CT imaging can predict Recurrence-Free Survival
+                                    without manual segmentation. Results suggest automated pipelines achieve parity with
+                                    expert annotation.</p>
+                                <div class="case-credits">PI: G. Snow &times; Fellow: Koushik</div>
+                            </div>
+                            <div class="case-visual">
+                                <img src="Poster Images/Koushik.png" alt="Heatmap" loading="lazy">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Project 3 -->
+                    <div class="case-file">
+                        <div class="case-header">
+                            <span class="case-id">FIG 1.3</span>
+                            <span class="case-type">NLP / READMISSION</span>
+                        </div>
+                        <div class="case-body">
+                            <div class="case-content">
+                                <h3>Predicting 30-Day Readmission via Discharge Summaries</h3>
+                                <p>Application of BioClinicalBERT to unstructured discharge notes. Uncovered significant
+                                    correlation between social determinants mentions and readmission risk.</p>
+                                <div class="case-credits">PI: G. Tison &times; Fellow: Shravya</div>
+                            </div>
+                            <div class="case-visual">
+                                <img src="Poster Images/Shravya.png" alt="Transformer Attention" loading="lazy">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 03: FACULTY -->
+            <section id="faculty" class="journal-section">
+                <div class="section-label">03 // THE FACULTY</div>
+                <h2 class="headline">Leadership</h2>
+
+                <ul class="faculty-list">
+                    <li class="faculty-member">
+                        <span class="f-name">Aaron Ge</span>
+                        <span class="f-role">Technical Director</span>
+                        <span class="f-affil">UMSOM</span>
+                    </li>
+                    <li class="faculty-member">
+                        <span class="f-name">Matt Allen</span>
+                        <span class="f-role">Executive Director</span>
+                        <span class="f-affil">UCSF</span>
+                    </li>
+                    <li class="faculty-member">
+                        <span class="f-name">Chy Murali</span>
+                        <span class="f-role">Operational Director</span>
+                        <span class="f-affil">UMSOM</span>
+                    </li>
+                    <li class="faculty-member">
+                        <span class="f-name">Gavin Shu</span>
+                        <span class="f-role">Strategic Director</span>
+                        <span class="f-affil">UCSF</span>
+                    </li>
+                    <li class="faculty-member">
+                        <span class="f-name">Angie Lee</span>
+                        <span class="f-role">Business Director</span>
+                        <span class="f-affil">UMSOM</span>
+                    </li>
+                </ul>
+
+                <div class="photo-strip">
+                    <!-- Images treated as stark b&w thumbnails -->
+                    <img src="Portrait Photos/Aaron Ge.jpeg">
+                    <img src="Portrait Photos/Matt Allen.png">
+                    <img src="Portrait Photos/Chy Murali.png">
+                    <img src="Portrait Photos/Gavin Shu.png">
+                </div>
+            </section>
+
+            <!-- SECTION 04: INQUIRY -->
+            <section id="inquiry" class="journal-section" style="border-bottom: none; min-height: 60vh;">
+                <div class="section-label">04 // INQUIRY</div>
+                <h2 class="headline">Submit Application</h2>
+                <div class="inquiry-box">
+                    <p>The 2026 Cohort application window opens <strong>February 1st</strong>.</p>
+                    <div class="cta-row">
+                        <a href="https://forms.gle/N7LEjhRwLdc2VwgJA" class="journal-btn">Join Engineer Waitlist -></a>
+                        <a href="https://docs.google.com/forms/d/e/1FAIpQLScyc-Jh3OZpRRqnAzO_848YWZr8cYwwd_QD-wIwynaRJiA-mg/viewform"
+                            class="journal-btn secondary">Submit Medical Project -></a>
+                    </div>
+                </div>
+            </section>
+
+        </main>
     </div>
 
-    <header>
-        <div class="container">
-            <nav>
-                <a href="index.html" class="logo">
-                    <img src="Logo.png" alt="Logo" style="height: 40px; width: auto; margin-right: 10px;"
-                        loading="eager">
-                    <div style="display: flex; flex-direction: column; line-height: 1;">
-                        <div style="white-space: nowrap; width: 100%;">THE TENSOR LAB</div>
-                        <div
-                            style="font-size: 0.62rem; color: var(--text-muted); letter-spacing: 0.05em; font-weight: 600; margin-top: 2px; white-space: nowrap; width: 100%;">
-                            FOR COMPUTATIONAL MEDICINE</div>
-                    </div>
-                </a>
-                <div class="nav-links">
-                    <!-- Home link removed, logo is now home -->
-                    <a href="#team">Our Team</a>
-                    <a href="#roles">The Approach</a>
-                    <a href="#marketplace">2025 Cohort</a>
-                    <a href="#open-roles" class="nav-cta">Join The Team</a>
-                </div>
-                <button class="mobile-menu-btn" aria-label="Toggle menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-            </nav>
-        </div>
-    </header>
-
-    <main>
-        <!-- HERO -->
-        <section class="hero">
-            <div class="container">
-                <div class="hero-copy">
-                    <h1>Advancing Medicine with Machine Learning</h1>
-                    <p class="hero-subtitle">We pair machine learning students with medical students to tackle real
-                        clinical problems, guided by internationally-renowned faculty mentors. You'll lead an
-                        independent
-                        research project and have the opportunity to publish on your discoveries.</p>
-                    <div class="hero-bullets">
-                        <span class="hero-bullet">Conduct high-impact research</span>
-                        <span class="hero-bullet">1:1 physician mentorship</span>
-                        <span class="hero-bullet">Impact clinical practice</span>
-                        <span class="hero-bullet">Cohort of highly-talented peers</span>
-                    </div>
-                    <div class="hero-ctas" style="margin-top: 2rem;">
-                        <a href="https://forms.gle/Rk8PUyWD7ke5MDE78" class="btn">Apply to join as a ML
-                            engineer</a>
-                        <a href="#open-roles" class="btn btn-secondary">Apply to join as a Medical Student</a>
-                    </div>
-                    <p class="hero-helper" style="visibility: hidden;">&nbsp;</p>
-                    <p class="hero-proof-meta">Results from our 2025 pilot (n=10 fellows)</p>
-                    <div class="hero-proof" id="impact">
-                        <div class="proof-item">
-                            <span class="proof-number" data-value="7">7</span>
-                            <span class="proof-label">Papers submitted for publication</span>
-                        </div>
-                        <div class="proof-item">
-                            <span class="proof-number" data-value="100">100%</span>
-                            <span class="proof-label">Impactful projects</span>
-                        </div>
-                        <div class="proof-item">
-                            <span class="proof-number" data-value="100">100%</span>
-                            <span class="proof-label">Transformative Mentorship</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ABOUT & LEADERSHIP (Merged) -->
-        <section id="about" class="about-section">
-            <div class="container">
-                <div class="about-text-container">
-                    <h2>Why We Exist</h2>
-                    <p>
-                        Many of medicine's biggest challenges are problems of data, prediction, and decision-making.
-                        Solving them requires both clinical intuition and technical fluency. But those two worlds
-                        often do not meet.
-                        <b>Every summer, we run a fellowship</b> bringing together
-                        incredible talent to revolutionize medical research, solving complex challenges with
-                        computational methods to improve patient care.
-                    </p>
-                </div>
-
-                <!-- LEADERSHIP TEAM (Merged into box) -->
-                <div id="team" class="leadership-section" style="margin-top: 4rem;">
-                    <h3 style="margin-bottom:2rem; text-align:center;">Leadership Team</h3>
-                    <!-- Founders Row -->
-                    <div class="leadership-grid" style="margin-bottom: 1.5rem; justify-content: center;">
-                        <div class="leader-card">
-                            <img src="Portrait%20Photos/Aaron%20Ge.jpeg" alt="Aaron Ge" class="leader-img"
-                                loading="lazy">
-                            <span class="leader-name">Aaron Ge</span>
-                            <span class="leader-role">Co-Founder & Technical Director<br><span
-                                    style="font-size: 0.7em; opacity: 0.8; text-transform: none;">University of
-                                    Maryland School of Medicine</span></span>
-                            <a href="https://www.linkedin.com/in/aaron-ge-6395681b2/" target="_blank"
-                                class="leader-link">LinkedIn ↗</a>
-                        </div>
-                        <div class="leader-card">
-                            <img src="Portrait%20Photos/Matt%20Allen.png" alt="Matt Allen" class="leader-img"
-                                loading="lazy">
-                            <span class="leader-name">Matt Allen</span>
-                            <span class="leader-role">Co-Founder & Executive Director<br><span
-                                    style="font-size: 0.7em; opacity: 0.8; text-transform: none;">University of
-                                    California, San Francisco School of Medicine</span></span>
-                            <a href="https://www.linkedin.com/in/matthewallen001/" target="_blank"
-                                class="leader-link">LinkedIn ↗</a>
-                        </div>
-                    </div>
-                    <!-- Directors Row -->
-                    <div class="leadership-grid">
-                        <div class="leader-card">
-                            <img src="Portrait%20Photos/Chy%20Murali.png" alt="Chy Murali" class="leader-img"
-                                loading="lazy">
-                            <span class="leader-name">Chy Murali</span>
-                            <span class="leader-role">Operational Director<br><span
-                                    style="font-size: 0.7em; opacity: 0.8; text-transform: none;">University of
-                                    Maryland School of Medicine</span></span>
-                            <a href="#" target="_blank" class="leader-link">LinkedIn ↗</a>
-                        </div>
-
-                        <div class="leader-card">
-                            <img src="Portrait%20Photos/Gavin%20Shu.png" alt="Gavin Shu" class="leader-img"
-                                loading="lazy">
-                            <span class="leader-name">Gavin Shu</span>
-                            <span class="leader-role">Strategic Director<br><span
-                                    style="font-size: 0.7em; opacity: 0.8; text-transform: none;">University of
-                                    California, San Francisco School of Medicine</span></span>
-                            <a href="https://www.linkedin.com/in/chang-gavin-shu/" target="_blank"
-                                class="leader-link">LinkedIn ↗</a>
-                        </div>
-                        <div class="leader-card">
-                            <img src="Portrait%20Photos/Angie%20Lee.jpeg" alt="Angie Lee" class="leader-img"
-                                loading="lazy">
-                            <span class="leader-name">Angie Lee</span>
-                            <span class="leader-role">Business Director<br><span
-                                    style="font-size: 0.7em; opacity: 0.8; text-transform: none;">University of
-                                    Maryland School of Medicine</span></span>
-                            <a href="https://www.linkedin.com/in/angie-lee-982510166/" target="_blank"
-                                class="leader-link">LinkedIn ↗</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- TRIAD MODEL -->
-        <section id="roles">
-            <div class="container">
-                <div class="section-header">
-                    <h2>How It Works</h2>
-                    <p style="color:white">Projects are organized into triads: a ML student who builds,
-                        a medical student who guides, and a physician who ensures it's clinically sound.</p>
-                </div>
-                <div class="roles-grid">
-                    <div class="card">
-                        <span class="tag" style="color: #10b981; background: rgba(16, 185, 129, 0.1);">You Build
-                            It</span>
-                        <h3>ML Fellow</h3>
-                        <p style="color:var(--text-muted); font-size:0.95rem; margin-top:0.5rem; margin-bottom:1.5rem;">
-                            You write the code and run the experiments, guided by a team of experienced advisors and
-                            surrounded by a cohort of equally-talented peers.</p>
-                        <a href="https://forms.gle/Rk8PUyWD7ke5MDE78" target="_blank" class="btn"
-                            style="font-size:0.8rem; padding:0.5rem 1rem; width:100%; margin-top:auto;">Apply as
-                            Fellow</a>
-                    </div>
-                    <div class="card">
-                        <span class="tag" style="color: #2dd4bf; background: rgba(45, 212, 191, 0.1);">Clinical
-                            Context</span>
-                        <h3>Medical Student</h3>
-                        <p style="color:var(--text-muted); font-size:0.95rem; margin-top:0.5rem; margin-bottom:1.5rem;">
-                            You bring the research question, explain how doctors actually think, and help frame
-                            results for a clinical audience. You guide the clinical direction while your ML fellow
-                            handles the technical work.</p>
-                        <a href="#open-roles" class="btn"
-                            style="font-size:0.8rem; padding:0.5rem 1rem; width:100%; margin-top:auto;">Apply as a
-                            Medical Student</a>
-                    </div>
-                    <div class="card">
-                        <span class="tag" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1);">Quality
-                            Control</span>
-                        <h3>Faculty Physician</h3>
-                        <p style="color:var(--text-muted); font-size:0.95rem; margin-top:0.5rem; margin-bottom:1.5rem;">
-                            As a practicing physician, you review methods, ensure the research is clinically valid,
-                            and open doors for publication. You provide the clinical expertise that makes the
-                            research meaningful.</p>
-                        <a href="mailto:contact@tensorlab.org" class="btn"
-                            style="font-size:0.8rem; padding:0.5rem 1rem; width:100%; margin-top:auto;">Partner With
-                            Us</a>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- CONTINUOUS ORION BACKGROUND WRAPPER -->
-        <!-- Wraps all content from Timeline to Footer CTA to ensure seamless background -->
-        <!-- TIMELINE (Relocated) -->
-        <section id="approach" class="timeline-section section-surface">
-            <div class="container">
-                <div class="section-header">
-                    <h2>How the Summer Works</h2>
-                    <p style="color:var(--text-muted)">From application to paper submission in 6 months.</p>
-                </div>
-                <div class="timeline">
-                    <div class="timeline-item">
-                        <div class="timeline-dot"></div>
-                        <div class="timeline-content">
-                            <span class="timeline-date">Dec 2025 – Jan 2026</span>
-                            <h3>Medical Students Submit Projects</h3>
-                            <p>If you're a med student with a research idea, submit a proposal describing the
-                                clinical problem you want to solve.</p>
-                        </div>
-                    </div>
-                    <div class="timeline-item">
-                        <div class="timeline-dot"></div>
-                        <div class="timeline-content">
-                            <span class="timeline-date">Feb 2026</span>
-                            <h3>ML Students Apply</h3>
-                            <p>Browse projects and apply to the ones you're interested in. Medical students
-                                interview applicants and select their fellow.</p>
-                        </div>
-                    </div>
-                    <div class="timeline-item">
-                        <div class="timeline-dot"></div>
-                        <div class="timeline-content">
-                            <span class="timeline-date">Mar 2026</span>
-                            <h3>Teams Matched</h3>
-                            <p>Once matched, you'll meet your team and start planning the project scope and
-                                timeline.</p>
-                        </div>
-                    </div>
-                    <div class="timeline-item">
-                        <div class="timeline-dot"></div>
-                        <div class="timeline-content">
-                            <span class="timeline-date">Apr – May 2026</span>
-                            <h3>Institutional Onboarding</h3>
-                            <p>Members of your team will get neccessary credentials and access to the tools they
-                                need to get started.</p>
-                        </div>
-                    </div>
-                    <div class="timeline-item">
-                        <div class="timeline-dot"></div>
-                        <div class="timeline-content">
-                            <span class="timeline-date">Jun – Aug 2026</span>
-                            <h3>10-Week Research Sprint</h3>
-                            <p>Build the model, run experiments, analyze results, and write the paper. This is the
-                                core of the fellowship.</p>
-                        </div>
-                    </div>
-                    <div class="timeline-item">
-                        <div class="timeline-dot"></div>
-                        <div class="timeline-content">
-                            <span class="timeline-date">Sep 2026</span>
-                            <h3>Present Your Work</h3>
-                            <p>Share your findings at the Tensor Lab Symposium and submit your paper for
-                                publication.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-
-
-        <!-- SELECTED WORKS (Restored from cohort-2025.html) -->
-        <section id="marketplace" class="section-surface">
-            <div class="container">
-                <div class="section-header">
-                    <h2>2025 Pilot Cohort: Selected Works</h2>
-                    <p style="color:var(--text-muted)">Deep dives into the projects delivered by our first cohort.
-                    </p>
-                </div>
-
-                <div class="filter-bar">
-                    <button class="filter-btn active" onclick="filterProjects('all')">All Systems</button>
-                    <button class="filter-btn" onclick="filterProjects('vision')">Computer Vision</button>
-                    <button class="filter-btn" onclick="filterProjects('llm')">LLMs / NLP</button>
-                    <button class="filter-btn" onclick="filterProjects('predict')">Prediction</button>
-                </div>
-
-                <div class="grid">
-                    <!-- Jialong -->
-                    <div class="card project-card" data-category="llm">
-                        <img src="Poster Images/Jialong.png" alt="Clinical Prediction Poster" class="project-img"
-                            loading="lazy">
-                        <div class="project-meta"><span>Benchmarking / ICU Data</span> <span
-                                style="color:var(--primary)">NCI</span></div>
-                        <h3 style="margin-bottom:0.5rem;">LLMs vs. Traditional ML for Clinical Prediction</h3>
-                        <div class="team-meta"
-                            style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem; background:rgba(255,255,255,0.03); padding:0.5rem; border-radius:0.5rem;">
-                            <div><strong>PI:</strong> Dr. Jonas De Almeida</div>
-                            <div><strong>Mentor:</strong> Aaron Ge</div>
-                            <div><strong>Fellow:</strong> Jialong</div>
-                        </div>
-                        <p style="color:var(--text-muted); font-size:0.9rem;">Compared the performance of LLM-based
-                            semantic models (using LLM embeddings) against traditional ML models (XGBoost) across
-                            different clinical prediction tasks.</p>
-                        <div
-                            style="margin-top:1rem; font-size:0.85rem; border-top:1px solid var(--border); padding-top:0.5rem;">
-                            <strong>Result:</strong> Text representation critically affects performance; traditional
-                            ML excels at physiological data.
-                        </div>
-                        <div class="tech">XGBoost, LLM Embeddings, Python</div>
-                    </div>
-
-                    <!-- Dmitry -->
-                    <div class="card project-card" data-category="llm">
-                        <div class="project-meta"><span>Pharmacogenomics</span> <span
-                                style="color:var(--primary)">UCSF</span></div>
-                        <h3 style="margin-bottom:0.5rem;">Oncology Pharmacogenomics Knowledge Graph</h3>
-                        <div class="team-meta"
-                            style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem; background:rgba(255,255,255,0.03); padding:0.5rem; border-radius:0.5rem;">
-                            <div><strong>PI:</strong> Dr. Brian Schulte</div>
-                            <div><strong>Mentors:</strong> Diem My, Chy Murali</div>
-                            <div><strong>Fellow:</strong> Dmitry</div>
-                        </div>
-                        <p style="color:var(--text-muted); font-size:0.9rem;">Developed the OPMG prototype to
-                            accelerate clinical evidence synthesis using an ETL-First strategy and Knowledge Graph
-                            RAG system.</p>
-                        <div
-                            style="margin-top:1rem; font-size:0.85rem; border-top:1px solid var(--border); padding-top:0.5rem;">
-                            <strong>Result:</strong> Validated ETL-first strategy and end-to-end KG-RAG pipeline
-                            functionality.
-                        </div>
-                        <div class="tech">Knowledge Graph, RAG, Gemini, ETL</div>
-                    </div>
-
-                    <!-- Malavika -->
-                    <div class="card project-card" data-category="predict">
-                        <div class="project-meta"><span>Oncology / SDOH</span> <span
-                                style="color:var(--primary)">UCSF</span></div>
-                        <h3 style="margin-bottom:0.5rem;">Modeling Prostate Cancer Using SDOH</h3>
-                        <div class="team-meta"
-                            style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem; background:rgba(255,255,255,0.03); padding:0.5rem; border-radius:0.5rem;">
-                            <div><strong>PI:</strong> Dr. Scott Campbell</div>
-                            <div><strong>Mentors:</strong> Chy Murali, Diem My</div>
-                            <div><strong>Fellow:</strong> Malavika</div>
-                        </div>
-                        <p style="color:var(--text-muted); font-size:0.9rem;">Trained ML models using SEER registry
-                            data linked with Social Determinants of Health proxies to stratify prostate cancer
-                            patients.</p>
-                        <div
-                            style="margin-top:1rem; font-size:0.85rem; border-top:1px solid var(--border); padding-top:0.5rem;">
-                            <strong>Result:</strong> SDOH adds measurable predictive value, highlighting the
-                            importance of social context.
-                        </div>
-                        <div class="tech">Logistic Regression, SDOH Data, Python</div>
-                    </div>
-
-                    <!-- Koushik -->
-                    <div class="card project-card" data-category="predict">
-                        <img src="Poster Images/Koushik.png" alt="RFS Prediction Poster" class="project-img"
-                            loading="lazy">
-                        <div class="project-meta"><span>Head & Neck Cancer</span> <span
-                                style="color:var(--primary)">UMSOM</span></div>
-                        <h3 style="margin-bottom:0.5rem;">RFS Prediction with/without Segmentation</h3>
-                        <div class="team-meta"
-                            style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem; background:rgba(255,255,255,0.03); padding:0.5rem; border-radius:0.5rem;">
-                            <div><strong>PI:</strong> Dr. Grace Snow</div>
-                            <div><strong>Mentor:</strong> Laura Chen</div>
-                            <div><strong>Fellow:</strong> Koushik</div>
-                        </div>
-                        <p style="color:var(--text-muted); font-size:0.9rem;">Investigated whether a simplified
-                            multimodal model using only PET/CT and clinical data could achieve comparable RFS
-                            prediction to expert-annotated models.</p>
-                        <div
-                            style="margin-top:1rem; font-size:0.85rem; border-top:1px solid var(--border); padding-top:0.5rem;">
-                            <strong>Result:</strong> Simpler PET/CT model achieved comparable performance and is
-                            more generalizable.
-                        </div>
-                        <div class="tech">Multimodal ML, PET/CT, Survival Analysis</div>
-                    </div>
-
-                    <!-- Ashwin -->
-                    <div class="card project-card" data-category="llm">
-                        <div class="project-meta"><span>Emergency Medicine</span> <span
-                                style="color:var(--primary)">Kaiser</span></div>
-                        <h3 style="margin-bottom:0.5rem;">LLM-Powered ER Triage Simulator</h3>
-                        <div class="team-meta"
-                            style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem; background:rgba(255,255,255,0.03); padding:0.5rem; border-radius:0.5rem;">
-                            <div><strong>PI:</strong> Dr. Ian McLachlan</div>
-                            <div><strong>Mentor:</strong> Aaron Ge</div>
-                            <div><strong>Fellow:</strong> Ashwin</div>
-                        </div>
-                        <p style="color:var(--text-muted); font-size:0.9rem;">Developed a training simulator using
-                            LLMs to create interactive, data-grounded emergency triage encounters from MIMIC-IV
-                            data.</p>
-                        <div
-                            style="margin-top:1rem; font-size:0.85rem; border-top:1px solid var(--border); padding-top:0.5rem;">
-                            <strong>Result:</strong> Confirmed feasibility of using LLMs for realistic, scalable
-                            medical training tools.
-                        </div>
-                        <div class="tech">LLMs, MIMIC-IV, Interactive Systems</div>
-                    </div>
-
-                    <!-- Shravya -->
-                    <div class="card project-card" data-category="llm">
-                        <img src="Poster Images/Shravya.png" alt="Hospital Readmission Poster" class="project-img"
-                            loading="lazy">
-                        <div class="project-meta"><span>Cardiology / Readmission</span> <span
-                                style="color:var(--primary)">UCSF</span></div>
-                        <h3 style="margin-bottom:0.5rem;">Predicting Hospital Readmissions</h3>
-                        <div class="team-meta"
-                            style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem; background:rgba(255,255,255,0.03); padding:0.5rem; border-radius:0.5rem;">
-                            <div><strong>PI:</strong> Dr. Geoff Tison</div>
-                            <div><strong>Mentor:</strong> Griffith Hughes</div>
-                            <div><strong>Fellow:</strong> Shravya</div>
-                        </div>
-                        <p style="color:var(--text-muted); font-size:0.9rem;">Developed an attention-based deep
-                            learning model (BioClinicalBERT) to predict 30-day readmissions from free-text discharge
-                            summaries.</p>
-                        <div
-                            style="margin-top:1rem; font-size:0.85rem; border-top:1px solid var(--border); padding-top:0.5rem;">
-                            <strong>Result:</strong> Achieved AUROC 0.730 with interpretable predictions via SHAP.
-                        </div>
-                        <div class="tech">BioClinicalBERT, SHAP, NLP</div>
-                    </div>
-                </div>
-
-                <!-- Juan Arturo - Centered with same max-width as grid cards -->
-                <div style="text-align: center; margin-top: 2rem;">
-                    <div class="card project-card" data-category="vision"
-                        style="display: inline-block; width: 100%; max-width: 350px; text-align: left;">
-                        <div class="project-meta"><span>Lung Cancer</span> <span
-                                style="color:var(--primary)">UCSF</span></div>
-                        <h3 style="margin-bottom:0.5rem;">Deep Learning for CT Lung Classification</h3>
-                        <div class="team-meta"
-                            style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem; background:rgba(255,255,255,0.03); padding:0.5rem; border-radius:0.5rem;">
-                            <div><strong>PI:</strong> Dr. Julian Hong</div>
-                            <div><strong>Mentor:</strong> Matt Kim</div>
-                            <div><strong>Fellow:</strong> Juan Arturo</div>
-                        </div>
-                        <p style="color:var(--text-muted); font-size:0.9rem;">Compared ResNet50, VGG16, and
-                            InceptionV3 for CT-based lung lesion classification using the IQ-OTH/NCCD dataset.</p>
-                        <div
-                            style="margin-top:1rem; font-size:0.85rem; border-top:1px solid var(--border); padding-top:0.5rem;">
-                            <strong>Result:</strong> InceptionV3 showed the most consistent performance (0.92
-                            F1-Score) for diagnostics.
-                        </div>
-                        <div class="tech">InceptionV3, Computer Vision, CNNs</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- FELLOW STORIES (Restored from cohort-2025.html) -->
-        <section id="testimonials" class="testimonial-section">
-            <div class="container">
-                <div class="section-header">
-                    <h2>Fellow Stories</h2>
-                    <p style="color:var(--text-muted)">Hear from our inaugural cohort.</p>
-                </div>
-                <div class="testimonial-wall">
-                    <div class="testimonial-card">
-                        <div class="quote-icon">“</div>
-                        <p class="testimonial-text">Tensor Lab showed me meaningful challenges that combine both
-                            clinical and technical domains. As I prepare for my PhD applications, this experience
-                            was invaluable in clearly defining my research direction.</p>
-                        <span class="testimonial-author">Jialong</span>
-                        <span class="testimonial-role">Research Fellow</span>
-                    </div>
-                    <div class="testimonial-card">
-                        <div class="quote-icon">“</div>
-                        <p class="testimonial-text">Tensor Lab taught me to conceptualize and develop applications
-                            for LLMs that require significant domain knowledge.</p>
-                        <span class="testimonial-author">Ashwin</span>
-                        <span class="testimonial-role">Research Fellow</span>
-                    </div>
-                    <div class="testimonial-card">
-                        <div class="quote-icon">“</div>
-                        <p class="testimonial-text">The guidance from the faculty and mentors was exceptional... I
-                            wouldn’t have reached our final publication goals without their help.</p>
-                        <span class="testimonial-author">Koushik</span>
-                        <span class="testimonial-role">Research Fellow</span>
-                    </div>
-                    <div class="testimonial-card">
-                        <div class="quote-icon">“</div>
-                        <p class="testimonial-text">Collaborating with a global cohort... provided me with a network
-                            of contacts for future projects.</p>
-                        <span class="testimonial-author">Juan Arturo</span>
-                        <span class="testimonial-role">Research Fellow</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-        <!-- TIMELINE Moved to before parallax-wrapper -->
-
-        <!-- FAQ (Restored from approach.html) -->
-        <section id="faq" class="faq-section section-surface">
-            <div class="container">
-                <div class="section-header">
-                    <h2>Common Questions</h2>
-                </div>
-                <div class="filter-bar" style="margin-bottom: 2rem;">
-                    <button class="filter-btn active" onclick="filterFAQ('all')">All Questions</button>
-                    <button class="filter-btn" onclick="filterFAQ('clinician')">For Medical Students</button>
-                    <button class="filter-btn" onclick="filterFAQ('engineer')">For CS Students</button>
-                </div>
-                <div class="faq-grid">
-                    <!-- General -->
-                    <details class="faq-item" data-category="all">
-                        <summary class="faq-summary">When does the program start?</summary>
-                        <div class="faq-answer">
-                            <p>The fellowship runs June–August 2026 (10 weeks). We'll announce specific dates in
-                                Spring 2026.</p>
-                        </div>
-                    </details>
-                    <details class="faq-item" data-category="all">
-                        <summary class="faq-summary">Is this remote or in-person?</summary>
-                        <div class="faq-answer">
-                            <p>Mostly remote. You'll meet with your team over Zoom/Discord, but some chapters
-                                organize optional in-person sessions.</p>
-                        </div>
-                    </details>
-                    <details class="faq-item" data-category="clinician">
-                        <summary class="faq-summary">Do medical students need to know how to code?</summary>
-                        <div class="faq-answer">
-                            <p>No. As a medical student, you bring the research question and clinical expertise. We
-                                match you with a ML fellow who handles all the coding.</p>
-                        </div>
-                    </details>
-                    <details class="faq-item" data-category="clinician">
-                        <summary class="faq-summary">How much time do medical students spend per week?</summary>
-                        <div class="faq-answer">
-                            <p>About 2-4 hours per week. You'll meet with your fellow regularly to review progress
-                                and guide the direction of the research.</p>
-                        </div>
-                    </details>
-                    <details class="faq-item" data-category="engineer">
-                        <summary class="faq-summary">Do ML fellows need a medical background?</summary>
-                        <div class="faq-answer">
-                            <p>No. Your medical student partner will teach you everything you need to know about the
-                                clinical context. We're looking for strong Python/ML skills.</p>
-                        </div>
-                    </details>
-                    <details class="faq-item" data-category="engineer">
-                        <summary class="faq-summary">How much time do ML fellows spend per week?</summary>
-                        <div class="faq-answer">
-                            <p>Plan for 20 hours per week during the 10-week summer sprint. Think of it like a
-                                serious research internship.</p>
-                        </div>
-                    </details>
-                    <details class="faq-item" data-category="all">
-                        <summary class="faq-summary">Is this paid?</summary>
-                        <div class="faq-answer">
-                            <p>Not yet. Right now, this is an unpaid fellowship focused on research experience and
-                                publication. We're working on funding for future cohorts.</p>
-                        </div>
-                    </details>
-                    <details class="faq-item" data-category="all">
-                        <summary class="faq-summary">Who owns the code and research?</summary>
-                        <div class="faq-answer">
-                            <p>We believe in open science. Code is open-sourced, and all team members share
-                                authorship. Patient data stays under the PI's institutional controls.</p>
-                        </div>
-                    </details>
-                </div>
-            </div>
-        </section>
-
-        <!-- OPEN LEADERSHIP POSITIONS -->
-        <section id="open-roles" class="section-surface">
-            <div class="container">
-                <div class="section-header">
-                    <h2>Join the Team</h2>
-                    <p style="color:var(--text-muted)">We're building the Summer 2026 cohort. Here's how you can get
-                        involved.</p>
-                </div>
-
-                <!-- Grid Container for Side-by-Side Layout -->
-                <div class="join-split-container">
-                    <!-- Fellow Waitlist CTA -->
-                    <div class="role-card-detailed" style="border-color: var(--primary); margin: 0;">
-                        <h3>For ML Students: Join Waitlist</h3>
-                        <span class="role-focus">RESEARCH FELLOWSHIP • PUBLICATION OPPORTUNITY</span>
-
-                        <p style="color:var(--text); margin-bottom: 1rem;">Applications open February 2026. Join the
-                            waitlist to get notified and browse cutting-edge clinical AI projects. You'll work with
-                            actual patient data, collaborate with medical students who guide the clinical direction,
-                            and publish research under renowned faculty mentors at top institutions. We provide the
-                            clinical expertise—you bring the technical skills to build solutions that matter.</p>
-
-                        <div style="display: grid; grid-template-columns: 1fr; gap: 2rem;">
-                            <div>
-                                <h4 style="margin-bottom:1rem;">What You'll Do</h4>
-                                <ul class="role-list">
-                                    <li>Build production-grade ML models with real medical datasets</li>
-                                    <li>Collaborate with medical students who guide the clinical direction</li>
-                                    <li>Work under renowned faculty mentors at top institutions</li>
-                                    <li>Co-author and submit papers for peer-reviewed publication</li>
-                                </ul>
-                            </div>
-                            <div>
-                                <h4 style="margin-bottom:1rem;">Who Should Apply</h4>
-                                <ul class="role-list">
-                                    <li>Strong Python/ML experience (PyTorch, scikit-learn, TensorFlow)</li>
-                                    <li>Committed to 20 hrs/week during the 10-week summer program</li>
-                                    <li>Excited to apply ML to high-impact healthcare challenges</li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div style="text-align: center; margin-top: 2rem;">
-                            <a href="https://forms.gle/N7LEjhRwLdc2VwgJA" target="_blank" class="btn">Join
-                                Waitlist</a>
-                        </div>
-                    </div>
-
-                    <!-- Medical Mentor Section -->
-                    <div class="role-card-detailed" style="border-color: var(--primary); margin: 0;">
-                        <h3>For Medical Students: Lead a Research Project</h3>
-                        <span class="role-focus">MENTORSHIP ROLE • CO-FIRST AUTHORSHIP</span>
-
-                        <p style="color:var(--text); margin-bottom: 1rem;">Applications open now. Turn your
-                            clinical insights into published research by leading an AI-powered project. We'll
-                            pair you with a talented ML fellow who builds the technical solution while you guide
-                            the clinical direction. If you don't have a faculty mentor yet, we'll match you with
-                            one. You bring the medical knowledge—they bring the machine learning expertise.
-                            Together,
-                            you'll co-author a paper that advances both fields.</p>
-
-                        <div style="display: grid; grid-template-columns: 1fr; gap: 2rem;">
-                            <div>
-                                <h4 style="margin-bottom:1rem;">What You'll Do</h4>
-                                <ul class="role-list">
-                                    <li>Define a meaningful clinical problem that ML can address</li>
-                                    <li>Interview and select a ML fellow to collaborate with</li>
-                                    <li>Guide research direction through weekly strategy meetings</li>
-                                    <li>Co-write the manuscript and submit for peer-reviewed publication</li>
-                                </ul>
-                            </div>
-                            <div>
-                                <h4 style="margin-bottom:1rem;">Who Should Apply</h4>
-                                <ul class="role-list">
-                                    <li>M1/M2 students with dedicated research time (summer block or gap year)</li>
-                                    <li>Passionate about applying AI to solve real clinical challenges</li>
-                                    <li>Ready to earn co-first authorship on an impactful publication</li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div style="text-align: center; margin-top: 2rem;">
-                            <a href="https://docs.google.com/forms/d/e/1FAIpQLScyc-Jh3OZpRRqnAzO_848YWZr8cYwwd_QD-wIwynaRJiA-mg/viewform?usp=sharing&ouid=117826404913854380575"
-                                target="_blank" class="btn">Apply to Join</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Chapter Directors Section -->
-                <div class="role-detail-section">
-                    <div class="role-detail-header">
-                        <h3>Start a Chapter at Your Medical School</h3>
-                        <p style="color:var(--text-muted); max-width:600px; margin:0.5rem auto;">Want to bring the
-                            Tensor Lab to your institution? We're looking for teams of 3-5 students to launch new
-                            chapters.</p>
-                    </div>
-
-                    <div class="role-grid-3">
-                        <!-- Executive Director -->
-                        <div class="role-card-detailed">
-                            <h4>Executive Director</h4>
-                            <span class="role-focus">Strategy & Relationships</span>
-                            <ul class="role-list">
-                                <li>Work with med school admin to get institutional approval</li>
-                                <li>Recruit faculty mentors and medical students</li>
-                                <li>Manage the cohort and handle any issues</li>
-                                <li>Coordinate with the national team</li>
-                            </ul>
-                            <div class="role-quals">
-                                <strong>Good fit if:</strong> You're organized, entrepreneurial, and good at
-                                building relationships.
-                            </div>
-                        </div>
-
-                        <!-- Technical Director -->
-                        <div class="role-card-detailed">
-                            <h4>Technical Director</h4>
-                            <span class="role-focus">Quality Assurance</span>
-                            <ul class="role-list">
-                                <li>Review project proposals to make sure they're technically feasible</li>
-                                <li>Evaluate ML applicants (look at their GitHub, past projects)</li>
-                                <li>Set up code standards and templates</li>
-                                <li>Help fellows when they get stuck</li>
-                            </ul>
-                            <div class="role-quals">
-                                <strong>Good fit if:</strong> You have a CS/ML background and enjoy helping others
-                                debug.
-                            </div>
-                        </div>
-
-                        <!-- Operations Director -->
-                        <div class="role-card-detailed">
-                            <h4>Operations Director</h4>
-                            <span class="role-focus">Logistics & Workflow</span>
-                            <ul class="role-list">
-                                <li>Manage the application portal and deadlines</li>
-                                <li>Route applications to mentors for review</li>
-                                <li>Send acceptance letters and onboarding materials</li>
-                                <li>Keep everything running smoothly day-to-day</li>
-                                <li></li>
-                            </ul>
-                            <div class="role-quals">
-                                <strong>Good fit if:</strong> You're detail-oriented and like building systems that
-                                work.
-                            </div>
-                        </div>
-                    </div>
-                    <div style="text-align: center; margin-top: 2rem;">
-                        <a href="https://forms.gle/71CKb5tYq4RUzXLz8" target="_blank" class="btn">Contact Us to
-                            Learn More</a>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-
-    </main>
-
-    <footer style="padding-top: 3rem;">
-        <div class="container">
-            <p>The Tensor Lab for Computational Medicine &copy; 2025</p>
-        </div>
-    </footer>
-
-    <button id="back-to-top" aria-label="Back to top">↑</button>
-
     <script src="script.js"></script>
-
 </body>
 
 </html>
