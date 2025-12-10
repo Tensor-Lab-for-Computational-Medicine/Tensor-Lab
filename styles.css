@@ -273,6 +273,9 @@ a {
     max-width: 1100px;
     margin-bottom: 3rem;
     margin-top: 6rem;
+    margin-top: 6rem;
+    text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+    /* Soft Glow */
     /* Lower H1 even more */
 }
 
@@ -736,6 +739,28 @@ a {
 /* --- FEED column --- */
 .feed {
     padding: 0;
+    position: relative;
+    /* Context for watermark if absolute, but we'll use fixed for scroll effect */
+}
+
+/* Watermark Background */
+.feed::before {
+    content: "";
+    position: fixed;
+    top: 50%;
+    left: 60%;
+    /* Offset to account for sidebar */
+    transform: translate(-50%, -50%);
+    width: 60vw;
+    height: 60vw;
+    max-width: 800px;
+    max-height: 800px;
+    background: url('assets/handlogo.png') no-repeat center center;
+    background-size: contain;
+    opacity: 0.03;
+    /* Really faded */
+    pointer-events: none;
+    z-index: 0;
 }
 
 .journal-section {
@@ -743,6 +768,9 @@ a {
     /* Reduced from 6rem 4rem */
     border-bottom: var(--hairline);
     /* min-height: 80vh; Removed to reduce spacing */
+    position: relative;
+    z-index: 1;
+    /* Ensure content floats above watermark */
 }
 
 .section-label {
