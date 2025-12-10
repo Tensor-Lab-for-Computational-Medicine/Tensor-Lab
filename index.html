@@ -16,50 +16,39 @@
 
 <body>
 
-    <!-- TOP NAVIGATION -->
-    <nav class="surge-nav">
-        <div class="nav-brand-container">
-            <img src="Logo.png" alt="Logo" class="nav-logo">
-            <div class="nav-brand-text">
-                <span class="nav-brand-title">THE TENSOR LAB</span>
-                <span class="nav-brand-subtitle">FOR COMPUTATIONAL MEDICINE</span>
-            </div>
+    <!-- TOP NAVIGATION (Simplifed) -->
+    <nav class="surge-nav" style="justify-content: flex-start; padding-left: 2rem;">
+        <div style="display: flex; flex-direction: column;">
+            <span style="font-size: 1.1rem; font-weight: 700; color: white; letter-spacing: 0.05em; line-height: 1;">THE
+                TENSOR LAB</span>
         </div>
-        <ul class="nav-menu">
-            <li><a href="#about" class="nav-link">About</a></li>
-            <li><a href="#case-studies" class="nav-link">Research</a></li>
-            <li><a href="#faculty" class="nav-link">Faculty</a></li>
-            <li><a href="#open-roles" class="nav-link">Fellowships</a></li>
-            <a href="https://forms.gle/N7LEjhRwLdc2VwgJA" class="btn-login nav-link">Apply -></a>
-        </ul>
     </nav>
 
-    <!-- SURGE HERO -->
-    <header class="surge-hero">
-        <div class="hero-label">Research at the Intersection of AI & Medicine</div>
-        <h1 class="hero-title">Advancing Medicine with Machine Learning</h1>
+    <!-- HERO CONTENT -->
+    <div class="surge-hero">
+        <span class="hero-label">Research at the intersection of machine learning and medicine</span>
+        <h1 class="hero-title">Advancing medicine with computational intelligence</h1>
 
         <div class="hero-divider">
-            <div class="dot-tri"></div>
             <div class="dot-tri dot-top"></div>
+            <div class="dot-tri"></div>
             <div class="dot-tri"></div>
         </div>
 
         <p class="hero-subtext">
-            We pair machine learning engineers and medical students to tackle real clinical problems, guided by
-            internationally-renowned faculty mentors. You'll lead an independent research project and have the
-            opportunity to publish on your discoveries.
+            We are a research collective at the intersection of machine learning and clinical medicine.
+            Our fellows work with leading faculty to solve meaningful problems in healthcare.
         </p>
-
-        <div class="logo-ribbon">
-            <!-- Using placeholders/text if logos aren't perfect SVGs yet, or sticking to text-based if easier -->
-            <!-- Actually, let's use text for clean aesthetic if actual logo files aren't dark-mode ready -->
-            <span style="font-family: var(--font-serif); font-style: italic; opacity: 0.7;">University of
-                Maryland</span>
-            <span style="font-family: var(--font-serif); font-style: italic; opacity: 0.7;">UCSF</span>
-            <span style="font-family: var(--font-serif); font-style: italic; opacity: 0.7;">Kaiser Permanente</span>
-            <span style="font-family: var(--font-serif); font-style: italic; opacity: 0.7;">NIH / NCI</span>
-        </div>
+    </div>
+    <div class="logo-ribbon">
+        <!-- Using placeholders/text if logos aren't perfect SVGs yet, or sticking to text-based if easier -->
+        <!-- Actually, let's use text for clean aesthetic if actual logo files aren't dark-mode ready -->
+        <span style="font-family: var(--font-serif); font-style: italic; opacity: 0.7;">University of
+            Maryland</span>
+        <span style="font-family: var(--font-serif); font-style: italic; opacity: 0.7;">UCSF</span>
+        <span style="font-family: var(--font-serif); font-style: italic; opacity: 0.7;">Kaiser Permanente</span>
+        <span style="font-family: var(--font-serif); font-style: italic; opacity: 0.7;">NIH / NCI</span>
+    </div>
     </header>
 
     <!-- MAIN CONTENT (Centered Feed) -->
@@ -197,7 +186,7 @@
                                 <li>Excited to apply ML to high-impact healthcare challenges</li>
                             </ul>
 
-                            <div class="journal-btn-container">
+                            <div style="text-align: center; margin-top: 2rem;">
                                 <a href="https://forms.gle/N7LEjhRwLdc2VwgJA" class="journal-btn">Join Waitlist</a>
                             </div>
                         </div>
@@ -229,7 +218,7 @@
                                 <li>Ready to earn co-first authorship on an impactful publication</li>
                             </ul>
 
-                            <div class="journal-btn-container">
+                            <div style="text-align: center; margin-top: 2rem;">
                                 <a href="https://docs.google.com/forms/d/e/1FAIpQLScyc-Jh3OZpRRqnAzO_848YWZr8cYwwd_QD-wIwynaRJiA-mg/viewform"
                                     class="journal-btn">Apply to Join</a>
                             </div>
@@ -243,129 +232,178 @@
                     <h2 class="headline">Selected Works</h2>
                     <div class="subtitle">From our Pilot Cohort</div>
 
-                    <div class="project-grid">
-                        <!-- Jialong -->
-                        <div class="project-card">
-                            <div class="project-meta"><span>Benchmarking / ICU Data</span> <span
-                                    style="color:var(--primary)">NCI</span></div>
-                            <h3>LLMs vs. Traditional ML for Clinical Prediction</h3>
-                            <div class="team-meta">
-                                <div><strong>PI:</strong> Dr. Jonas De Almeida</div>
-                                <div><strong>Mentor:</strong> Aaron Ge</div>
-                                <div><strong>Fellow:</strong> Jialong</div>
+                    <div class="book-stage">
+                        <!-- Page 1: Jialong -->
+                        <div class="book-page" style="z-index: 7;">
+                            <div class="page-header">
+                                <div class="page-meta">Benchmarking / ICU Data • NCI</div>
+                                <h3 class="page-title">LLMs vs. Traditional ML</h3>
                             </div>
-                            <p>Compared the performance of LLM-based semantic models (using LLM embeddings) against
-                                traditional ML models (XGBoost) across different clinical prediction tasks.</p>
-                            <div class="project-result"><strong>Result:</strong> Text representation critically affects
-                                performance; traditional ML excels at physiological data.</div>
-                            <div class="tech-tags">XGBoost, LLM Embeddings, Python</div>
+                            <div class="page-body">
+                                <p>Compared the performance of LLM-based semantic models (using LLM embeddings) against
+                                    traditional ML models (XGBoost) across different clinical prediction tasks.</p>
+                                <div
+                                    style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed rgba(0,0,0,0.1);">
+                                    <strong>Result:</strong> Text representation critically affects performance;
+                                    traditional ML excels at physiological data.
+                                </div>
+                            </div>
+                            <div class="page-footer">
+                                <div>Fellow: Jialong • Mentor: Aaron Ge</div>
+                                <div class="page-number">1 / 7</div>
+                            </div>
                         </div>
 
-                        <!-- Koushik -->
-                        <div class="project-card">
-                            <div class="project-meta"><span>Head & Neck Cancer</span> <span
-                                    style="color:var(--primary)">UMSOM</span></div>
-                            <h3>RFS Prediction with/without Segmentation</h3>
-                            <div class="team-meta">
-                                <div><strong>PI:</strong> Dr. Grace Snow</div>
-                                <div><strong>Mentor:</strong> Laura Chen</div>
-                                <div><strong>Fellow:</strong> Koushik</div>
+                        <!-- Page 2: Koushik -->
+                        <div class="book-page" style="z-index: 6;">
+                            <div class="page-header">
+                                <div class="page-meta">Head & Neck Cancer • UMSOM</div>
+                                <h3 class="page-title">RFS Prediction via PET/CT</h3>
                             </div>
-                            <p>Investigated whether a simplified multimodal model using only PET/CT and clinical data
-                                could achieve comparable RFS prediction to expert-annotated models.</p>
-                            <div class="project-result"><strong>Result:</strong> Simpler PET/CT model achieved
-                                comparable performance and is more generalizable.</div>
-                            <div class="tech-tags">Multimodal ML, PET/CT, Survival Analysis</div>
+                            <div class="page-body">
+                                <p>Investigated whether a simplified multimodal model using only PET/CT and clinical
+                                    data could achieve comparable RFS prediction to expert-annotated models.</p>
+                                <div
+                                    style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed rgba(0,0,0,0.1);">
+                                    <strong>Result:</strong> Simpler PET/CT model achieved comparable performance and is
+                                    more generalizable.
+                                </div>
+                            </div>
+                            <div class="page-footer">
+                                <div>Fellow: Koushik • Mentor: Laura Chen</div>
+                                <div class="page-number">2 / 7</div>
+                            </div>
                         </div>
 
-                        <!-- Shravya -->
-                        <div class="project-card">
-                            <div class="project-meta"><span>Cardiology / Readmission</span> <span
-                                    style="color:var(--primary)">UCSF</span></div>
-                            <h3>Predicting Hospital Readmissions</h3>
-                            <div class="team-meta">
-                                <div><strong>PI:</strong> Dr. Geoff Tison</div>
-                                <div><strong>Mentor:</strong> Griffith Hughes</div>
-                                <div><strong>Fellow:</strong> Shravya</div>
+                        <!-- Page 3: Shravya -->
+                        <div class="book-page" style="z-index: 5;">
+                            <div class="page-header">
+                                <div class="page-meta">Cardiology / Readmission • UCSF</div>
+                                <h3 class="page-title">Predicting Readmissions</h3>
                             </div>
-                            <p>Developed an attention-based deep learning model (BioClinicalBERT) to predict 30-day
-                                readmissions from free-text discharge summaries.</p>
-                            <div class="project-result"><strong>Result:</strong> Achieved AUROC 0.730 with interpretable
-                                predictions via SHAP.</div>
-                            <div class="tech-tags">BioClinicalBERT, SHAP, NLP</div>
+                            <div class="page-body">
+                                <p>Developed an attention-based deep learning model (BioClinicalBERT) to predict 30-day
+                                    readmissions from free-text discharge summaries.</p>
+                                <div
+                                    style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed rgba(0,0,0,0.1);">
+                                    <strong>Result:</strong> Achieved AUROC 0.730 with interpretable predictions via
+                                    SHAP.
+                                </div>
+                            </div>
+                            <div class="page-footer">
+                                <div>Fellow: Shravya • Mentor: Griffith Hughes</div>
+                                <div class="page-number">3 / 7</div>
+                            </div>
                         </div>
 
-                        <!-- Dmitry -->
-                        <div class="project-card">
-                            <div class="project-meta"><span>Pharmacogenomics</span> <span
-                                    style="color:var(--primary)">UCSF</span></div>
-                            <h3>Oncology Pharmacogenomics Knowledge Graph</h3>
-                            <div class="team-meta">
-                                <div><strong>PI:</strong> Dr. Brian Schulte</div>
-                                <div><strong>Mentors:</strong> Diem My, Chy Murali</div>
-                                <div><strong>Fellow:</strong> Dmitry</div>
+                        <!-- Page 4: Dmitry -->
+                        <div class="book-page" style="z-index: 4;">
+                            <div class="page-header">
+                                <div class="page-meta">Pharmacogenomics • UCSF</div>
+                                <h3 class="page-title">Oncology Knowledge Graph</h3>
                             </div>
-                            <p>Developed the OPMG prototype to accelerate clinical evidence synthesis using an ETL-First
-                                strategy and Knowledge Graph RAG system.</p>
-                            <div class="project-result"><strong>Result:</strong> Validated ETL-first strategy and
-                                end-to-end KG-RAG pipeline functionality.</div>
-                            <div class="tech-tags">Knowledge Graph, RAG, Gemini, ETL</div>
+                            <div class="page-body">
+                                <p>Developed the OPMG prototype to accelerate clinical evidence synthesis using an
+                                    ETL-First strategy and Knowledge Graph RAG system.</p>
+                                <div
+                                    style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed rgba(0,0,0,0.1);">
+                                    <strong>Result:</strong> Validated ETL-first strategy and end-to-end KG-RAG
+                                    functionality.
+                                </div>
+                            </div>
+                            <div class="page-footer">
+                                <div>Fellow: Dmitry • Mentor: Diem My</div>
+                                <div class="page-number">4 / 7</div>
+                            </div>
                         </div>
 
-                        <!-- Malavika -->
-                        <div class="project-card">
-                            <div class="project-meta"><span>Oncology / SDOH</span> <span
-                                    style="color:var(--primary)">UCSF</span></div>
-                            <h3>Modeling Prostate Cancer Using SDOH</h3>
-                            <div class="team-meta">
-                                <div><strong>PI:</strong> Dr. Scott Campbell</div>
-                                <div><strong>Mentors:</strong> Chy Murali, Diem My</div>
-                                <div><strong>Fellow:</strong> Malavika</div>
+                        <!-- Page 5: Malavika -->
+                        <div class="book-page" style="z-index: 3;">
+                            <div class="page-header">
+                                <div class="page-meta">Oncology / SDOH • UCSF</div>
+                                <h3 class="page-title">Prostate Cancer & SDOH</h3>
                             </div>
-                            <p>Trained ML models using SEER registry data linked with Social Determinants of Health
-                                proxies to stratify prostate cancer patients.</p>
-                            <div class="project-result"><strong>Result:</strong> SDOH adds measurable predictive value,
-                                highlighting the importance of social context.</div>
-                            <div class="tech-tags">Logistic Regression, SDOH Data, Python</div>
+                            <div class="page-body">
+                                <p>Trained ML models using SEER registry data linked with Social Determinants of Health
+                                    proxies to stratify prostate cancer patients.</p>
+                                <div
+                                    style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed rgba(0,0,0,0.1);">
+                                    <strong>Result:</strong> SDOH adds measurable predictive value, highlighting social
+                                    context.
+                                </div>
+                            </div>
+                            <div class="page-footer">
+                                <div>Fellow: Malavika • Mentor: Chy Murali</div>
+                                <div class="page-number">5 / 7</div>
+                            </div>
                         </div>
 
-                        <!-- Ashwin -->
-                        <div class="project-card">
-                            <div class="project-meta"><span>Emergency Medicine</span> <span
-                                    style="color:var(--primary)">Kaiser</span></div>
-                            <h3>LLM-Powered ER Triage Simulator</h3>
-                            <div class="team-meta">
-                                <div><strong>PI:</strong> Dr. Ian McLachlan</div>
-                                <div><strong>Mentor:</strong> Aaron Ge</div>
-                                <div><strong>Fellow:</strong> Ashwin</div>
+                        <!-- Page 6: Ashwin -->
+                        <div class="book-page" style="z-index: 2;">
+                            <div class="page-header">
+                                <div class="page-meta">Emergency Medicine • Kaiser</div>
+                                <h3 class="page-title">LLM ER Triage Simulator</h3>
                             </div>
-                            <p>Developed a training simulator using LLMs to create interactive, data-grounded emergency
-                                triage encounters from MIMIC-IV data.</p>
-                            <div class="project-result"><strong>Result:</strong> Confirmed feasibility of using LLMs for
-                                realistic, scalable medical training tools.</div>
-                            <div class="tech-tags">LLMs, MIMIC-IV, Interactive Systems</div>
+                            <div class="page-body">
+                                <p>Developed a training simulator using LLMs to create interactive, data-grounded
+                                    emergency triage encounters from MIMIC-IV data.</p>
+                                <div
+                                    style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed rgba(0,0,0,0.1);">
+                                    <strong>Result:</strong> Confirmed feasibility of using LLMs for realistic medical
+                                    training tools.
+                                </div>
+                            </div>
+                            <div class="page-footer">
+                                <div>Fellow: Ashwin • Mentor: Aaron Ge</div>
+                                <div class="page-number">6 / 7</div>
+                            </div>
+                        </div>
+
+                        <!-- Page 7: Juan Arturo -->
+                        <div class="book-page" style="z-index: 1;">
+                            <div class="page-header">
+                                <div class="page-meta">Lung Cancer • UCSF</div>
+                                <h3 class="page-title">Deep Learning for CT Lung</h3>
+                            </div>
+                            <div class="page-body">
+                                <p>Compared ResNet50, VGG16, and InceptionV3 for CT-based lung lesion classification
+                                    using the IQ-OTH/NCCD dataset.</p>
+                                <div
+                                    style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed rgba(0,0,0,0.1);">
+                                    <strong>Result:</strong> InceptionV3 showed the most consistent performance (0.92
+                                    F1).
+                                </div>
+                            </div>
+                            <div class="page-footer">
+                                <div>Fellow: Juan Arturo • Mentor: Matt Kim</div>
+                                <div class="page-number">7 / 7</div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Center Aligned Juan Arturo -->
-                    <div style="display: flex; justify-content: center; margin-top: 2rem;">
-                        <div class="project-card"
-                            style="max-width: 400px; text-align: left; border-top: 1px solid var(--border-strong);">
-                            <div class="project-meta"><span>Lung Cancer</span> <span
-                                    style="color:var(--primary)">UCSF</span></div>
-                            <h3>Deep Learning for CT Lung Classification</h3>
-                            <div class="team-meta">
-                                <div><strong>PI:</strong> Dr. Julian Hong</div>
-                                <div><strong>Mentor:</strong> Matt Kim</div>
-                                <div><strong>Fellow:</strong> Juan Arturo</div>
-                            </div>
-                            <p>Compared ResNet50, VGG16, and InceptionV3 for CT-based lung lesion classification using
-                                the IQ-OTH/NCCD dataset.</p>
-                            <div class="project-result"><strong>Result:</strong> InceptionV3 showed the most consistent
-                                performance (0.92 F1-Score) for diagnostics.</div>
-                            <div class="tech-tags">InceptionV3, Computer Vision, CNNs</div>
-                        </div>
+                    <div class="book-controls">
+                        <div class="book-btn" onclick="flipPrev()">← Previous Project</div>
+                        <div class="book-btn" onclick="flipNext()">Next Project →</div>
                     </div>
+
+                    <script>
+                        let currentPage = 0;
+                        const pages = document.querySelectorAll('.book-page');
+
+                        function flipNext() {
+                            if (currentPage < pages.length - 1) {
+                                pages[currentPage].classList.add('flipped');
+                                currentPage++;
+                            }
+                        }
+
+                        function flipPrev() {
+                            if (currentPage > 0) {
+                                currentPage--;
+                                pages[currentPage].classList.remove('flipped');
+                            }
+                        }
+                    </script>
                 </section>
 
                 <!-- FELLOW STORIES -->
