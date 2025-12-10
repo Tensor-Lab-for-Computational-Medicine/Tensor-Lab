@@ -230,12 +230,12 @@ a {
     padding: 14px 24px;
     text-decoration: none;
     display: block;
-    font-family: var(--font-serif);
-    /* Elegant Serif */
+    font-family: var(--font-mono);
+    /* Switched to Mono for Hero Menu */
     font-style: normal;
-    /* Non-italic */
-    font-size: 1.1rem;
-    /* Larger text */
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
     border-bottom: 1px solid rgba(255, 255, 255, 0.03);
     transition: all 0.2s ease;
 }
@@ -679,8 +679,8 @@ a {
 }
 
 .nav-item {
-    font-family: var(--font-mono);
-    /* User requested number font (Mono) */
+    font-family: var(--font-sans);
+    /* Reverted to Sans for Sidebar */
     font-weight: 600;
     font-size: 0.85rem;
     text-transform: uppercase;
