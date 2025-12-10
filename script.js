@@ -18,13 +18,12 @@ const numStars = 200; // Reduced from 300 for cleaner look
 const starSpeed = 0.02; // Much slower for professional feel
 const fov = 400;
 
-// Palette - Muted & Professional
+// Palette - Clinical Light
 const colors = [
-    { r: 255, g: 255, b: 255 }, // White
-    { r: 45, g: 212, b: 191 },  // Cyan (Brand) - Muted
-    { r: 167, g: 139, b: 250 }, // Soft Purple (Brand) - Muted
-    { r: 148, g: 163, b: 184 }, // Slate-400 (Greyish Blue)
-    { r: 56, g: 189, b: 248 }   // Sky Blue
+    { r: 148, g: 163, b: 184 }, // Slate 400 (Base Particles)
+    { r: 203, g: 213, b: 225 }, // Slate 300 (Faint Particles)
+    { r: 13, g: 148, b: 136 },  // Teal 600 (Accents)
+    { r: 79, g: 70, b: 229 }    // Indigo 600 (Accents)
 ];
 
 const random = (min, max) => Math.random() * (max - min) + min;
@@ -43,9 +42,9 @@ class Star {
         this.z = random(0, width);
         this.size = random(0.5, 2.5); // Larger stars
 
-        const c = Math.random() > 0.7 ? randomColor() : colors[0]; // More colored stars
+        const c = Math.random() > 0.8 ? colors[2] : colors[0]; // Mostly gray, rare teal
         this.rgb = `${c.r}, ${c.g}, ${c.b}`;
-        this.opacity = random(0.5, 1.0); // Brighter
+        this.opacity = random(0.2, 0.6); // Subtle
 
         this.twinkleOffset = Math.random() * 1000;
         this.twinkleSpeed = random(0.005, 0.015); // Faster twinkle
@@ -70,8 +69,8 @@ class Star {
         const depthRatio = this.z / width;
         let alpha = this.opacity * (1 - depthRatio * depthRatio);
 
-        const twinkle = Math.sin(Date.now() * this.twinkleSpeed + this.twinkleOffset) * 0.3 + 0.7;
-        alpha *= twinkle;
+        // No twinkle, just steady flow
+        // alpha *= twinkle;
 
         if (this.z < 100) alpha *= (this.z / 100);
 
@@ -104,7 +103,7 @@ class Constellation {
                 oy: random(-150, 150)
             });
         }
-        this.color = randomColor();
+        this.color = { r: 148, g: 163, b: 184 }; // All constellations are slate gray
     }
 
     update() {

@@ -1,11 +1,18 @@
 :root {
-    --bg: #020617;
-    --surface: #0f172a;
-    --primary: #2dd4bf;
-    --secondary: #8b5cf6;
-    --text: #f8fafc;
-    --text-muted: #cbd5e1;
-    --border: rgba(255, 255, 255, 0.12);
+    --bg: #f8fafc;
+    /* Soft Medical White */
+    --surface: #ffffff;
+    /* Pure White */
+    --primary: #0d9488;
+    /* Surgical Teal (Darker/Professional) */
+    --secondary: #4f46e5;
+    /* Trust Indigo */
+    --text: #334155;
+    /* Slate 700 */
+    --text-muted: #64748b;
+    /* Slate 500 */
+    --border: #e2e8f0;
+    /* Light Gray Border */
     --gradient: linear-gradient(135deg, var(--primary), var(--secondary));
 }
 
@@ -69,7 +76,7 @@ body {
     inset: 0;
     z-index: -2;
     pointer-events: none;
-    background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+    background: radial-gradient(circle at center, #ffffff 0%, #f1f5f9 100%);
 }
 
 .starfield-overlay {
@@ -80,15 +87,17 @@ body {
     background-size: cover;
     background-position: center top;
     background-repeat: no-repeat;
-    opacity: 0.5;
-    /* Increased opacity for visibility */
-    mix-blend-mode: normal;
-    /* Changed from overlay to screen to make it "pop" more against dark bg */
+    opacity: 0.15;
+    /* Faint texture only */
+    mix-blend-mode: multiply;
+    /* Darken mode for light bg */
     animation: floatOverlay 60s ease-in-out infinite alternate;
     pointer-events: none;
     will-change: transform;
     transition: opacity 1.5s ease-in-out;
     transform-origin: top center;
+    filter: grayscale(100%);
+    /* Remove color for professionalism */
 }
 
 .starfield-overlay.bg-hidden {
@@ -154,18 +163,14 @@ header nav {
     max-width: 1200px;
     margin: 1.5rem auto 0;
     padding: 1rem 2rem;
-    background: rgba(20, 20, 30, 0.4);
-    /* High transparency */
-    backdrop-filter: blur(40px) saturate(160%);
-    -webkit-backdrop-filter: blur(40px) saturate(160%);
+    background: rgba(255, 255, 255, 0.85);
+    /* High opacity white */
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
     border-radius: 99px;
     /* Pill shape */
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow:
-        0 4px 30px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
-        /* Specular Top Highlight */
-        inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -178,7 +183,7 @@ header.scrolled nav {
     margin: 1.5rem auto 0;
     padding: 1rem 2rem;
     max-width: 1200px;
-    background: rgba(20, 20, 30, 0.4);
+    background: rgba(255, 255, 255, 0.9);
 }
 
 header.scrolled .logo span {
@@ -349,12 +354,16 @@ nav {
     line-height: 1.05;
     margin-bottom: 1.5rem;
     letter-spacing: -0.03em;
-    background: var(--gradient);
+    background: linear-gradient(135deg, #0f172a 0%, var(--primary) 100%);
+    /* Darker gradient */
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-shadow: 0 0 100px rgba(45, 212, 191, 0.5);
-    filter: brightness(1.3);
+    text-shadow: none;
+    /* Clean text */
+    filter: none;
+    color: #0f172a;
+    /* Fallback */
 }
 
 .hero-subtitle {
@@ -625,15 +634,13 @@ section[id] {
 }
 
 .section-surface .container {
-    background: rgba(15, 23, 42, 0.5);
-    /* Much more transparent */
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.7);
+    /* White glass */
+    border: 1px solid var(--border);
     border-radius: 1.5rem;
-    box-shadow:
-        0 20px 60px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(30px) saturate(140%);
-    -webkit-backdrop-filter: blur(30px) saturate(140%);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     padding: clamp(2rem, 3vw, 3rem);
     position: relative;
     overflow: hidden;
@@ -666,27 +673,17 @@ section[id] {
 }
 
 /* Liquid Glass Cards */
+/* Clean Medical Cards */
 .card {
-    background: rgba(20, 20, 30, 0.4);
-    /* Darker, more transparent base */
-    backdrop-filter: blur(40px) saturate(140%);
-    -webkit-backdrop-filter: blur(40px) saturate(140%);
-
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
-    /* Top specular light */
-    border-left: 1px solid rgba(255, 255, 255, 0.15);
-    /* Left specular light */
-
-    box-shadow:
-        0 20px 40px rgba(0, 0, 0, 0.4),
-        /* Deep shadow for float */
-        inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
-    /* Inner rim highlight */
-
+    background: #ffffff;
+    /* Pure White */
+    border: 1px solid var(--border);
+    /* Clean border */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    /* Subtle tailwind shadow */
     border-radius: 1.5rem;
     padding: 2.5rem;
-    transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -783,7 +780,7 @@ section[id] {
 .role-focus {
     color: var(--primary);
     font-size: 0.85rem;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-bottom: 1rem;
