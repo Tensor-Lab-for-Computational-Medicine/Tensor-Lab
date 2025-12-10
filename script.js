@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     setupSmoothScroll();
     setupActiveNav();
+    setupMobileMenu();
 });
 
 function setupSmoothScroll() {
@@ -35,7 +36,7 @@ function setupActiveNav() {
 
         sections.forEach(section => {
             const rect = section.getBoundingClientRect();
-            // If the top of the section is above the trigger point
+            // If thetop of the section is above the trigger point
             // and the bottom is still on screen
             if (rect.top <= triggerPoint && rect.bottom >= triggerPoint) {
                 current = section.getAttribute('id');
@@ -50,6 +51,34 @@ function setupActiveNav() {
             }
         });
     });
+}
+
+function setupMobileMenu() {
+    const dropdown = document.querySelector('.dropdown');
+    const dropBtn = document.querySelector('.dropbtn');
+
+    if (dropdown && dropBtn) {
+        // Toggle on click (essential for mobile)
+        dropBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('active');
+        });
+
+        // Close when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!dropdown.contains(e.target)) {
+                dropdown.classList.remove('active');
+            }
+        });
+
+        // Close when clicking a link inside
+        const links = dropdown.querySelectorAll('a');
+        links.forEach(link => {
+            link.addEventListener('click', () => {
+                dropdown.classList.remove('active');
+            });
+        });
+    }
 }
 
 function filterProjects(category) {

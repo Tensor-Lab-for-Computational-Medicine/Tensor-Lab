@@ -12,8 +12,8 @@
     /* Zinc 900 */
     --ink-light: #52525b;
     /* Zinc 600 */
-    --alert: #dc2626;
-    /* Crimson Accent */
+    --alert: #0d9488;
+    /* Tensor Lab Teal */
 
     /* COMMON */
     --hairline: 1px solid rgba(0, 0, 0, 0.08);
@@ -138,8 +138,11 @@ a {
     align-items: center;
     text-align: center;
     padding: 0 2rem;
+    z-index: 5;
+    /* Ensure it stays above watermark */
     position: relative;
-    background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000000 100%);
+    background-color: transparent;
+    /* Remove flat black override */
     padding-bottom: 4rem;
 }
 
@@ -245,12 +248,14 @@ a {
     /* Subtle slide */
 }
 
-.dropdown:hover .dropdown-content {
+.dropdown:hover .dropdown-content,
+.dropdown.active .dropdown-content {
     display: block;
 }
 
 /* Menu Button Reset */
-.dropdown:hover .dropbtn {
+.dropdown:hover .dropbtn,
+.dropdown.active .dropbtn {
     background-color: transparent !important;
     border-color: transparent !important;
     opacity: 0.7;
@@ -380,22 +385,28 @@ a {
 }
 
 .role-card-detailed {
-    background: white;
+    /* Glass Effect for Roles too */
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(0, 0, 0, 0.1);
     padding: 2rem;
-    border-radius: 8px;
-    transition: transform 0.2s;
+    border-radius: 12px;
+    transition: all 0.3s ease;
     position: relative;
-    /* Flex for bottom alignment */
     display: flex;
     flex-direction: column;
-    height: 100%;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
 .role-card-detailed:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+    transform: scale(1.02);
+    border-color: var(--alert);
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 0 30px rgba(13, 148, 136, 0.15), inset 0 0 20px rgba(13, 148, 136, 0.05);
 }
+
+/* Cleaned up stray legacy code */
 
 .role-card-detailed h4 {
     font-family: var(--font-serif);
@@ -782,12 +793,7 @@ a {
     margin-bottom: 1rem;
 }
 
-/* Align Juan (7th item) to Right Column (Ashwin) */
-@media (min-width: 900px) {
-    .grid>.project-card:last-child {
-        grid-column: 2;
-    }
-}
+/* Align Juan Rule Removed */
 
 /* FAQ Styles */
 summary {
@@ -1066,13 +1072,24 @@ summary::marker {
 
 .journal-btn {
     display: inline-block;
-    padding: 1rem 2rem;
+    padding: 0.75rem 2rem;
+    /* Slightly tighter vertical */
     background: var(--alert);
     color: white;
     font-family: var(--font-mono);
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     border: none;
+    border-radius: 99px;
+    /* Pill Shape */
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.journal-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 15px -3px rgba(13, 148, 136, 0.3);
+    /* Teal Glow */
 }
 
 /* Secondary button contrast fix */
@@ -1080,11 +1097,13 @@ summary::marker {
     background: transparent;
     color: var(--ink);
     border: 1px solid var(--ink);
+    box-shadow: none;
 }
 
 .journal-btn.secondary:hover {
     background: var(--ink);
     color: white;
+    transform: scale(1.05);
 }
 
 /* --- GLASS COMPONENTS (Restored/Refined) --- */
@@ -1271,17 +1290,38 @@ summary::marker {
 
 /* --- PROJECT GRID (Selected Works) --- */
 .project-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 2rem;
     margin-bottom: 4rem;
 }
 
 .project-card {
-    border-top: var(--border-strong);
-    padding-top: 1rem;
+    border-top: none;
+    /* Removed line style */
     display: flex;
     flex-direction: column;
+    /* Translucent Light Card */
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    padding: 2rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+
+    /* Centering Logic */
+    width: 100%;
+    max-width: 350px;
+}
+
+.project-card:hover {
+    transform: scale(1.02);
+    border-color: var(--alert);
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 30px rgba(13, 148, 136, 0.15), inset 0 0 20px rgba(13, 148, 136, 0.05);
 }
 
 .project-meta {
