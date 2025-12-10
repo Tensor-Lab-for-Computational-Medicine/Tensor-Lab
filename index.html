@@ -27,33 +27,16 @@
     <!-- HERO CONTENT -->
     <div class="surge-hero">
         <span class="hero-label">Research at the intersection of machine learning and medicine</span>
-        <h1 class="hero-title">Advancing medicine with computational intelligence</h1>
-
+        <h1 class="hero-title">Advancing Medicine with <br>Machine Learning</h1>
         <div class="hero-divider">
-            <div class="dot-tri dot-top"></div>
-            <div class="dot-tri"></div>
-            <div class="dot-tri"></div>
+            <img src="Logo.png" alt="Tensor Lab"
+                style="height: 24px; width: auto; filter: grayscale(100%); opacity: 0.8;">
         </div>
-
         <p class="hero-subtext">
-            We are a research collective at the intersection of machine learning and clinical medicine.
-            Our fellows work with leading faculty to solve meaningful problems in healthcare.
+            We pair machine learning students with medical students to tackle real clinical problems, guided by
+            internationally-renowned faculty mentors. Join us to lead an independent research project and have the
+            opportunity to publish your discoveries.
         </p>
-
-        <div class="hero-proof">
-            <div class="proof-item">
-                <span class="proof-number">7</span>
-                <span class="proof-label">Papers Submitted</span>
-            </div>
-            <div class="proof-item">
-                <span class="proof-number">100%</span>
-                <span class="proof-label">Impactful Projects</span>
-            </div>
-            <div class="proof-item">
-                <span class="proof-number">100%</span>
-                <span class="proof-label">Transformative Mentorship</span>
-            </div>
-        </div>
     </div>
     </header>
 
@@ -67,7 +50,7 @@
                         <img src="Logo.png" alt="TL Monogram" class="monogram">
                         <div class="brand-text">
                             <span class="brand-title">The Tensor Lab</span>
-                            <span class="brand-subtitle">For Computational Medicine</span>
+                            <span class="brand-subtitle-small">For Computational Medicine</span>
                         </div>
                     </div>
                 </header>
@@ -126,16 +109,16 @@
                     Founding Directors</h3>
                 <div class="leadership-grid" style="margin-bottom: 3rem; justify-content: center;">
                     <div class="leader-card-glass">
-                        <img src="Portrait Photos/Aaron Ge.jpeg" alt="Aaron Ge" class="leader-img" loading="lazy">
-                        <span class="leader-name">Aaron Ge</span>
-                        <span class="leader-role">Co-Founder & Technical Director</span>
-                        <span class="leader-affil">University of Maryland<br>School of Medicine</span>
-                    </div>
-                    <div class="leader-card-glass">
                         <img src="Portrait Photos/Matt Allen.png" alt="Matt Allen" class="leader-img" loading="lazy">
                         <span class="leader-name">Matt Allen</span>
                         <span class="leader-role">Co-Founder & Executive Director</span>
                         <span class="leader-affil">University of California, San Francisco<br>School of Medicine</span>
+                    </div>
+                    <div class="leader-card-glass">
+                        <img src="Portrait Photos/Aaron Ge.jpeg" alt="Aaron Ge" class="leader-img" loading="lazy">
+                        <span class="leader-name">Aaron Ge</span>
+                        <span class="leader-role">Co-Founder & Technical Director</span>
+                        <span class="leader-affil">University of Maryland<br>School of Medicine</span>
                     </div>
                 </div>
 
@@ -203,7 +186,7 @@
                         <p style="margin-bottom:1.5rem; font-size:0.95rem;">As a practicing physician, you review
                             methods, ensure the research is clinically valid, and open doors for publication.</p>
                         <div class="journal-btn-container">
-                            <a href="mailto:contact@tensorlab.org" class="journal-btn secondary">Partner With Us</a>
+                            <a href="mailto:contact@tensorlab.org" class="journal-btn">Partner With Us</a>
                         </div>
                     </div>
                 </div>
@@ -331,12 +314,9 @@
                             <strong>Result:</strong> Achieved AUROC 0.730 with interpretable predictions via SHAP.
                         </div>
                     </div>
-                </div>
 
-                <!-- Juan Arturo - Centered -->
-                <div style="text-align: center; margin-top: 2rem;">
-                    <div class="liquid-card project-card" data-category="vision"
-                        style="display: inline-block; width: 100%; max-width: 400px; text-align: left;">
+                    <!-- Juan Arturo (Moved to Grid) -->
+                    <div class="liquid-card project-card" data-category="vision">
                         <div class="project-meta"><span>Lung Cancer</span> <span
                                 style="color:var(--primary)">UCSF</span></div>
                         <h3
@@ -452,47 +432,64 @@
 
                 <div class="article-grid" style="grid-template-columns: 1fr;">
                     <div class="entry">
-                        <h3 class="entry-title" style="font-size: 1.25rem;">Do medical students need to need to know
-                            how to code?</h3>
-                        <p class="entry-body">No. As a medical student, you bring the research question and clinical
-                            expertise. We match you with a ML fellow who handles all the coding.</p>
+                        <details>
+                            <summary class="entry-title" style="font-size: 1.25rem; cursor: pointer; list-style: none;">
+                                Do medical students need to know how to code?</summary>
+                            <p class="entry-body" style="margin-top: 1rem;">No. As a medical student, you bring the
+                                research question and clinical expertise. We match you with a ML fellow who handles all
+                                the coding.</p>
+                        </details>
                     </div>
                     <div class="entry">
-                        <h3 class="entry-title" style="font-size: 1.25rem;">How much time do medical students spend
-                            per
-                            week?</h3>
-                        <p class="entry-body">About 2-4 hours per week. You'll meet with your fellow regularly to
-                            review
-                            progress and guide the direction of the research.</p>
+                        <details>
+                            <summary class="entry-title" style="font-size: 1.25rem; cursor: pointer; list-style: none;">
+                                How much time do medical students spend per week?</summary>
+                            <p class="entry-body" style="margin-top: 1rem;">About 2-4 hours per week. You'll meet with
+                                your fellow regularly to review progress and guide the direction of the research.</p>
+                        </details>
                     </div>
                     <div class="entry">
-                        <h3 class="entry-title" style="font-size: 1.25rem;">Do ML fellows need a medical background?
-                        </h3>
-                        <p class="entry-body">No. Your medical student partner will teach you everything you need to
-                            know about the clinical context. We're looking for strong Python/ML skills.</p>
+                        <details>
+                            <summary class="entry-title" style="font-size: 1.25rem; cursor: pointer; list-style: none;">
+                                Do ML fellows need a medical background?</summary>
+                            <p class="entry-body" style="margin-top: 1rem;">No. Your medical student partner will teach
+                                you everything you need to know about the clinical context. We're looking for strong
+                                Python/ML skills.</p>
+                        </details>
                     </div>
                     <div class="entry">
-                        <h3 class="entry-title" style="font-size: 1.25rem;">How much time do ML fellows spend per
-                            week?
-                        </h3>
-                        <p class="entry-body">Plan for 20 hours per week during the 10-week summer sprint. Think of
-                            it
-                            like a serious research internship.</p>
+                        <details>
+                            <summary class="entry-title" style="font-size: 1.25rem; cursor: pointer; list-style: none;">
+                                How much time do ML fellows spend per week?</summary>
+                            <p class="entry-body" style="margin-top: 1rem;">Plan for 20 hours per week during the
+                                10-week summer sprint. Think of it like a serious research internship.</p>
+                        </details>
                     </div>
                     <div class="entry">
-                        <h3 class="entry-title" style="font-size: 1.25rem;">Is this remote or in-person?</h3>
-                        <p class="entry-body">Mostly remote. You'll meet with your team over Zoom/Discord, but some
-                            chapters organize optional in-person sessions.</p>
+                        <details>
+                            <summary class="entry-title" style="font-size: 1.25rem; cursor: pointer; list-style: none;">
+                                Is this remote or in-person?</summary>
+                            <p class="entry-body" style="margin-top: 1rem;">Mostly remote. You'll meet with your team
+                                over Zoom/Discord, but some chapters organize optional in-person sessions.</p>
+                        </details>
                     </div>
                     <div class="entry">
-                        <h3 class="entry-title" style="font-size: 1.25rem;">Is this paid?</h3>
-                        <p class="entry-body">Not yet. Right now, this is an unpaid fellowship focused on research
-                            experience and publication. We're working on funding for future cohorts.</p>
+                        <details>
+                            <summary class="entry-title" style="font-size: 1.25rem; cursor: pointer; list-style: none;">
+                                Is this paid?</summary>
+                            <p class="entry-body" style="margin-top: 1rem;">Not yet. Right now, this is an unpaid
+                                fellowship focused on research experience and publication. We're working on funding for
+                                future cohorts.</p>
+                        </details>
                     </div>
                     <div class="entry">
-                        <h3 class="entry-title" style="font-size: 1.25rem;">Who owns the code and research?</h3>
-                        <p class="entry-body">We believe in open science. Code is open-sourced, and all team members
-                            share authorship. Patient data stays under the PI's institutional controls.</p>
+                        <details>
+                            <summary class="entry-title" style="font-size: 1.25rem; cursor: pointer; list-style: none;">
+                                Who owns the code and research?</summary>
+                            <p class="entry-body" style="margin-top: 1rem;">We believe in open science. Code is
+                                open-sourced, and all team members share authorship. Patient data stays under the PI's
+                                institutional controls.</p>
+                        </details>
                     </div>
                 </div>
             </section>

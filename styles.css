@@ -23,6 +23,7 @@
     /* FONTS */
     --font-serif: 'EB Garamond', serif;
     --font-mono: 'Space Mono', monospace;
+    --font-sans: 'Inter', sans-serif;
 }
 
 * {
@@ -40,7 +41,7 @@ html {
 }
 
 body {
-    font-family: var(--font-mono);
+    font-family: var(--font-sans);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
 }
@@ -277,6 +278,9 @@ a {
     border: 1px solid rgba(0, 0, 0, 0.1);
     padding: 2rem;
     border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 .role-card-detailed h4 {
@@ -307,6 +311,7 @@ a {
     padding: 0.75rem;
     border-radius: 4px;
     border-left: 3px solid var(--alert);
+    margin-top: auto;
 }
 
 /* --- BOOK FLIP COMPONENT REMOVAL --- */
@@ -482,6 +487,18 @@ a {
     color: var(--ink-light);
 }
 
+.brand-subtitle-small {
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    /* Smaller as requested */
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 0.25rem;
+    color: var(--ink-light);
+    white-space: nowrap;
+    /* Attempt to keep one line */
+}
+
 .manifesto {
     margin-bottom: 4rem;
 }
@@ -617,6 +634,25 @@ a {
     font-size: 2rem;
     font-style: italic;
     margin-bottom: 1rem;
+}
+
+/* FAQ Styles */
+summary {
+    cursor: pointer;
+    font-family: var(--font-serif);
+    font-style: italic;
+    color: var(--ink);
+    padding: 0.5rem 0;
+    transition: color 0.2s;
+}
+
+summary:hover {
+    color: var(--alert);
+    text-decoration: underline;
+}
+
+summary::marker {
+    color: var(--alert);
 }
 
 .entry-body {
@@ -788,19 +824,15 @@ a {
 
 .leader-img {
     height: 100px;
+    width: 100px;
+    /* Ensure circular */
     border-radius: 50%;
     object-fit: cover;
     margin-bottom: 1rem;
-    border: 2px solid var(--alert);
-    background: white;
-}
-
-.leader-name {
-    font-family: var(--font-serif);
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-bottom: 0.25rem;
-    font-style: italic;
+    /* Removing all borders and backgrounds to fix "black ring" issue with PNGs */
+    background: transparent;
+    border: none;
+    box-shadow: none;
 }
 
 .leader-role {
@@ -865,9 +897,16 @@ a {
     border: none;
 }
 
+/* Secondary button contrast fix */
 .journal-btn.secondary {
     background: transparent;
-    border: 1px solid var(--paper);
+    color: var(--ink);
+    border: 1px solid var(--ink);
+}
+
+.journal-btn.secondary:hover {
+    background: var(--ink);
+    color: white;
 }
 
 /* --- GLASS COMPONENTS (Restored/Refined) --- */
@@ -903,7 +942,8 @@ a {
     letter-spacing: 0.05em;
 }
 
-.glass-panel .journal-btn-container {
+.glass-panel .journal-btn-container,
+.role-card-detailed .journal-btn-container {
     margin-top: auto;
     text-align: center;
     width: 100%;
@@ -1002,9 +1042,16 @@ a {
 /* --- TESTIMONIALS --- */
 .testimonial-wall {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: 1fr 1fr;
+    /* User requested 2x2. */
     gap: 2rem;
     margin-bottom: 4rem;
+}
+
+@media (max-width: 900px) {
+    .testimonial-wall {
+        grid-template-columns: 1fr;
+    }
 }
 
 .testimonial-card {
