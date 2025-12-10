@@ -1,320 +1,101 @@
-const canvas = document.getElementById('starfield');
-const ctx = canvas.getContext('2d');
-
-let width, height;
-let mouseX = 0;
-let mouseY = 0;
-let targetMouseX = 0;
-let targetMouseY = 0;
-
-let stars = [];
-let planets = [];
-let constellations = [];
-let nebulas = [];
-let shootingStars = [];
-
-// Configuration - Performance Optimized
-const numStars = 200; // Reduced from 300 for cleaner look
-const starSpeed = 0.02; // Much slower for professional feel
-const fov = 400;
-
-// Palette - Clinical Light
-const colors = [
-    { r: 148, g: 163, b: 184 }, // Slate 400 (Base Particles)
-    { r: 203, g: 213, b: 225 }, // Slate 300 (Faint Particles)
-    { r: 13, g: 148, b: 136 },  // Teal 600 (Accents)
-    { r: 79, g: 70, b: 229 }    // Indigo 600 (Accents)
-];
-
-const random = (min, max) => Math.random() * (max - min) + min;
-const randomColor = () => colors[Math.floor(random(0, colors.length))];
-
-// --- Classes ---
-
-class Star {
-    constructor() {
-        this.init();
-    }
-
-    init() {
-        this.x = random(-width, width);
-        this.y = random(-height, height);
-        this.z = random(0, width);
-        this.size = random(0.5, 2.5); // Larger stars
-
-        const c = Math.random() > 0.8 ? colors[2] : colors[0]; // Mostly gray, rare teal
-        this.rgb = `${c.r}, ${c.g}, ${c.b}`;
-        this.opacity = random(0.2, 0.6); // Subtle
-
-        this.twinkleOffset = Math.random() * 1000;
-        this.twinkleSpeed = random(0.005, 0.015); // Faster twinkle
-    }
-
-    update() {
-        this.z -= starSpeed * 10; // Much faster movement
-        if (this.z < 1) {
-            this.init();
-            this.z = width;
-        }
-    }
-
-    draw() {
-        const scale = fov / (this.z + fov);
-        const x2d = this.x * scale + width / 2 + mouseX * scale;
-        const y2d = this.y * scale + height / 2 + mouseY * scale;
-
-        if (x2d < 0 || x2d > width || y2d < 0 || y2d > height) return;
-
-        const r = this.size * scale * 2;
-        const depthRatio = this.z / width;
-        let alpha = this.opacity * (1 - depthRatio * depthRatio);
-
-        // No twinkle, just steady flow
-        // alpha *= twinkle;
-
-        if (this.z < 100) alpha *= (this.z / 100);
-
-        ctx.beginPath();
-        ctx.fillStyle = `rgba(${this.rgb}, ${alpha})`;
-        // Optimization: Removed shadowBlur for performance
-        // ctx.shadowBlur = r * 2; 
-        // ctx.shadowColor = `rgba(${this.rgb}, ${alpha})`;
-        ctx.arc(x2d, y2d, r, 0, Math.PI * 2);
-        ctx.fill();
-        // ctx.shadowBlur = 0;
-    }
-}
-
-class Constellation {
-    constructor() {
-        this.reset();
-        this.z = random(0, width);
-    }
-
-    reset() {
-        this.x = random(-width, width);
-        this.y = random(-height, height);
-        this.z = width;
-        this.points = [];
-        const numPoints = Math.floor(random(3, 6));
-        for (let i = 0; i < numPoints; i++) {
-            this.points.push({
-                ox: random(-150, 150),
-                oy: random(-150, 150)
-            });
-        }
-        this.color = { r: 148, g: 163, b: 184 }; // All constellations are slate gray
-    }
-
-    update() {
-        this.z -= starSpeed * 10;
-        if (this.z < 1) {
-            this.reset();
-        }
-    }
-
-    draw() {
-        const scale = fov / (this.z + fov);
-        const cx = this.x * scale + width / 2 + mouseX * scale;
-        const cy = this.y * scale + height / 2 + mouseY * scale;
-
-        const depthRatio = this.z / width;
-        let alpha = (1 - depthRatio * depthRatio) * 0.8; // More visible
-
-        if (this.z < 100) alpha *= (this.z / 100);
-
-        if (cx < -200 || cx > width + 200 || cy < -200 || cy > height + 200) return;
-
-        ctx.strokeStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha * 0.4})`;
-        ctx.lineWidth = 0.5; // Thinner lines
-        ctx.beginPath();
-
-        const projectedPoints = this.points.map(p => ({
-            x: cx + p.ox * scale,
-            y: cy + p.oy * scale
-        }));
-
-        ctx.moveTo(projectedPoints[0].x, projectedPoints[0].y);
-        for (let i = 1; i < projectedPoints.length; i++) {
-            ctx.lineTo(projectedPoints[i].x, projectedPoints[i].y);
-        }
-        ctx.lineTo(projectedPoints[0].x, projectedPoints[0].y);
-
-        if (projectedPoints.length > 3) {
-            ctx.moveTo(projectedPoints[0].x, projectedPoints[0].y);
-            ctx.lineTo(projectedPoints[2].x, projectedPoints[2].y);
-        }
-        ctx.stroke();
-
-        projectedPoints.forEach(p => {
-            ctx.beginPath();
-            ctx.fillStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha})`;
-            ctx.arc(p.x, p.y, 1.5 * scale, 0, Math.PI * 2); // Smaller nodes
-            ctx.fill();
-
-            // Removed Node Glow for cleaner look
-        });
-    }
-}
-
-// --- Engine ---
-
-function init() {
-    resize();
-
-    stars = [];
-    for (let i = 0; i < numStars; i++) stars.push(new Star());
-
-    constellations = [];
-    for (let i = 0; i < 5; i++) constellations.push(new Constellation()); // More constellations
-
-    animate();
-}
-
-function resize() {
-    width = window.innerWidth;
-    height = window.innerHeight;
-    canvas.width = width;
-    canvas.height = height;
-}
-
-function animate() {
-    ctx.clearRect(0, 0, width, height);
-
-    mouseX += (targetMouseX - mouseX) * 0.1;
-    mouseY += (targetMouseY - mouseY) * 0.1;
-
-    // Draw constellations
-    constellations.forEach(c => { c.update(); c.draw(); });
-
-    // Draw stars
-    stars.forEach(s => { s.update(); s.draw(); });
-
-    requestAnimationFrame(animate);
-}
-
-window.addEventListener('resize', resize);
-window.addEventListener('mousemove', (e) => {
-    targetMouseX = (e.clientX - width / 2) * 0.05;
-    targetMouseY = (e.clientY - height / 2) * 0.05;
-});
-
 document.addEventListener('DOMContentLoaded', () => {
-    init();
     setupMobileMenu();
-    setupScrollAnimations();
-    setupStatsAnimation();
-    setupCardGlow();
-    setupBackToTop();
+    setupSmoothScroll();
     setupActiveNav();
-    setupBackgroundTransition();
+    // Filter functions are global for onclick handlers
 });
 
-function setupBackgroundTransition() {
-    const triggerSection = document.getElementById('approach');
-    const pillarsBg = document.querySelector('.starfield-overlay');
-    const orionBg = document.querySelector('.parallax-bg');
+function setupMobileMenu() {
+    const btn = document.querySelector('.mobile-menu-btn');
+    const nav = document.querySelector('.nav-links');
 
-    if (!triggerSection || !pillarsBg || !orionBg) return;
-
-    let ticking = false;
-    window.addEventListener('scroll', () => {
-        if (!ticking) {
-            window.requestAnimationFrame(() => {
-                const rect = triggerSection.getBoundingClientRect();
-                const viewHeight = window.innerHeight;
-
-                // Trigger when the section is entering the viewport (e.g. top is within view)
-                // Adjust threshold as needed. Here: when top is in the bottom 20% of screen or higher.
-                if (rect.top < viewHeight * 0.8) {
-                    pillarsBg.classList.add('bg-hidden');
-                    orionBg.classList.add('bg-visible');
-                } else {
-                    pillarsBg.classList.remove('bg-hidden');
-                    orionBg.classList.remove('bg-visible');
-                }
-                ticking = false;
-            });
-            ticking = true;
-        }
-    });
-}
-
-// --- UI Logic ---
-
-function setupBackToTop() {
-    const btn = document.getElementById('back-to-top');
-    if (!btn) return;
-
-    let ticking = false;
-    window.addEventListener('scroll', () => {
-        if (!ticking) {
-            window.requestAnimationFrame(() => {
-                if (window.scrollY > 500) {
-                    btn.classList.add('visible');
-                } else {
-                    btn.classList.remove('visible');
-                }
-                ticking = false;
-            });
-            ticking = true;
-        }
-    });
+    if (!btn || !nav) return;
 
     btn.addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        const isHidden = getComputedStyle(nav).display === 'none';
+        if (isHidden) {
+            nav.style.display = 'flex';
+            nav.style.flexDirection = 'column';
+            nav.style.position = 'absolute';
+            nav.style.top = '100%';
+            nav.style.left = '0';
+            nav.style.width = '100%';
+            nav.style.background = 'white';
+            nav.style.padding = '1rem';
+            nav.style.borderBottom = '1px solid #e2e8f0';
+            nav.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+        } else {
+            nav.style.display = 'none';
+            // Clean up inline styles so desktop layout works on resize
+            nav.removeAttribute('style');
+        }
+    });
+
+    // Reset on resize
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
+            nav.removeAttribute('style');
+        }
+    });
+}
+
+function setupSmoothScroll() {
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            const target = document.getElementById(targetId);
+
+            if (target) {
+                // Offset for sticky header
+                const headerOffset = 80;
+                const elementPosition = target.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: "smooth"
+                });
+
+                // Update active state manually
+                document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+                this.classList.add('active');
+            }
+        });
     });
 }
 
 function setupActiveNav() {
-    const header = document.querySelector('header');
-    const sections = document.querySelectorAll('section');
-    const navLinks = document.querySelectorAll('.nav-links a:not(.nav-cta)');
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.nav-links a');
 
-    // Header scroll effect
+    // Grouping mapping (same logic as before, just cleaner)
+    const sectionStartToNavHref = {
+        'approach': 'roles',        // Timeline -> The Approach
+        'testimonials': 'marketplace' // Fellow Stories -> 2025 Cohort
+    };
+
     window.addEventListener('scroll', () => {
-        if (window.scrollY > 50) {
-            header.classList.add('scrolled');
-        } else {
-            header.classList.remove('scrolled');
-        }
-    });
-
-    // Active link highlighting
-    // Active link highlighting
-    if (!sections.length || !navLinks.length) return;
-
-    const highlightNav = () => {
         let current = '';
         const viewHeight = window.innerHeight;
+        const headerOffset = 100;
 
         sections.forEach(section => {
             const rect = section.getBoundingClientRect();
-            // Using 30% view height offset to trigger active state slightly before section hits top
-            if (rect.top <= viewHeight * 0.3 && rect.bottom >= 100) {
+            // Check if section is effectively in view (near top, accounting for header)
+            if (rect.top <= headerOffset + 50 && rect.bottom >= headerOffset) {
                 current = section.getAttribute('id');
             }
         });
 
-        // Mapping for grouped sections
-        // key: section ID that should trigger the nav link
-        // value: the href of the nav link to activate
-        const sectionStartToNavHref = {
-            'approach': 'roles',        // "Timeline" section keeps "The Approach" (#roles) active
-            'testimonials': 'marketplace' // "Fellow Stories" section keeps "2025 Cohort" (#marketplace) active
-        };
-
         navLinks.forEach(link => {
-            // Only manage active state for hash links (scroll spy)
             const href = link.getAttribute('href');
             if (href && href.startsWith('#')) {
                 link.classList.remove('active');
 
-                // Determine the target ID to match against
-                // If the current section is part of a group, map it to the primary nav link ID
                 let targetId = current;
                 if (sectionStartToNavHref[current]) {
-                    targetId = sectionStartToNavHref[current];
+                    targetId = sectionStartToNavHref[current]; // Map grouped sections
                 }
 
                 if (href === `#${targetId}`) {
@@ -322,195 +103,38 @@ function setupActiveNav() {
                 }
             }
         });
-    };
-
-    window.addEventListener('scroll', highlightNav);
-    highlightNav(); // Initial check
-}
-
-function setupCardGlow() {
-    const cards = document.querySelectorAll('.card, .role-card-detailed, .poster-card, .faq-item, .btn'); // Added .btn for liquid effect
-
-    // Mouse Tracking (Desktop)
-    window.addEventListener('mousemove', e => {
-        const x = e.clientX;
-        const y = e.clientY;
-
-        // Use a single RAF loop for better performance than per-card listeners
-        window.requestAnimationFrame(() => {
-            cards.forEach(card => {
-                const rect = card.getBoundingClientRect();
-                const cardX = x - rect.left;
-                const cardY = y - rect.top;
-                card.style.setProperty('--mouse-x', `${cardX}px`);
-                card.style.setProperty('--mouse-y', `${cardY}px`);
-            });
-        });
-    });
-
-    // Accelerometer Tracking (Mobile "Virtual Light")
-    if (window.DeviceOrientationEvent) {
-        window.addEventListener('deviceorientation', e => {
-            // Convert tilt (beta/gamma) to a simulated light position
-            // Beta: -180 to 180 (front/back tilt)
-            // Gamma: -90 to 90 (left/right tilt)
-
-            // Normalize tilt to a shift range (e.g., +/- 100px)
-            const shiftX = (e.gamma || 0) * 5;
-            const shiftY = (e.beta || 0) * 5;
-
-            window.requestAnimationFrame(() => {
-                cards.forEach(card => {
-                    const rect = card.getBoundingClientRect();
-                    // Center of card
-                    const centerX = rect.width / 2;
-                    const centerY = rect.height / 2;
-
-                    // Apply tilt offset to the center light source
-                    card.style.setProperty('--mouse-x', `${centerX + shiftX}px`);
-                    card.style.setProperty('--mouse-y', `${centerY + shiftY}px`);
-                });
-            });
-        });
-    }
-}
-
-function setupMobileMenu() {
-    const btn = document.querySelector('.mobile-menu-btn');
-    const nav = document.querySelector('.nav-links');
-    const links = document.querySelectorAll('.nav-links a');
-
-    if (btn && nav) {
-        btn.addEventListener('click', () => {
-            btn.classList.toggle('active');
-            nav.classList.toggle('active');
-            document.body.style.overflow = nav.classList.contains('active') ? 'hidden' : '';
-        });
-
-        links.forEach(link => {
-            link.addEventListener('click', () => {
-                btn.classList.remove('active');
-                nav.classList.remove('active');
-                document.body.style.overflow = '';
-            });
-        });
-    }
-}
-
-function setupScrollAnimations() {
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
-            }
-        });
-    }, { threshold: 0.1 });
-
-    document.querySelectorAll('section h2, .card, .role-card-detailed, .poster-card, .timeline-item, .stats-bar').forEach(el => {
-        el.classList.add('scroll-hidden');
-        observer.observe(el);
     });
 }
 
-function openModal(src, title) {
-    const m = document.getElementById("poster-modal");
-    m.style.display = "flex";
-    const frame = document.getElementById("modal-frame");
-    if (frame) frame.src = src;
-    document.getElementById("modal-caption").innerText = title;
-
-    const btn = document.getElementById("download-btn");
-    if (btn) {
-        btn.onclick = function (e) {
-            e.stopPropagation();
-            window.open(src, '_blank');
-        };
-    }
-}
-
-function closeModal(e) {
-    if (e.target.classList.contains('modal') || e.target.classList.contains('close-modal')) {
-        document.getElementById("poster-modal").style.display = "none";
-        const frame = document.getElementById("modal-frame");
-        if (frame) frame.src = "";
-    }
-}
-
-function setupStatsAnimation() {
-    const stats = document.querySelectorAll('.stat-number');
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const target = entry.target;
-                const finalValue = parseInt(target.getAttribute('data-value'));
-                const hasPercent = target.innerText.includes('%');
-
-                if (!isNaN(finalValue)) {
-                    animateValue(target, 0, finalValue, 2000, hasPercent);
-                }
-                observer.unobserve(target);
-            }
-        });
-    }, { threshold: 0.5 });
-
-    stats.forEach(stat => observer.observe(stat));
-}
-
-function animateValue(obj, start, end, duration, hasPercent) {
-    let startTimestamp = null;
-    const step = (timestamp) => {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        const current = Math.floor(progress * (end - start) + start);
-        obj.innerHTML = current + (hasPercent ? "%" : "");
-        if (progress < 1) {
-            window.requestAnimationFrame(step);
-        } else {
-            obj.innerHTML = end + (hasPercent ? "%" : "");
-        }
-    };
-    window.requestAnimationFrame(step);
-}
-
-function filterProjects(category) {
-    const buttons = document.querySelectorAll('.filter-btn');
-    buttons.forEach(btn => {
-        if (btn.getAttribute('onclick').includes(`'${category}'`)) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    });
-
+// Global Filter Functions (Needs to be on window for HTML onclicks)
+window.filterProjects = function (category) {
     const cards = document.querySelectorAll('.project-card');
+    const buttons = document.querySelectorAll('#marketplace .filter-btn'); // specific to marketplace
+
+    // Update buttons (Simple visual toggle logic, assumes styles exist)
+    if (buttons.length) {
+        buttons.forEach(btn => btn.style.backgroundColor = 'transparent');
+        buttons.forEach(btn => btn.style.border = '1px solid #e2e8f0');
+        // Logic to highlight active button would go here if we kept the precise class structure
+        // For now, functionality first:
+    }
+
     cards.forEach(card => {
-        const cardCategory = card.getAttribute('data-category');
-        if (category === 'all' || cardCategory === category) {
-            card.style.display = 'flex';
+        if (category === 'all' || card.dataset.category === category) {
+            card.style.display = 'block';
         } else {
             card.style.display = 'none';
         }
     });
 }
 
-function filterFAQ(category) {
-    const buttons = document.querySelectorAll('#faq .filter-btn');
-    buttons.forEach(btn => {
-        if (btn.getAttribute('onclick').includes(`'${category}'`)) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    });
-
+window.filterFAQ = function (category) {
     const items = document.querySelectorAll('.faq-item');
     items.forEach(item => {
-        const itemCategory = item.getAttribute('data-category');
-        if (category === 'all' || itemCategory === category || itemCategory === 'all') {
+        if (category === 'all' || item.dataset.category === category) {
             item.style.display = 'block';
         } else {
             item.style.display = 'none';
-            item.removeAttribute('open'); // Close if hidden
         }
     });
 }
