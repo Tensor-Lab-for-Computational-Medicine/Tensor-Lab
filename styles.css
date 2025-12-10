@@ -1,20 +1,26 @@
-/* --- THE COMPUTATIONAL JOURNAL: DESIGN SYSTEM --- */
+/* --- TENSOR LAB DESIGN SYSTEM: HYBRID MODE --- */
 :root {
-    /* "Swiss Medical" Palette */
-    --paper: #f4f4f0;
-    /* Warm Alabaster - Background */
-    --ink: #18181b;
-    /* Zinc 900 - Text */
-    --ink-light: #52525b;
-    /* Zinc 600 - Secondary Text */
-    --alert: #dc2626;
-    /* Crimson - Accent/Action */
+    /* DARK THEME (Hero) */
+    --bg-dark: #121212;
+    --text-light: #e5e5e5;
+    --text-dim: #a1a1aa;
 
-    /* Structural Lines */
+    /* LIGHT THEME (Journal) */
+    --paper: #f4f4f0;
+    /* Warm Alabaster */
+    --ink: #18181b;
+    /* Zinc 900 */
+    --ink-light: #52525b;
+    /* Zinc 600 */
+    --alert: #dc2626;
+    /* Crimson Accent */
+
+    /* COMMON */
     --hairline: 1px solid rgba(0, 0, 0, 0.08);
     --border-strong: 1px solid rgba(0, 0, 0, 1);
+    --border-dim: 1px solid rgba(255, 255, 255, 0.1);
 
-    /* Typography */
+    /* FONTS */
     --font-serif: 'EB Garamond', serif;
     --font-mono: 'Space Mono', monospace;
 }
@@ -28,14 +34,14 @@
 html {
     scroll-behavior: smooth;
     font-size: 16px;
-    background-color: var(--paper);
-    color: var(--ink);
+    background-color: var(--bg-dark);
+    /* Site defaults to dark */
+    color: var(--text-light);
 }
 
 body {
     font-family: var(--font-mono);
-    /* Start with Mono for body */
-    line-height: 1.5;
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
 }
 
@@ -45,17 +51,145 @@ a {
     transition: all 0.2s ease;
 }
 
-/* --- LAYOUT GRID --- */
+/* =========================================
+   PART 1: THE SURGE HERO (Dark Mode)
+   ========================================= */
+
+/* Top Nav (Absolute Overlay) */
+.surge-nav {
+    position: absolute;
+    /* Not fixed, scrolls away or stays? Let's keep absolute for Hero only */
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 2rem 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+}
+
+.nav-brand {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: white;
+}
+
+.nav-menu {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+}
+
+.nav-link {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.nav-link:hover {
+    color: white;
+}
+
+.btn-login {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.5rem 1.25rem;
+    border-radius: 4px;
+    margin-left: 2rem;
+}
+
+/* The Hero Itself */
+.surge-hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 0 2rem;
+    position: relative;
+    background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000000 100%);
+    padding-bottom: 4rem;
+}
+
+.hero-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    margin-bottom: 2rem;
+}
+
+.hero-title {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(3rem, 7vw, 6rem);
+    line-height: 1.1;
+    color: white;
+    max-width: 1100px;
+    margin-bottom: 3rem;
+}
+
+.hero-divider {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 3rem;
+    opacity: 0.5;
+}
+
+.dot-tri {
+    width: 6px;
+    height: 6px;
+    background: white;
+    border-radius: 50%;
+}
+
+.dot-top {
+    transform: translateY(-6px);
+}
+
+.hero-subtext {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.1rem;
+    color: var(--text-dim);
+    max-width: 600px;
+    line-height: 1.7;
+    margin: 0 auto;
+}
+
+.logo-ribbon {
+    margin-top: 6rem;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    flex-wrap: wrap;
+    opacity: 0.5;
+}
+
+/* =========================================
+   PART 2: THE COMPUTATIONAL JOURNAL (Light Mode)
+   ========================================= */
+
 .layout-grid {
     display: grid;
     grid-template-columns: 350px 1fr;
-    /* Fixed Sidebar | Scrolling Feed */
     min-height: 100vh;
+    background-color: var(--paper);
+    /* Switches to Light background */
+    color: var(--ink);
+    /* Switches to Dark text */
+    position: relative;
+    z-index: 10;
 }
 
-/* --- SIDEBAR (Fixed Manifesto) --- */
+/* --- SIDEBAR --- */
 .sidebar {
     position: sticky;
+    /* Sticky relative to the layout-grid container! */
     top: 0;
     height: 100vh;
     border-right: var(--hairline);
@@ -63,12 +197,9 @@ a {
     display: flex;
     flex-direction: column;
     background-color: var(--paper);
-    z-index: 50;
     overflow-y: auto;
-    /* Allow scroll if content is tall */
 }
 
-/* Logo Area */
 .journal-header {
     margin-bottom: 4rem;
 }
@@ -83,7 +214,6 @@ a {
     height: 48px;
     width: auto;
     filter: grayscale(1);
-    /* B&W Logo */
 }
 
 .brand-text {
@@ -108,7 +238,6 @@ a {
     color: var(--ink-light);
 }
 
-/* Manifesto */
 .manifesto {
     margin-bottom: 4rem;
 }
@@ -127,7 +256,6 @@ a {
     line-height: 1.6;
 }
 
-/* Navigation */
 .journal-nav ul {
     list-style: none;
 }
@@ -164,7 +292,6 @@ a {
     color: var(--alert);
 }
 
-/* Sidebar Footer */
 .journal-footer {
     margin-top: auto;
     padding-top: 2rem;
@@ -193,7 +320,6 @@ a {
     padding: 6rem 4rem;
     border-bottom: var(--hairline);
     min-height: 80vh;
-    /* Give sections breath */
 }
 
 .section-label {
@@ -220,7 +346,7 @@ a {
     margin-bottom: 4rem;
 }
 
-/* --- COMPONENT: Journal Entry (Protocol) --- */
+/* COMPONENTS (Light Mode) */
 .article-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -269,7 +395,6 @@ a {
     text-transform: uppercase;
 }
 
-/* --- COMPONENT: Docket/Timeline --- */
 .abstract-box {
     background: white;
     padding: 2rem;
@@ -302,7 +427,6 @@ a {
     font-weight: 700;
 }
 
-/* --- COMPONENT: Case File (Projects) --- */
 .case-file-list {
     display: flex;
     flex-direction: column;
@@ -368,7 +492,6 @@ a {
     filter: grayscale(0%);
 }
 
-/* --- COMPONENT: Faculty --- */
 .faculty-list {
     list-style: none;
     border-top: var(--border-strong);
@@ -402,19 +525,16 @@ a {
 .photo-strip {
     display: flex;
     gap: 1px;
-    /* Minimal gap */
     overflow: hidden;
 }
 
 .photo-strip img {
     width: 100px;
-    /* Small thumbnails */
     height: 120px;
     object-fit: cover;
     filter: grayscale(100%) contrast(1.2);
 }
 
-/* --- INQUIRY --- */
 .inquiry-box {
     background: var(--ink);
     color: var(--paper);
@@ -455,7 +575,7 @@ a {
     color: var(--ink);
 }
 
-/* --- MOBILE RESPONSIVE --- */
+/* --- RESPONISVE --- */
 @media (max-width: 900px) {
     .layout-grid {
         grid-template-columns: 1fr;
@@ -469,20 +589,8 @@ a {
         border-bottom: var(--border-strong);
     }
 
-    .journal-header {
-        margin-bottom: 2rem;
-    }
-
-    .manifesto {
-        margin-bottom: 2rem;
-    }
-
-    .journal-nav {
-        display: none;
-        /* Hide side nav on mobile, maybe add burger later */
-    }
-
-    .sidebar .journal-footer {
+    .journal-nav,
+    .journal-footer {
         display: none;
     }
 
@@ -501,5 +609,17 @@ a {
 
     .photo-strip {
         flex-wrap: wrap;
+    }
+
+    .surge-hero {
+        padding: 6rem 1.5rem;
+    }
+
+    .hero-title {
+        font-size: 3.5rem;
+    }
+
+    .logo-ribbon {
+        gap: 1.5rem;
     }
 }
