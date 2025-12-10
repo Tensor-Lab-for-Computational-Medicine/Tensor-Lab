@@ -158,8 +158,8 @@ a {
     background-position: center;
     background-size: cover;
     /* or contain, user asked for watermark */
-    opacity: 0.03;
-    /* Very faded */
+    opacity: 0.12;
+    /* Much more visible */
     mix-blend-mode: multiply;
 }
 
@@ -227,7 +227,8 @@ a {
     display: block;
     font-family: var(--font-serif);
     /* Elegant Serif */
-    font-style: italic;
+    font-style: normal;
+    /* Non-italic */
     font-size: 1.1rem;
     /* Larger text */
     border-bottom: 1px solid rgba(255, 255, 255, 0.03);
@@ -952,12 +953,13 @@ summary::marker {
 /* removed stray text-transform */
 
 /* Liquid Leadership Card (Light Mode Adaptation) */
+/* Liquid Leadership Card (Light Mode Adaptation) */
 .leadership-grid {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 1.5rem;
-    /* Balanced gap */
+    gap: 0.5rem;
+    /* VERY Tight gap as requested */
     max-width: 900px;
     margin: 0 auto 3rem auto;
 }
