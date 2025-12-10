@@ -679,8 +679,8 @@ a {
 }
 
 .nav-item {
-    font-family: var(--font-sans);
-    /* From Mono */
+    font-family: var(--font-mono);
+    /* User requested number font (Mono) */
     font-weight: 600;
     font-size: 0.85rem;
     text-transform: uppercase;
@@ -742,7 +742,7 @@ a {
     padding: 3rem 2rem;
     /* Reduced from 6rem 4rem */
     border-bottom: var(--hairline);
-    min-height: 80vh;
+    /* min-height: 80vh; Removed to reduce spacing */
 }
 
 .section-label {
@@ -1155,6 +1155,18 @@ summary::marker {
     color: var(--ink);
 }
 
+.glass-role.nav-item {
+    font-family: var(--font-mono);
+    /* User requested number font (Mono) */
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--ink-light);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
 .glass-role-meta {
     font-family: var(--font-mono);
     font-size: 0.7rem;
@@ -1268,7 +1280,8 @@ summary::marker {
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
     /* Condensed */
-    margin-bottom: 4rem;
+    margin-bottom: 2rem;
+    /* Reduced from 4rem */
 }
 
 @media (max-width: 900px) {
@@ -1403,6 +1416,8 @@ summary::marker {
     grid-template-columns: 1fr 1fr;
     gap: 2rem;
     margin-top: 2rem;
+    margin-bottom: 2rem;
+    /* Reduced implicit spacing */
 }
 
 @media (max-width: 900px) {
