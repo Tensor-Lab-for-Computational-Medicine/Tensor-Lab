@@ -407,10 +407,21 @@ a {
 
 /* Cleaned up stray legacy code */
 
-.role-card-detailed h4 {
+/* Specific Font Overrides for Join Section */
+.role-card-detailed h3 {
     font-family: var(--font-serif);
-    font-size: 1.25rem;
-    margin-bottom: 0.5rem;
+    /* Garamond */
+    font-style: italic;
+    /* Usually goes with Garamond headers here */
+    font-size: 1.75rem;
+}
+
+.role-card-detailed p,
+.role-card-detailed h4,
+.role-card-detailed li,
+.role-list {
+    font-family: var(--font-sans);
+    /* Inter */
 }
 
 /* Darker colors for role visibility */
@@ -728,7 +739,8 @@ a {
 }
 
 .journal-section {
-    padding: 6rem 4rem;
+    padding: 3rem 2rem;
+    /* Reduced from 6rem 4rem */
     border-bottom: var(--hairline);
     min-height: 80vh;
 }
@@ -1074,11 +1086,31 @@ summary::marker {
     padding: 1rem 2rem;
     background: var(--alert);
     color: white;
-    font-family: var(--font-mono);
+    font-family: var(--font-sans);
+    /* Switch back to Sans */
     font-weight: 700;
     font-size: 0.9rem;
     border: none;
     transition: all 0.2s ease;
+}
+
+/* Map .btn to .journal-btn for compatibility if needed, or user used .btn class */
+.btn {
+    display: inline-block;
+    padding: 1rem 2rem;
+    background: var(--alert);
+    color: white;
+    font-family: var(--font-sans);
+    font-weight: 700;
+    font-size: 0.9rem;
+    border: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
 }
 
 .journal-btn:hover {
