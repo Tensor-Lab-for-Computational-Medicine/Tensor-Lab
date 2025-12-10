@@ -146,11 +146,51 @@ a {
 /* Hero Label: Already uppercase, switch to sans */
 .hero-label {
     font-family: var(--font-sans);
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     text-transform: uppercase;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.1em;
     color: var(--text-dim);
     margin-bottom: 2rem;
+}
+
+/* Dropdown Menu */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: white;
+    min-width: 180px;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    border-radius: 4px;
+    padding: 0.5rem 0;
+}
+
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+}
+
+.dropdown-content a:hover {
+    background-color: #f1f1f1;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown:hover .dropbtn {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: white;
 }
 
 .hero-title {
@@ -268,6 +308,8 @@ a {
     margin-bottom: 3rem;
 }
 
+/* [Removed Duplicate Testimonial Wall] */
+
 .role-grid-3 {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -296,15 +338,33 @@ a {
     margin-bottom: 0.5rem;
 }
 
+/* Darker colors for role visibility */
 .role-focus {
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
+    display: block;
+    font-size: 0.75rem;
     color: var(--alert);
     text-transform: uppercase;
-    display: block;
+    letter-spacing: 0.05em;
     margin-bottom: 1rem;
+    font-weight: 700;
 }
 
+/* Specifically for the colored ones in Roles */
+.role-card-detailed .role-focus[style*="#10b981"] {
+    color: #047857 !important;
+}
+
+/* Dark Green */
+.role-card-detailed .role-focus[style*="#2dd4bf"] {
+    color: #0f766e !important;
+}
+
+/* Dark Teal */
+.role-card-detailed .role-focus[style*="#f59e0b"] {
+    color: #b45309 !important;
+}
+
+/* Dark Amber */
 .role-list {
     font-size: 0.9rem;
     color: var(--ink-light);
@@ -651,10 +711,17 @@ a {
 }
 
 .entry-title {
+    font-size: 1.5rem;
     font-family: var(--font-serif);
-    font-size: 2rem;
     font-style: italic;
     margin-bottom: 1rem;
+}
+
+/* Align Juan (7th item) to Right Column (Ashwin) */
+@media (min-width: 900px) {
+    .grid>.project-card:last-child {
+        grid-column: 2;
+    }
 }
 
 /* FAQ Styles */
@@ -856,12 +923,17 @@ summary::marker {
     box-shadow: none;
 }
 
-.leader-role {
+.leader-role-focus {
     font-family: var(--font-mono);
     font-size: 0.7rem;
     color: var(--alert);
     text-transform: uppercase;
-    margin-bottom: 0.5rem;
+    display: block;
+    margin-bottom: 1rem;
+}
+
+.journal-btn-container {
+    margin-top: auto;
 }
 
 .leader-affil {
@@ -1064,8 +1136,8 @@ summary::marker {
 .testimonial-wall {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    /* User requested 2x2. */
-    gap: 2rem;
+    gap: 1rem;
+    /* Condensed */
     margin-bottom: 4rem;
 }
 
