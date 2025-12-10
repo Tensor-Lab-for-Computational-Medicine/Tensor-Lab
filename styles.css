@@ -570,10 +570,93 @@ a {
     border: 1px solid var(--paper);
 }
 
-.journal-btn:hover {
-    background: white;
+/* --- GLASS COMPONENTS (Restored/Refined) --- */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    padding: 2.5rem;
+    border-radius: 8px;
+    /* Slight rounding for the "Liquid" feel */
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.glass-panel:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.85);
+}
+
+.glass-panel h3 {
+    font-family: var(--font-serif);
+    font-size: 1.75rem;
+    font-style: italic;
+    margin-bottom: 0.5rem;
     color: var(--ink);
 }
+
+.glass-role-meta {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--alert);
+    display: block;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.05em;
+}
+
+.glass-panel p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--ink-light);
+    margin-bottom: 1.5rem;
+}
+
+.glass-list-title {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+    color: var(--ink);
+}
+
+.glass-list {
+    list-style: none;
+    margin-bottom: 2rem;
+}
+
+.glass-list li {
+    position: relative;
+    padding-left: 1rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--ink-light);
+}
+
+.glass-list li::before {
+    content: "•";
+    color: var(--alert);
+    position: absolute;
+    left: 0;
+    font-weight: bold;
+}
+
+/* Updated Responsive Grid for Glass Panels */
+.role-grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+@media (max-width: 900px) {
+    .role-grid-container {
+        grid-template-columns: 1fr;
+    }
+}
+
 
 /* --- RESPONISVE --- */
 @media (max-width: 900px) {
@@ -635,4 +718,4 @@ a {
     }
 }
 
-```
+}
