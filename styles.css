@@ -581,6 +581,8 @@ a {
     border-radius: 8px;
     /* Slight rounding for the "Liquid" feel */
     transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
 }
 
 .glass-panel:hover {
@@ -604,6 +606,12 @@ a {
     display: block;
     margin-bottom: 1.5rem;
     letter-spacing: 0.05em;
+}
+
+.glass-panel .journal-btn-container {
+    margin-top: auto;
+    text-align: center;
+    width: 100%;
 }
 
 .glass-panel p {
@@ -636,11 +644,162 @@ a {
 }
 
 .glass-list li::before {
-    content: "•";
-    color: var(--alert);
     position: absolute;
     left: 0;
     font-weight: bold;
+}
+
+/* --- TIMELINE (Adapted for Journal) --- */
+.timeline {
+    position: relative;
+    max-width: 800px;
+    margin: 4rem auto;
+    border-left: 2px solid var(--border-strong);
+    padding-left: 2rem;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 3rem;
+}
+
+.timeline-dot {
+    position: absolute;
+    left: -2.6rem;
+    top: 0.5rem;
+    width: 1.2rem;
+    height: 1.2rem;
+    background: var(--paper);
+    border: 2px solid var(--alert);
+    border-radius: 50%;
+}
+
+.timeline-date {
+    font-family: var(--font-mono);
+    color: var(--alert);
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.timeline-content h3 {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-style: italic;
+    margin-bottom: 0.5rem;
+}
+
+.timeline-content p {
+    color: var(--ink-light);
+    font-size: 0.95rem;
+}
+
+/* --- TESTIMONIALS --- */
+.testimonial-wall {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 4rem;
+}
+
+.testimonial-card {
+    border: 1px solid var(--border-strong);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.quote-icon {
+    font-size: 4rem;
+    line-height: 0.5;
+    font-family: var(--font-serif);
+    color: var(--alert);
+    margin-bottom: 1rem;
+    opacity: 0.3;
+}
+
+.testimonial-text {
+    font-style: italic;
+    font-family: var(--font-serif);
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+    flex-grow: 1;
+}
+
+.testimonial-author {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: var(--ink);
+}
+
+.testimonial-role {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--ink-light);
+}
+
+/* --- PROJECT GRID (Selected Works) --- */
+.project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 4rem;
+}
+
+.project-card {
+    border-top: var(--border-strong);
+    padding-top: 1rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.project-meta {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--ink-light);
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+.project-card h3 {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-style: italic;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+}
+
+.team-meta {
+    font-size: 0.75rem;
+    background: rgba(0, 0, 0, 0.03);
+    padding: 0.5rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+}
+
+.project-card p {
+    font-size: 0.9rem;
+    color: var(--ink-light);
+    margin-bottom: 1rem;
+    flex-grow: 1;
+}
+
+.project-result {
+    font-size: 0.8rem;
+    border-top: 1px dashed var(--ink-light);
+    padding-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.tech-tags {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--ink-light);
+    text-transform: uppercase;
 }
 
 /* Updated Responsive Grid for Glass Panels */
@@ -716,6 +875,4 @@ a {
     .entry-lists {
         grid-template-columns: 1fr;
     }
-}
-
 }

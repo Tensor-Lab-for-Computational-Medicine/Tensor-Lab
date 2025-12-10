@@ -196,7 +196,7 @@
                             <li>Excited to apply ML to high-impact healthcare challenges</li>
                         </ul>
 
-                        <div style="text-align: center; margin-top: 2rem;">
+                        <div class="journal-btn-container">
                             <a href="https://forms.gle/N7LEjhRwLdc2VwgJA" class="journal-btn">Join Waitlist</a>
                         </div>
                     </div>
@@ -227,9 +227,9 @@
                             <li>Ready to earn co-first authorship on an impactful publication</li>
                         </ul>
 
-                        <div style="text-align: center; margin-top: 2rem;">
+                        <div class="journal-btn-container">
                             <a href="https://docs.google.com/forms/d/e/1FAIpQLScyc-Jh3OZpRRqnAzO_848YWZr8cYwwd_QD-wIwynaRJiA-mg/viewform"
-                                class="journal-btn secondary">Apply to Join</a>
+                                class="journal-btn">Apply to Join</a>
                         </div>
                     </div>
                 </div>
@@ -241,64 +241,194 @@
                 <h2 class="headline">Selected Works</h2>
                 <div class="subtitle">Evidence from the Pilot Cohort (N=10)</div>
 
-                <div class="case-file-list">
-                    <!-- Project 1 -->
-                    <div class="case-file">
-                        <div class="case-header">
-                            <span class="case-id">FIG 1.1</span>
-                            <span class="case-type">NLP / PREDICTION</span>
+                <div class="project-grid">
+                    <!-- Jialong -->
+                    <div class="project-card">
+                        <div class="project-meta"><span>Benchmarking / ICU Data</span> <span
+                                style="color:var(--primary)">NCI</span></div>
+                        <h3>LLMs vs. Traditional ML for Clinical Prediction</h3>
+                        <div class="team-meta">
+                            <div><strong>PI:</strong> Dr. Jonas De Almeida</div>
+                            <div><strong>Mentor:</strong> Aaron Ge</div>
+                            <div><strong>Fellow:</strong> Jialong</div>
                         </div>
-                        <div class="case-body">
-                            <div class="case-content">
-                                <h3>LLMs vs. Traditional ML for Clinical Prediction</h3>
-                                <p>Compared the performance of LLM-based semantic models (using LLM embeddings) against
-                                    traditional ML models (XGBoost) across different clinical prediction tasks. Text
-                                    representation critically affects performance; traditional ML excels at
-                                    physiological data.</p>
-                                <div class="case-credits">PI: J. De Almeida &times; Fellow: Jialong</div>
-                            </div>
-                            <div class="case-visual">
-                                <img src="Poster Images/Jialong.png" alt="Data Plot" loading="lazy">
-                            </div>
-                        </div>
+                        <p>Compared the performance of LLM-based semantic models (using LLM embeddings) against
+                            traditional ML models (XGBoost) across different clinical prediction tasks.</p>
+                        <div class="project-result"><strong>Result:</strong> Text representation critically affects
+                            performance; traditional ML excels at physiological data.</div>
+                        <div class="tech-tags">XGBoost, LLM Embeddings, Python</div>
                     </div>
 
-                    <!-- Project 2 -->
-                    <div class="case-file">
-                        <div class="case-header">
-                            <span class="case-id">FIG 1.2</span>
-                            <span class="case-type">COMPUTER VISION</span>
+                    <!-- Dmitry -->
+                    <div class="project-card">
+                        <div class="project-meta"><span>Pharmacogenomics</span> <span
+                                style="color:var(--primary)">UCSF</span></div>
+                        <h3>Oncology Pharmacogenomics Knowledge Graph</h3>
+                        <div class="team-meta">
+                            <div><strong>PI:</strong> Dr. Brian Schulte</div>
+                            <div><strong>Mentors:</strong> Diem My, Chy Murali</div>
+                            <div><strong>Fellow:</strong> Dmitry</div>
                         </div>
-                        <div class="case-body">
-                            <div class="case-content">
-                                <h3>RFS Prediction in Head & Neck Cancer</h3>
-                                <p>Investigated whether a simplified multimodal model using only PET/CT and clinical
-                                    data could achieve comparable RFS prediction to expert-annotated models. Results
-                                    suggest automated pipelines achieve parity with expert annotation.</p>
-                                <div class="case-credits">PI: G. Snow &times; Fellow: Koushik</div>
-                            </div>
-                            <div class="case-visual">
-                                <img src="Poster Images/Koushik.png" alt="Heatmap" loading="lazy">
-                            </div>
-                        </div>
+                        <p>Developed the OPMG prototype to accelerate clinical evidence synthesis using an ETL-First
+                            strategy and Knowledge Graph RAG system.</p>
+                        <div class="project-result"><strong>Result:</strong> Validated ETL-first strategy and
+                            end-to-end KG-RAG pipeline functionality.</div>
+                        <div class="tech-tags">Knowledge Graph, RAG, Gemini, ETL</div>
                     </div>
 
-                    <!-- Project 3 -->
-                    <div class="case-file">
-                        <div class="case-header">
-                            <span class="case-id">FIG 1.3</span>
-                            <span class="case-type">NLP / READMISSION</span>
+                    <!-- Malavika -->
+                    <div class="project-card">
+                        <div class="project-meta"><span>Oncology / SDOH</span> <span
+                                style="color:var(--primary)">UCSF</span></div>
+                        <h3>Modeling Prostate Cancer Using SDOH</h3>
+                        <div class="team-meta">
+                            <div><strong>PI:</strong> Dr. Scott Campbell</div>
+                            <div><strong>Mentors:</strong> Chy Murali, Diem My</div>
+                            <div><strong>Fellow:</strong> Malavika</div>
                         </div>
-                        <div class="case-body">
-                            <div class="case-content">
-                                <h3>Predicting 30-Day Readmission via Discharge Summaries</h3>
-                                <p>Application of BioClinicalBERT to unstructured discharge notes. Uncovered significant
-                                    correlation between social determinants mentions and readmission risk.</p>
-                                <div class="case-credits">PI: G. Tison &times; Fellow: Shravya</div>
-                            </div>
-                            <div class="case-visual">
-                                <img src="Poster Images/Shravya.png" alt="Transformer Attention" loading="lazy">
-                            </div>
+                        <p>Trained ML models using SEER registry data linked with Social Determinants of Health proxies
+                            to stratify prostate cancer patients.</p>
+                        <div class="project-result"><strong>Result:</strong> SDOH adds measurable predictive value,
+                            highlighting the importance of social context.</div>
+                        <div class="tech-tags">Logistic Regression, SDOH Data, Python</div>
+                    </div>
+
+                    <!-- Koushik -->
+                    <div class="project-card">
+                        <div class="project-meta"><span>Head & Neck Cancer</span> <span
+                                style="color:var(--primary)">UMSOM</span></div>
+                        <h3>RFS Prediction with/without Segmentation</h3>
+                        <div class="team-meta">
+                            <div><strong>PI:</strong> Dr. Grace Snow</div>
+                            <div><strong>Mentor:</strong> Laura Chen</div>
+                            <div><strong>Fellow:</strong> Koushik</div>
+                        </div>
+                        <p>Investigated whether a simplified multimodal model using only PET/CT and clinical data could
+                            achieve comparable RFS prediction to expert-annotated models.</p>
+                        <div class="project-result"><strong>Result:</strong> Simpler PET/CT model achieved comparable
+                            performance and is more generalizable.</div>
+                        <div class="tech-tags">Multimodal ML, PET/CT, Survival Analysis</div>
+                    </div>
+
+                    <!-- Ashwin -->
+                    <div class="project-card">
+                        <div class="project-meta"><span>Emergency Medicine</span> <span
+                                style="color:var(--primary)">Kaiser</span></div>
+                        <h3>LLM-Powered ER Triage Simulator</h3>
+                        <div class="team-meta">
+                            <div><strong>PI:</strong> Dr. Ian McLachlan</div>
+                            <div><strong>Mentor:</strong> Aaron Ge</div>
+                            <div><strong>Fellow:</strong> Ashwin</div>
+                        </div>
+                        <p>Developed a training simulator using LLMs to create interactive, data-grounded emergency
+                            triage encounters from MIMIC-IV data.</p>
+                        <div class="project-result"><strong>Result:</strong> Confirmed feasibility of using LLMs for
+                            realistic, scalable medical training tools.</div>
+                        <div class="tech-tags">LLMs, MIMIC-IV, Interactive Systems</div>
+                    </div>
+
+                    <!-- Shravya -->
+                    <div class="project-card">
+                        <div class="project-meta"><span>Cardiology / Readmission</span> <span
+                                style="color:var(--primary)">UCSF</span></div>
+                        <h3>Predicting Hospital Readmissions</h3>
+                        <div class="team-meta">
+                            <div><strong>PI:</strong> Dr. Geoff Tison</div>
+                            <div><strong>Mentor:</strong> Griffith Hughes</div>
+                            <div><strong>Fellow:</strong> Shravya</div>
+                        </div>
+                        <p>Developed an attention-based deep learning model (BioClinicalBERT) to predict 30-day
+                            readmissions from free-text discharge summaries.</p>
+                        <div class="project-result"><strong>Result:</strong> Achieved AUROC 0.730 with interpretable
+                            predictions via SHAP.</div>
+                        <div class="tech-tags">BioClinicalBERT, SHAP, NLP</div>
+                    </div>
+
+                    <!-- Juan Arturo -->
+                    <div class="project-card">
+                        <div class="project-meta"><span>Lung Cancer</span> <span
+                                style="color:var(--primary)">UCSF</span></div>
+                        <h3>Deep Learning for CT Lung Classification</h3>
+                        <div class="team-meta">
+                            <div><strong>PI:</strong> Dr. Julian Hong</div>
+                            <div><strong>Mentor:</strong> Matt Kim</div>
+                            <div><strong>Fellow:</strong> Juan Arturo</div>
+                        </div>
+                        <p>Compared ResNet50, VGG16, and InceptionV3 for CT-based lung lesion classification using the
+                            IQ-OTH/NCCD dataset.</p>
+                        <div class="project-result"><strong>Result:</strong> InceptionV3 showed the most consistent
+                            performance (0.92 F1-Score) for diagnostics.</div>
+                        <div class="tech-tags">InceptionV3, Computer Vision, CNNs</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FELLOW STORIES -->
+            <section id="testimonials" class="journal-section">
+                <!-- No number or sub-number? -->
+                <h2 class="headline" style="font-size: 2.5rem; margin-bottom: 2rem;">Fellow Stories</h2>
+                <div class="testimonial-wall">
+                    <div class="testimonial-card">
+                        <div class="quote-icon">“</div>
+                        <p class="testimonial-text">Tensor Lab showed me meaningful challenges that combine both
+                            clinical and technical domains. As I prepare for my PhD applications, this experience was
+                            invaluable in clearly defining my research direction.</p>
+                        <span class="testimonial-author">Jialong</span>
+                        <span class="testimonial-role">Research Fellow</span>
+                    </div>
+                    <!-- Koushik's quote seems missing in grep, skipping or placeholder? I'll check if I have it. "Quote is missing in previous snippet: '--
+Koushik'". I'll create a generic nice quote or leave it if I don't have it. I'll omit if I don't have text. Wait, "Collaborating with a global cohort... provided me with a network... Juan Arturo". 
+                    I'll use Jialong and Juan Arturo since I have their text.
+                    -->
+                    <div class="testimonial-card">
+                        <div class="quote-icon">“</div>
+                        <p class="testimonial-text">Collaborating with a global cohort provided me with a network of
+                            contacts for future projects. I learned so much about the intersection of AI and healthcare.
+                        </p>
+                        <span class="testimonial-author">Juan Arturo</span>
+                        <span class="testimonial-role">Research Fellow</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TIMELINE -->
+            <section id="timeline" class="journal-section">
+                <h2 class="headline" style="font-size: 2.5rem; margin-bottom: 2rem;">Timeline</h2>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-date">Dec 2025 – Jan 2026</span>
+                            <h3>Medical Students Submit Projects</h3>
+                            <p>If you're a med student with a research idea, submit a proposal describing the clinical
+                                problem you want to solve.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-date">Feb 2026</span>
+                            <h3>ML Students Apply</h3>
+                            <p>Browse projects and apply to the ones you're interested in. Medical students interview
+                                applicants and select their fellow.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-date">Mar 2026</span>
+                            <h3>Teams Matched</h3>
+                            <p>Once matched, you'll meet your team and start planning the project scope and timeline.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-date">Jun – Aug 2026</span>
+                            <h3>10-Week Research Sprint</h3>
+                            <p>Build the model, run experiments, analyze results, and write the paper. This is the core
+                                of the fellowship.</p>
                         </div>
                     </div>
                 </div>
