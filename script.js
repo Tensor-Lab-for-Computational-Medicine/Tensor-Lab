@@ -212,7 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function setupBackgroundTransition() {
-    const triggerSection = document.getElementById('open-roles');
+    const triggerSection = document.getElementById('approach');
     const pillarsBg = document.querySelector('.starfield-overlay');
     const orionBg = document.querySelector('.parallax-bg');
 
