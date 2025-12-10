@@ -12,8 +12,8 @@
     /* Zinc 900 */
     --ink-light: #52525b;
     /* Zinc 600 */
-    --alert: #0d9488;
-    /* Tensor Lab Teal */
+    --alert: #dc2626;
+    /* Crimson Accent */
     --secondary: #8b5cf6;
     /* Legacy Violet for Gradient */
     --gradient: linear-gradient(135deg, var(--alert), var(--secondary));
@@ -388,14 +388,11 @@ a {
 }
 
 .role-card-detailed {
-    /* Glass Effect for Roles too */
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: white;
     border: 1px solid rgba(0, 0, 0, 0.1);
     padding: 2rem;
-    border-radius: 12px;
-    transition: all 0.3s ease;
+    border-radius: 8px;
+    transition: transform 0.2s;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -403,10 +400,9 @@ a {
 }
 
 .role-card-detailed:hover {
-    transform: scale(1.02);
+    transform: translateY(-2px);
     border-color: var(--alert);
-    background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 0 30px rgba(13, 148, 136, 0.15), inset 0 0 20px rgba(13, 148, 136, 0.05);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
 /* Cleaned up stray legacy code */
@@ -1074,55 +1070,34 @@ summary::marker {
 }
 
 .journal-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem 2.5rem;
-    /* Legacy Sizing */
-    background: var(--gradient);
-    /* Gradient Background */
+    display: inline-block;
+    padding: 1rem 2rem;
+    background: var(--alert);
     color: white;
     font-family: var(--font-mono);
     font-weight: 700;
     font-size: 0.9rem;
     border: none;
-    border-radius: 99px;
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    /* Bouncy Spring */
-    box-shadow:
-        0 10px 20px rgba(13, 148, 136, 0.3),
-        /* Teal Glow */
-        inset 0 -4px 4px rgba(0, 0, 0, 0.2),
-        /* Depth */
-        inset 0 4px 4px rgba(255, 255, 255, 0.4);
-    /* Specular Top */
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    transition: all 0.2s ease;
 }
 
 .journal-btn:hover {
-    transform: scale(1.05) translateY(-2px);
-    box-shadow:
-        0 15px 30px rgba(13, 148, 136, 0.5),
-        inset 0 -4px 6px rgba(0, 0, 0, 0.1),
-        inset 0 4px 6px rgba(255, 255, 255, 0.6);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
 }
 
-/* Secondary button */
+/* Secondary button contrast fix */
 .journal-btn.secondary {
-    background: rgba(255, 255, 255, 0.5);
-    /* Semi-transparent */
+    background: transparent;
     color: var(--ink);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--ink);
     box-shadow: none;
-    backdrop-filter: blur(10px);
 }
 
 .journal-btn.secondary:hover {
-    background: rgba(13, 148, 136, 0.1);
-    border-color: var(--alert);
-    color: var(--alert);
-    transform: scale(1.05);
+    background: var(--ink);
+    color: white;
+    transform: none;
 }
 
 /* --- GLASS COMPONENTS (Restored/Refined) --- */
@@ -1317,30 +1292,18 @@ summary::marker {
 }
 
 .project-card {
-    border-top: none;
+    border-top: var(--border-strong);
+    padding-top: 1rem;
     display: flex;
     flex-direction: column;
-    /* Strong Liquid Glass */
-    background: rgba(255, 255, 255, 0.7);
-    /* Slightly more opaque for 'warp' canvas */
-    backdrop-filter: blur(40px) saturate(140%);
-    /* Strong blur/warp */
-    -webkit-backdrop-filter: blur(40px) saturate(140%);
-
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    /* Glass edge */
-    border-top: 1px solid rgba(255, 255, 255, 0.8);
-    /* Highlight edge */
-
-    border-radius: 12px;
-    padding: 2rem;
-    transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-
-    box-shadow:
-        0 20px 40px rgba(0, 0, 0, 0.05),
-        /* Deep float shadow */
-        inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
-    /* Inner rim */
+    /* Clean Styling, no heavy glass */
+    background: transparent;
+    box-shadow: none;
+    border: none;
+    border-top: var(--border-strong);
+    border-radius: 0;
+    padding: 1rem 0 0 0;
+    transition: all 0.2s ease;
 
     /* Centering Logic */
     width: 100%;
@@ -1349,10 +1312,7 @@ summary::marker {
 
 .project-card:hover {
     transform: translateY(-5px);
-    border-color: var(--alert);
-    box-shadow:
-        0 30px 60px -12px rgba(13, 148, 136, 0.25),
-        inset 0 0 20px rgba(255, 255, 255, 0.5);
+    /* Subtle lift */
 }
 
 .project-meta {
@@ -1365,18 +1325,14 @@ summary::marker {
 }
 
 .project-card h3 {
-    font-family: var(--font-sans);
-    /* Reverted to Sans */
-    font-weight: 700;
+    font-family: var(--font-serif);
     font-size: 1.5rem;
-    font-style: normal;
+    font-style: italic;
     margin-bottom: 0.5rem;
     line-height: 1.2;
-    background: var(--gradient);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    /* Gradient Text Effect */
+    background: none;
+    -webkit-text-fill-color: initial;
+    color: var(--ink);
 }
 
 .team-meta {
