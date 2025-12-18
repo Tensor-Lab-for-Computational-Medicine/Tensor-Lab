@@ -416,7 +416,7 @@ a {
     /* Garamond */
     font-style: italic;
     /* Usually goes with Garamond headers here */
-    font-weight: 400;
+    font-weight: 700;
     font-size: 1.75rem;
 }
 
@@ -666,7 +666,7 @@ a {
     line-height: 1.1;
     line-height: 1.1;
     font-style: italic;
-    font-weight: 400;
+    font-weight: 700;
     margin-bottom: 1.5rem;
 }
 
@@ -729,7 +729,7 @@ a {
 .institutional-mark {
     font-family: var(--font-serif);
     font-style: italic;
-    font-weight: 400;
+    font-weight: 500;
     font-size: 1.1rem;
     margin-bottom: 0.5rem;
 }
@@ -774,7 +774,8 @@ a {
     font-size: 4rem;
     line-height: 0.95;
     font-style: italic;
-    font-weight: 400;
+    /* Using real bold now */
+    font-weight: 700;
     margin-bottom: 1rem;
     max-width: 800px;
 }
@@ -925,6 +926,7 @@ summary::marker {
     font-size: 2.5rem;
     line-height: 1;
     font-style: italic;
+    font-weight: 700;
     margin-bottom: 1rem;
 }
 
@@ -1387,7 +1389,7 @@ summary::marker {
     font-family: var(--font-serif);
     font-size: 1.5rem;
     font-style: italic;
-    font-weight: 400;
+    font-weight: 700;
     margin-bottom: 0.5rem;
     line-height: 1.2;
     background: none;
