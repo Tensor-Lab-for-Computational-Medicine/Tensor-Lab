@@ -770,6 +770,7 @@ a {
     font-size: 4rem;
     line-height: 0.95;
     font-style: italic;
+    font-weight: 400;
     margin-bottom: 1rem;
     max-width: 800px;
 }
