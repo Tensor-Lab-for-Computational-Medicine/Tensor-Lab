@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter Director Handbook - Tensor Lab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #080808;
+            --bg-card: #141414;
+            --bg-card-hover: #1a1a1a;
+            --text-primary: #f7f7f7;
+            --text-secondary: #8a8a8a;
+            --border-subtle: #2a2a2a;
+            --accent: #5e6ad2;
+            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navigation */
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .nav-logo {
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .nav-back {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .nav-back:hover {
+            color: var(--text-primary);
+        }
+
+        /* Main Layout */
+        main {
+            flex: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 4rem 2rem;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 4rem;
+        }
+
+        /* Sidebar */
+        aside h2 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .menu-list {
+            list-style: none;
+        }
+
+        .menu-list li {
+            margin-bottom: 0.5rem;
+        }
+
+        .menu-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.95rem;
+            display: block;
+            padding: 0.5rem 0;
+            transition: color 0.2s;
+        }
+
+        .menu-link:hover,
+        .menu-link.active {
+            color: var(--text-primary);
+        }
+
+        /* Content Area */
+        .content-header {
+            margin-bottom: 4rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #fff, #a5a5a5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+        }
+
+        /* Bento Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 2rem;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 200px;
+        }
+
+        .card:hover {
+            border-color: #3f3f3f;
+            background: var(--bg-card-hover);
+            transform: translateY(-2px);
+        }
+
+        .card-icon {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+        }
+
+        .card h3 {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .card p {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .card-link {
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        /* Utilities */
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background: rgba(94, 106, 210, 0.15);
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <a href="index.html" class="nav-logo">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+            Tensor Lab Handbook
+        </a>
+        <a href="index.html" class="nav-back">Exit to Main Site</a>
+    </nav>
+
+    <main>
+        <aside>
+            <h2>Handbook</h2>
+            <ul class="menu-list">
+                <li><a href="#" class="menu-link active">Overview</a></li>
+                <li><a href="#" class="menu-link">Recruiting</a></li>
+                <li><a href="#" class="menu-link">Operations</a></li>
+                <li><a href="#" class="menu-link">Mentorship</a></li>
+                <li><a href="#" class="menu-link">Funding</a></li>
+                <li><a href="#" class="menu-link">Brand Assets</a></li>
+            </ul>
+        </aside>
+
+        <section>
+            <div class="content-header">
+                <span class="status-badge">Private Access</span>
+                <h1>Chapter Director’s Playbook</h1>
+                <p class="subtitle">Everything you need to run a successful Tensor Lab chapter, from selecting your
+                    first cohort to publishing final papers.</p>
+            </div>
+
+            <div class="grid">
+                <!-- Recruiting -->
+                <div class="card">
+                    <div>
+                        <div class="card-icon">👥</div>
+                        <h3>Recruiting & Selection</h3>
+                        <p>Templates for emails, interview rubrics, and selection criteria for both Medical Mentors and
+                            ML Fellows.</p>
+                    </div>
+                </div>
+
+                <!-- Timeline -->
+                <div class="card">
+                    <div>
+                        <div class="card-icon">📅</div>
+                        <h3>The 10-Week Sprint</h3>
+                        <p>Week-by-week guide to managing the summer fellowship, including specific milestones and
+                            deliverables.</p>
+                    </div>
+                </div>
+
+                <!-- Legal -->
+                <div class="card">
+                    <div>
+                        <div class="card-icon">⚖️</div>
+                        <h3>IRB & Data Governance</h3>
+                        <p>Step-by-step instructions for securing IRB approval and handling patient data compliantly.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Workshops -->
+                <div class="card">
+                    <div>
+                        <div class="card-icon">🛠️</div>
+                        <h3>Technical Workshops</h3>
+                        <p>Curriculum for onboarding ML fellows, including workshops on clinical data handling and
+                            privacy.</p>
+                    </div>
+                </div>
+
+                <!-- Systems -->
+                <div class="card">
+                    <div>
+                        <div class="card-icon">🔧</div>
+                        <h3>Operational Systems</h3>
+                        <p>How to set up your chapter's Notion, Discord, and Google Workspace for maximum efficiency.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Finance -->
+                <div class="card">
+                    <div>
+                        <div class="card-icon">💎</div>
+                        <h3>Funding & Grants</h3>
+                        <p>Resources for applying for institutional grants to support student stipends and compute
+                            costs.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+</body>
+
+</html>

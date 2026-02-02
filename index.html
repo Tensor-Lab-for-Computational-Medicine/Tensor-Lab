@@ -236,7 +236,16 @@
             <!-- SECTION 01: OUR TEAM (About/Faculty) -->
             <section id="about" class="journal-section">
                 <div class="section-label">03 // OUR TEAM</div>
-                <h2 class="headline">Leadership Team</h2>
+                <h2 class="headline"><span id="secret-trigger" style="cursor: default;">Leadership</span> Team</h2>
+
+                <script>
+                    document.getElementById('secret-trigger').addEventListener('click', function () {
+                        const password = prompt("Enter access code:");
+                        if (password === "test123") {
+                            window.location.href = "handbook.html";
+                        }
+                    });
+                </script>
 
                 <h3 style="margin-bottom:2rem; text-align:center; font-family:var(--font-serif); font-style:italic;">
                     Founding Directors</h3>
