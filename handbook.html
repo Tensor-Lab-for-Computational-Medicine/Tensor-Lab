@@ -7,523 +7,643 @@
     <title>Chapter Director Handbook - Tensor Lab</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
     <style>
         :root {
-            /* Linear-like Palette */
-            --bg-body: #08090A;
-            --bg-sidebar: #0f1011;
-            --bg-card: #151618;
-            --bg-card-hover: #1e1f21;
+            /* Theme Tokens */
+            --bg-root: #08090A;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --bg-card-hover: rgba(255, 255, 255, 0.06);
 
             --border-subtle: rgba(255, 255, 255, 0.08);
-            --border-hover: rgba(255, 255, 255, 0.15);
+            --border-highlight: rgba(255, 255, 255, 0.15);
 
-            --text-primary: #F2F2F3;
-            --text-secondary: #8A8F98;
+            --text-primary: #EDEDEF;
+            --text-secondary: #909296;
             --text-tertiary: #5D6069;
 
             --accent-primary: #5E6AD2;
-            --accent-glow: rgba(94, 106, 210, 0.2);
-            --accent-green: #378a5e;
-            --accent-green-bg: rgba(55, 138, 94, 0.15);
+            --accent-glow: rgba(94, 106, 210, 0.4);
 
-            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+            --font-display: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+
+            --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* Base Reset */
+        /* Reset & Base */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            -webkit-font-smoothing: antialiased;
+            outline: none;
         }
 
         body {
-            background-color: var(--bg-body);
+            background-color: var(--bg-root);
             color: var(--text-primary);
-            font-family: var(--font-main);
-            line-height: 1.6;
+            font-family: var(--font-display);
             font-size: 15px;
-            display: flex;
+            line-height: 1.6;
             min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+            /* Subtle noise texture */
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
         }
 
         /* Sidebar Navigation */
         .sidebar {
-            width: 260px;
-            background-color: var(--bg-sidebar);
-            border-right: 1px solid var(--border-subtle);
-            padding: 1.5rem;
-            position: fixed;
+            width: 280px;
             height: 100vh;
-            overflow-y: auto;
+            position: fixed;
             top: 0;
             left: 0;
+            padding: 2rem;
             display: flex;
             flex-direction: column;
-            z-index: 100;
+            border-right: 1px solid var(--border-subtle);
+            background: rgba(8, 9, 10, 0.8);
+            backdrop-filter: blur(20px);
+            z-index: 50;
         }
 
-        .logo {
+        .brand {
             font-weight: 600;
+            font-size: 14px;
             color: var(--text-primary);
-            text-decoration: none;
+            margin-bottom: 3rem;
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 2rem;
-            font-size: 14px;
+            text-decoration: none;
             opacity: 0.9;
         }
 
-        .nav-group {
+        .nav-section {
             margin-bottom: 2rem;
         }
 
-        .nav-label {
+        .nav-header {
             font-size: 11px;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.08em;
             color: var(--text-tertiary);
             font-weight: 600;
             margin-bottom: 0.75rem;
             padding-left: 0.75rem;
         }
 
-        .nav-link {
+        .nav-item {
             display: block;
-            padding: 0.4rem 0.75rem;
+            padding: 0.5rem 0.75rem;
             color: var(--text-secondary);
             text-decoration: none;
             border-radius: 6px;
-            transition: all 0.15s ease;
             font-size: 13px;
+            transition: all 0.2s ease;
+            margin-bottom: 2px;
         }
 
-        .nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.04);
+        .nav-item:hover {
+            background: var(--bg-card);
             color: var(--text-primary);
         }
 
-        .nav-link.active {
-            background-color: rgba(255, 255, 255, 0.06);
+        .nav-item.active {
+            background: var(--bg-card-hover);
             color: var(--text-primary);
             font-weight: 500;
         }
 
-        .exit-link {
+        .user-block {
             margin-top: auto;
-            color: var(--text-tertiary);
-            padding: 0.75rem;
             border-top: 1px solid var(--border-subtle);
-            font-size: 12px;
-            text-decoration: none;
-            transition: color 0.2s;
+            padding-top: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .exit-link:hover {
+        .avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF0080, #7928CA);
+        }
+
+        .user-info {
+            font-size: 12px;
             color: var(--text-secondary);
         }
 
-        /* Main Content */
-        .main-content {
-            margin-left: 260px;
-            flex: 1;
-            padding: 4rem 5rem;
-            max-width: 1000px;
+        /* Main Content Area */
+        .content-wrapper {
+            margin-left: 280px;
+            width: calc(100% - 280px);
+            display: flex;
         }
 
-        /* Headers */
+        .main {
+            flex: 1;
+            padding: 5rem 6rem;
+            max-width: 900px;
+        }
+
+        .toc {
+            width: 240px;
+            position: sticky;
+            top: 5rem;
+            height: fit-content;
+            padding-right: 2rem;
+            border-left: 1px solid var(--border-subtle);
+            margin-top: 5rem;
+            display: none;
+            /* Hidden on small screens, visible on large */
+        }
+
+        @media (min-width: 1400px) {
+            .toc {
+                display: block;
+                padding-left: 2rem;
+                border-left: 1px solid var(--border-subtle);
+                border-right: none;
+            }
+
+            .main {
+                max-width: 800px;
+                padding-right: 4rem;
+            }
+        }
+
+        /* Typography & Elements */
         h1 {
-            font-size: 32px;
+            font-size: 36px;
             font-weight: 600;
-            letter-spacing: -0.02em;
-            margin-bottom: 0.5rem;
-            color: var(--text-primary);
+            letter-spacing: -0.03em;
+            margin-bottom: 1rem;
+            background: linear-gradient(180deg, #fff 0%, #a5a5a5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: var(--text-secondary);
+            margin-bottom: 4rem;
+            max-width: 600px;
         }
 
         h2 {
             font-size: 20px;
             font-weight: 500;
+            color: var(--text-primary);
             margin-top: 4rem;
             margin-bottom: 1.5rem;
-            color: var(--text-primary);
-            letter-spacing: -0.01em;
+            padding-bottom: 1rem;
             border-bottom: 1px solid var(--border-subtle);
-            padding-bottom: 0.5rem;
+            letter-spacing: -0.01em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         h3 {
             font-size: 16px;
             font-weight: 600;
+            color: var(--text-primary);
             margin-top: 2.5rem;
             margin-bottom: 1rem;
-            color: var(--text-primary);
-        }
-
-        h4 {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-top: 1.5rem;
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
         }
 
         p {
             color: var(--text-secondary);
-            margin-bottom: 1rem;
-            line-height: 1.6;
+            margin-bottom: 1.25rem;
         }
 
-        .lead {
-            font-size: 18px;
-            color: var(--text-secondary);
-            margin-bottom: 3rem;
-            max-width: 650px;
-            line-height: 1.5;
-        }
-
-        /* Timeline Components */
-        .timeline-section {
-            position: relative;
-            padding-left: 2rem;
-            margin-bottom: 3rem;
-            border-left: 2px solid var(--border-subtle);
-        }
-
-        .timeline-tag {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-primary);
+        /* Status Badge */
+        .badge {
+            display: inline-flex;
+            align-items: center;
             padding: 4px 10px;
+            background: rgba(94, 106, 210, 0.1);
+            border: 1px solid rgba(94, 106, 210, 0.2);
             border-radius: 100px;
-            font-size: 12px;
+            color: #7b86e6;
+            font-size: 11px;
             font-weight: 500;
-            display: inline-block;
-            margin-bottom: 1rem;
-        }
-
-        /* Role Cards */
-        .role-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-top: 1.5rem;
-        }
-
-        .role-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            border-radius: 8px;
-            padding: 1.5rem;
-            transition: all 0.2s ease;
-        }
-
-        .role-card:hover {
-            border-color: var(--border-hover);
-            transform: translateY(-2px);
-        }
-
-        .role-name {
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 0.25rem;
-            font-size: 16px;
-        }
-
-        .role-title {
-            color: var(--accent-primary);
-            font-size: 13px;
-            font-weight: 500;
-            margin-bottom: 1rem;
-            display: block;
-        }
-
-        .role-mission {
-            font-size: 13px;
-            color: var(--text-secondary);
-            line-height: 1.6;
-        }
-
-        /* Lists */
-        ul {
-            list-style: none;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
             margin-bottom: 1.5rem;
         }
 
-        ul li {
+        .badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: #7b86e6;
+            border-radius: 50%;
+            margin-right: 8px;
+            box-shadow: 0 0 8px rgba(94, 106, 210, 0.6);
+        }
+
+        /* Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s var(--ease-smooth);
             position: relative;
-            padding-left: 1.5rem;
-            margin-bottom: 0.75rem;
-            color: var(--text-secondary);
-            font-size: 14px;
+            overflow: hidden;
         }
 
-        ul li::before {
-            content: "•";
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--border-highlight);
+            background: var(--bg-card-hover);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Subtle glare effect on hover */
+        .feature-card::after {
+            content: "";
             position: absolute;
+            top: 0;
             left: 0;
-            color: var(--text-tertiary);
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
         }
 
-        /* Utility */
-        .badge {
-            background: var(--accent-green-bg);
-            color: var(--accent-green);
+        .feature-card:hover::after {
+            opacity: 1;
+        }
+
+        .card-icon {
+            font-size: 20px;
+            margin-bottom: 1rem;
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: #0D0D0D;
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 1.5rem;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            line-height: 1.6;
+            color: #a8a8a8;
+            margin: 1.5rem 0;
+            position: relative;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
             font-size: 11px;
             padding: 4px 8px;
             border-radius: 4px;
-            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--font-display);
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        /* Timeline Graphics */
+        .sprint-timeline {
+            position: relative;
+            padding-left: 24px;
+            border-left: 1px dashed var(--border-subtle);
+            margin: 2rem 0;
+        }
+
+        .sprint-item {
+            margin-bottom: 2.5rem;
+            position: relative;
+        }
+
+        .sprint-marker {
+            position: absolute;
+            left: -29px;
+            top: 4px;
+            width: 9px;
+            height: 9px;
+            background: var(--bg-root);
+            border: 2px solid var(--text-tertiary);
+            border-radius: 50%;
+            transition: border-color 0.2s;
+        }
+
+        .sprint-item:hover .sprint-marker {
+            border-color: var(--accent-primary);
+            background: var(--accent-glow);
+        }
+
+        .sprint-date {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-tertiary);
+            margin-bottom: 4px;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 1rem;
-            display: inline-block;
+        }
+
+        /* Checklist */
+        .check-item {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            align-items: flex-start;
+        }
+
+        .check-box {
+            width: 16px;
+            height: 16px;
+            border: 1px solid var(--border-subtle);
+            border-radius: 4px;
+            flex-shrink: 0;
+            margin-top: 4px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        /* Alert Box */
+        .alert {
+            background: rgba(235, 87, 87, 0.05);
+            border: 1px solid rgba(235, 87, 87, 0.15);
+            color: #ff6b6b;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 13px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin: 2rem 0;
         }
     </style>
 </head>
 
 <body>
 
-    <aside class="sidebar">
-        <a href="index.html" class="logo">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2L2 7L12 12L22 7L12 2Z"></path>
-                <path d="M2 17L12 22L22 17"></path>
-                <path d="M2 12L12 17L22 12"></path>
+    <nav class="sidebar">
+        <a href="index.html" class="brand">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
             </svg>
             Director's Handbook
         </a>
 
-        <div class="nav-group">
-            <div class="nav-label">Timeline</div>
-            <a href="#jan-feb" class="nav-link">Medical Recruitment (Jan-Feb)</a>
-            <a href="#march-dev" class="nav-link">Project Development (Mar)</a>
-            <a href="#ml-recruit" class="nav-link">ML Recruitment (Mar-Apr)</a>
-            <a href="#access" class="nav-link">Access & IRB (Apr-Jun)</a>
+        <div class="nav-section">
+            <div class="nav-header">Governance</div>
+            <a href="#mission" class="nav-item active">Mission & Values</a>
+            <a href="#leadership-roles" class="nav-item">Leadership Structure</a>
+            <a href="#crisis" class="nav-item">Crisis Management</a>
         </div>
 
-        <div class="nav-group">
-            <div class="nav-label">Governance</div>
-            <a href="#national" class="nav-link">National Leadership</a>
-            <a href="#chapter" class="nav-link">Chapter Leadership</a>
+        <div class="nav-section">
+            <div class="nav-header">Operations</div>
+            <a href="#recruiting-timeline" class="nav-item">Recruitment Timeline</a>
+            <a href="#project-dev" class="nav-item">Project Development</a>
+            <a href="#systems" class="nav-item">Systems & Stack</a>
         </div>
 
-        <a href="index.html" class="exit-link">← Return to Tensor Lab</a>
-    </aside>
+        <div class="user-block">
+            <div class="avatar"></div>
+            <div class="user-info">Director Access<br><span style="color:var(--text-tertiary)">Encrypted</span></div>
+        </div>
+    </nav>
 
-    <main class="main-content">
+    <div class="content-wrapper">
+        <main class="main">
+            <div class="badge">Director Clearance Level 1</div>
+            <h1>Operations Manual</h1>
+            <p class="subtitle">The definitive guide to building and running a high-performance Tensor Lab chapter. Read
+                this before doing anything else.</p>
 
-        <section id="intro">
-            <span class="badge">Confidential</span>
-            <h1 style="margin-top:0.5rem;">Operations Manual</h1>
-            <p class="lead">The comprehensive guide to the Tensor Lab operating cadence, from recruitment to
-                publication.</p>
-        </section>
+            <section id="mission">
+                <h2>Mission & Values</h2>
+                <div class="card-grid">
+                    <div class="feature-card">
+                        <div class="card-icon">⚡️</div>
+                        <h3>Bias for Action</h3>
+                        <p style="font-size:13px; margin:0;">We do not write white papers about AI. We build models that
+                            process real patient data. If a project isn't shipping code, it's failing.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="card-icon">🤝</div>
+                        <h3>The Iron Triangle</h3>
+                        <p style="font-size:13px; margin:0;">Success requires three legs: Clinical Insight (Med
+                            Student), Technical Rigor (ML Fellow), and Institutional Validity (Faculty PI).</p>
+                    </div>
+                </div>
+            </section>
 
-        <!-- MEDICAL RECRUITMENT -->
-        <section id="jan-feb">
-            <h2>Medical Student Recruitment</h2>
-            <div class="timeline-tag">January – February</div>
+            <section id="leadership-roles">
+                <h2>Leadership Structure</h2>
+                <p>We are organized like a startup, not a student club.</p>
 
-            <div class="timeline-section">
-                <h3>January</h3>
-                <p>Medical students can apply to be Chapter Directors and/or Med Mentors.</p>
-                <ul>
-                    <li><strong>Chapter Directors (Due Jan 30):</strong> Qualified applicants will be invited for a
-                        brief interview with National Directors to gauge fit.</li>
-                    <li><strong>Med Mentors (Due Feb 28):</strong> Applicants must have a research proposal and PI. If
-                        they don’t, they can indicate if they’d like assistance connecting with one.</li>
-                </ul>
+                <div class="code-block" style="border-left: 3px solid var(--accent-primary);">
+                    <strong style="color: #fff; display:block; margin-bottom:0.5rem;">National Executive: Matt
+                        Allen</strong>
+                    Strategic Vision & Governance. Final tie-breaker on roadmap decisions.
+                </div>
 
-                <h3>February</h3>
-                <p>National Directors will review all Chapter Director applicants and finalize two "Trios" of Chapter
-                    Directors (Executive, Operations, Technical), one trio for each school.</p>
-                <p>Chapter Directors will be onboarded. Their first task is to assist the National Directors with Med
-                    Mentor recruitment and coordination (since they are classmates).</p>
-            </div>
-        </section>
+                <div class="code-block" style="border-left: 3px solid #378a5e;">
+                    <strong style="color: #fff; display:block; margin-bottom:0.5rem;">National Technical: Aaron
+                        Ge</strong>
+                    Infrastructure & Vetting. Manages the GitHub Org and validates technical feasibility of all
+                    projects.
+                </div>
 
-        <!-- PROJECT DEVELOPMENT -->
-        <section id="march-dev">
-            <h2>Project Development</h2>
-            <div class="timeline-tag">March</div>
+                <h3>Chapter Trios (UMD & UCSF)</h3>
+                <div class="card-grid">
+                    <div class="feature-card">
+                        <h3>Strategy (Exec Director)</h3>
+                        <p style="font-size:13px;">The "CEO". Owns institutional relationships and funding. Ensures data
+                            access is secured <em>before</em> summer starts.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Operations (Ops Director)</h3>
+                        <p style="font-size:13px;">The "COO". Owns the application database, interview scheduling, and
+                            weekly standups. Keeps the trains running.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Technical (Tech Director)</h3>
+                        <p style="font-size:13px;">The "CTO". Audits code quality, manages compute resources, and serves
+                            as the technical safety net for fellows.</p>
+                    </div>
+                </div>
+            </section>
 
-            <div class="timeline-section">
-                <h3>Med Mentor Onboarding</h3>
-                <p>Med Mentors will be formally onboarded into the chapter workflow.</p>
-                <ul>
-                    <li><strong>With Proposal/PI:</strong> If the Med Mentor already has a research proposal and PI,
-                        they join a training meeting hosted by Chapter Directors on how to onboard that PI as a Faculty
-                        Mentor.</li>
-                    <li><strong>Without PI:</strong> The Chapter Directors will assist the Med Mentor in finding one.
-                        National Directors have access to a PI network and will communicate these opportunities to
-                        Chapter Directors.</li>
-                </ul>
+            <section id="recruiting-timeline">
+                <h2>Recruitment Timeline</h2>
+                <div class="sprint-timeline">
+                    <div class="sprint-item">
+                        <div class="sprint-marker"></div>
+                        <div class="sprint-date">Jan 01 - Jan 30</div>
+                        <strong style="color:var(--text-primary)">Phase 1: Chapter Leadership</strong>
+                        <p style="font-size:13px;">Submit applications for Chapter Director roles. Interviews with
+                            National Directors to gauge cultural fit.</p>
+                    </div>
 
-                <h3>Backup Plans</h3>
-                <p>If a Med Mentor’s primary project has been accepted, their team must also propose an
-                    <strong>open-access, IRB-exempt backup project</strong> in case the primary data source hits
-                    roadblocks.</p>
-            </div>
-        </section>
+                    <div class="sprint-item">
+                        <div class="sprint-marker"></div>
+                        <div class="sprint-date">Feb 01 - Feb 28</div>
+                        <strong style="color:var(--text-primary)">Phase 2: Medical Mentors</strong>
+                        <p style="font-size:13px;">Recruit medical students with research questions. Note: They usually
+                            don't have PIs yet. That's your job to help them find one.</p>
+                    </div>
 
-        <!-- ML RECRUITMENT -->
-        <section id="ml-recruit">
-            <h2>ML Fellow Recruitment</h2>
-            <div class="timeline-tag">March – April</div>
+                    <div class="sprint-item">
+                        <div class="sprint-marker"></div>
+                        <div class="sprint-date">Mar 01 - Apr 06</div>
+                        <strong style="color:var(--text-primary)">Phase 3: The Engineers</strong>
+                        <p style="font-size:13px;">Massive push on CS listservs. 400+ applications expected. Interview
+                            specifically for "Builders" who have shipped side projects.</p>
+                    </div>
+                </div>
+            </section>
 
-            <div class="timeline-section">
-                <h3>March Timeline</h3>
-                <ul>
-                    <li><strong>March 1:</strong> National Directors use major university listservs to recruit ML
-                        Fellows.</li>
-                    <li><strong>March 6:</strong> Approved projects are posted on the website for ML Fellow applicants
-                        to review.</li>
-                    <li><strong>Applications Open:</strong> Potential ML Fellows can indicate the specific Teams they
-                        want to work with from the project list.</li>
-                    <li><strong>Rolling Selection:</strong> Chapter Directors will select top candidates for each team’s
-                        Interview Pool on a rolling basis.</li>
-                    <li><strong>March 24 – April 10:</strong> ML Fellow applicants interviews take place.</li>
-                </ul>
+            <section id="project-dev">
+                <h2>Project Development</h2>
+                <p>Most projects fail because of data access. Follow this protocol to survive.</p>
 
-                <h3>April Decision</h3>
-                <p><strong>April 6:</strong> ML Fellow application closes. Teams submit their preferences for their ML
-                    Fellows, and Chapter Directors make the final decisions on assignments.</p>
-            </div>
-        </section>
-
-        <!-- ACCESS -->
-        <section id="access">
-            <h2>Institutional Access</h2>
-            <div class="timeline-tag">April – June</div>
-            <p>This is the "Valley of Death" for projects. Teams must clear these hurdles before summer starts.</p>
-            <ul>
-                <li>Teams will submit IRBs.</li>
-                <li>Secure institutional access (badges, VPNs).</li>
-                <li>Verify access to datasets is live and working.</li>
-            </ul>
-        </section>
-
-        <!-- NATIONAL LEADERSHIP -->
-        <section id="national">
-            <h2>National Leadership</h2>
-            <p>The National Directors function as the primary governing body, providing the resources, infrastructure,
-                and strategic roadmap that enables individual chapters to operate.</p>
-
-            <div class="role-grid">
-                <!-- Matt -->
-                <div class="role-card">
-                    <div class="role-name">Matt Allen</div>
-                    <span class="role-title">National Executive Director</span>
-                    <div class="role-mission">
-                        <p><strong>Strategic Vision:</strong> Articulates the vision and strategic direction for Tensor
-                            Lab and evolves the organizational roadmap with the input of other Directors. Decisions can
-                            be overridden by majority vote to ensure balance.</p>
-                        <p><strong>Governance:</strong> Chairs Director meetings and ensures all National Directors are
-                            heard. Provides direct mentorship for Chapter Executive Directors.</p>
+                <h3>The Backup Rule</h3>
+                <div class="alert">
+                    <span style="font-size:18px;">⚠️</span>
+                    <div>
+                        <strong>Critical Protocol:</strong> Every team MUST have an open-access backup project (e.g.
+                        MIMIC-IV, Kaggle) ready to go. If hospital IT delays data access by week 3, the team switches to
+                        the backup immediately.
                     </div>
                 </div>
 
-                <!-- Aaron -->
-                <div class="role-card">
-                    <div class="role-name">Aaron Ge</div>
-                    <span class="role-title">National Technical Director</span>
-                    <div class="role-mission">
-                        <p><strong>Infrastructure:</strong> Manages national-scale assets (compute credits, cloud
-                            architecture, GitHub organization).</p>
-                        <p><strong>Advisory:</strong> Directly advises Chapter Technical Directors on vetting of
-                            projects and data access.</p>
-                    </div>
+                <h3>Cold Email Template for PIs</h3>
+                <p>Use this when a Med Mentor has a great idea but no Faculty Mentor.</p>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                    Subject: Medical Student/ML Collaboration proposal
+
+                    Dear Dr. [Name],
+
+                    I am the Director of Tensor Lab at [School]. We have a team of top-tier ML engineers and a medical
+                    student ([Name]) who are interested in your work on [Topic].
+
+                    We provide the technical labor and project management. We are asking if you would be willing to
+                    provide:
+                    1. Access to [Specific Dataset]
+                    2. Guidance on clinical relevance
+
+                    We handle the coding, stats, and drafting. Low lift for you, high impact for the lab.
+
+                    Best,
+                    [Your Name]
+                </div>
+            </section>
+
+            <section id="crisis">
+                <h2>Crisis Management</h2>
+                <p>Things will go wrong. Here is how you handle it.</p>
+
+                <div class="feature-card" style="margin-bottom:1rem;">
+                    <h3>Scenario: The "Ghost" Fellow</h3>
+                    <p style="font-size:13px;"><strong>Symptom:</strong> ML Fellow misses 2 standups in a row.<br>
+                        <strong>Action:</strong>
+                        1. Direct DM check-in ("Is everything okay?").<br>
+                        2. If no response in 24h, email personal address.<br>
+                        3. If no response in 48h, cut them. Replace with waitlist candidate immediately. Do not drag it
+                        out.
+                    </p>
                 </div>
 
-                <!-- Trips -->
-                <div class="role-card">
-                    <div class="role-name">Chy, Gavin, Angie</div>
-                    <span class="role-title">National Operations Directors</span>
-                    <div class="role-mission">
-                        <p>Directly support Chapter Operations Directors.</p>
-                        <ul style="margin-top:0.5rem; font-size:13px;">
-                            <li><strong>Chy:</strong> Designs the Fellow "journey"; manages national timeline and
-                                curriculum.</li>
-                            <li><strong>Angie:</strong> Leads legal transition to 501(c)(3); oversees operational
-                                handoff to UMSOM.</li>
-                            <li><strong>Gavin:</strong> Translates executive goals into actionable tasks; oversees
-                                operational handoff to UCSF.</li>
-                        </ul>
-                    </div>
+                <div class="feature-card">
+                    <h3>Scenario: The "Data Wall"</h3>
+                    <p style="font-size:13px;"><strong>Symptom:</strong> IRB is stuck in review at Week 2.<br>
+                        <strong>Action:</strong> Trigger the Backup Rule. Team starts working on public data proxy
+                        immediately while waiting. Do not let them sit idle.
+                    </p>
                 </div>
-            </div>
-        </section>
+            </section>
+        </main>
 
-        <!-- CHAPTER LEADERSHIP -->
-        <section id="chapter">
-            <h2>Chapter Leadership</h2>
-            <p>Each school (UMSOM & UCSF) is led by a "Trio" responsible for talent recruitment, local execution of the
-                10-week fellowship, and institutional compliance.</p>
-
-            <div class="role-grid">
-                <!-- EXEC -->
-                <div class="role-card">
-                    <span class="role-title">Strategy & Relations</span>
-                    <div class="role-name">Chapter Executive Director</div>
-                    <p style="font-size:12px; color:var(--text-tertiary); margin-bottom:1rem;">1 at UMD, 1 at UCSF</p>
-                    <div class="role-mission">
-                        Acts as the "Chapter Head." Ensures the lab has institutional support and personnel. Ensures all
-                        projects have IRB approval and all fellows have data access prior to summer start.
-                    </div>
-                </div>
-
-                <!-- TECH -->
-                <div class="role-card">
-                    <span class="role-title">Quality Assurance & Rigor</span>
-                    <div class="role-name">Chapter Technical Director</div>
-                    <p style="font-size:12px; color:var(--text-tertiary); margin-bottom:1rem;">1 at UMD, 1 at UCSF</p>
-                    <div class="role-mission">
-                        Audits all project proposals for technical feasibility. Evaluates ML Fellow technical
-                        competency. Ensures local teams are equipped with necessary data and computational resources.
-                    </div>
-                </div>
-
-                <!-- OPS -->
-                <div class="role-card">
-                    <span class="role-title">Logistics & Systems</span>
-                    <div class="role-name">Chapter Operations Director</div>
-                    <p style="font-size:12px; color:var(--text-tertiary); margin-bottom:1rem;">1-2 at UMD, 1 at UCSF</p>
-                    <div class="role-mission">
-                        Owns the local application database and matching workflow. Manages the transition from
-                        acceptance to onboarding. Facilitates weekly cohort meetings to ensure milestone progression.
-                    </div>
-                </div>
-            </div>
-        </section>
-
-    </main>
+        <div class="toc">
+            <div class="nav-header">On This Page</div>
+            <a href="#mission" class="nav-item">Mission & Values</a>
+            <a href="#leadership-roles" class="nav-item">Leadership Structure</a>
+            <a href="#recruiting-timeline" class="nav-item">Recruitment Timeline</a>
+            <a href="#project-dev" class="nav-item">Project Development</a>
+            <a href="#crisis" class="nav-item">Crisis Management</a>
+        </div>
+    </div>
 
     <script>
-        // Active Link Highlighting
-        const sections = document.querySelectorAll("section");
-        const navLinks = document.querySelectorAll(".nav-link");
+        // Smooth Scroll & Active State
+        const links = document.querySelectorAll('.nav-item, .toc .nav-item');
 
-        window.addEventListener("scroll", () => {
-            let current = "";
-            sections.forEach((section) => {
-                const sectionTop = section.offsetTop;
-                if (pageYOffset >= sectionTop - 150) {
-                    current = section.getAttribute("id");
-                }
-            });
-
-            navLinks.forEach((link) => {
-                link.classList.remove("active");
-                if (link.getAttribute("href").includes(current)) {
-                    link.classList.add("active");
-                }
+        links.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = link.getAttribute('href');
+                document.querySelector(targetId).scrollIntoView({
+                    behavior: 'smooth'
+                });
             });
         });
+
+        // Copy Function
+        function copyToClipboard(btn) {
+            const text = btn.parentNode.innerText.replace('Copy\n', '');
+            navigator.clipboard.writeText(text);
+            const original = btn.innerText;
+            btn.innerText = 'Copied';
+            setTimeout(() => btn.innerText = original, 2000);
+        }
+
+        // Intersection Observer for TOC
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    document.querySelectorAll('.toc .nav-item').forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('href') === '#' + id) {
+                            link.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }, { threshold: 0.5 });
+
+        document.querySelectorAll('section').forEach(section => observer.observe(section));
     </script>
 </body>
 
