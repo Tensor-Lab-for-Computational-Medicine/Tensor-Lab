@@ -120,16 +120,24 @@
 
 <body class="cohort-page">
 
-    <nav class="surge-nav surge-nav--refined">
-        <a href="index.html" class="surge-nav-brand" aria-label="Tensor Lab home">
-            <img src="logo2.png" alt="The Tensor Lab" class="surge-nav-logo">
+    <nav class="surge-nav" style="justify-content: space-between; padding: 2rem;">
+        <a href="index.html" aria-label="Tensor Lab home">
+            <img src="logo2.png" alt="The Tensor Lab" style="height: 64px; width: auto;">
         </a>
-        <div class="surge-nav-links">
-            <a href="index.html" class="surge-nav-link">Home</a>
-            <a href="team.html" class="surge-nav-link">Our Team</a>
-            <a href="projects-2026.html" class="surge-nav-link">Project Catalogue</a>
-            <a href="cohort-2025.html" class="surge-nav-link">2025 Cohort</a>
-            <a href="projects-2026.html#apply" class="surge-nav-cta">Apply Now</a>
+        <div class="dropdown">
+            <button class="dropbtn" aria-label="Open menu"
+                style="color: white; border: none; padding: 0.5rem 0; background: transparent; cursor: pointer; font-family: var(--font-sans); letter-spacing: 0.1em; font-size: 0.9rem;">MENU
+                +</button>
+            <div class="dropdown-content">
+                <a href="index.html">Home</a>
+                <a href="index.html#approach">How It Works</a>
+                <a href="index.html#timeline">Timeline</a>
+                <a href="team.html">Our Team</a>
+                <a href="projects-2026.html">Project Catalogue</a>
+                <a href="cohort-2025.html">2025 Cohort</a>
+                <a href="index.html#faq">FAQ</a>
+                <a href="projects-2026.html#apply" style="color: var(--alert);">Apply Now</a>
+            </div>
         </div>
     </nav>
 
