@@ -2378,6 +2378,39 @@ summary::marker {
     }
 }
 
+/* --- Deliverables list (What you leave with) --- */
+.deliverables-list {
+    list-style: none;
+    padding: 0;
+    margin: 1.5rem 0 0 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem 2rem;
+}
+
+.deliverables-list li {
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: var(--ink);
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.deliverables-list li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--alert);
+    font-weight: 700;
+}
+
+.deliverables-list li strong {
+    color: var(--ink-dark, var(--ink));
+    font-weight: 600;
+}
+
 /* --- 2025 past projects grid (compact editorial) --- */
 .past-projects-grid {
     display: grid;
