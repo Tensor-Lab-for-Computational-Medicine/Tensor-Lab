@@ -21,7 +21,7 @@
 
 /** Headers for the tabs this code owns end to end. */
 var OWNED_TABS = {
-  control: ['project_id', 'status', 'filled_at', 'selected_applicant'],
+  control: ['project_id', 'label', 'status', 'filled_at', 'selected_applicant'],
   redirect_log: ['timestamp', 'applicant_email', 'project_removed', 'project_added'],
   error_log: ['timestamp', 'function_name', 'message', 'stack']
 };
@@ -98,7 +98,7 @@ function _ensureReselectionsTab(ss) {
 
 /**
  * Seed the control tab with one row per project_id from projects_2026.json.
- * Preserves existing status values. Inputs: none. Output: void.
+ * Preserves existing status and label values. Inputs: none. Output: void.
  */
 function seedControlFromProjects() {
   var projects = _fetchProjects();
@@ -114,12 +114,71 @@ function seedControlFromProjects() {
     if (!existing[p.project_id]) {
       control.appendRow(_rowForHeaders(headers, {
         project_id: p.project_id,
+        label: '',
         status: 'open',
         filled_at: '',
         selected_applicant: ''
       }));
     }
   });
+}
+
+/**
+ * Copy the current dropdown options from the application form into the
+ * `label` column of the control sheet, matched positionally.
+ *
+ * Precondition: the form's three ranked choice dropdowns list projects in
+ * the same order as `projects_2026.json`. `seedControlFromProjects` maintains
+ * that order. Run this once after the form is built, and again any time you
+ * reorder or rename the dropdown options.
+ *
+ * After this runs, `_extractProjectId` can map human readable dropdown values
+ * like "LLM Driven Patient Simulation (Kaiser, Dr. McLachlan)" back to the
+ * canonical `llm-ed-triage-simulation` id.
+ */
+function captureFormLabels() {
+  var props = PropertiesService.getScriptProperties();
+  var formId = props.getProperty('APPLICATION_FORM_ID');
+  if (!formId) throw new Error('Set APPLICATION_FORM_ID script property first.');
+
+  var form = FormApp.getFormById(formId);
+  var items = form.getItems();
+  var choiceAliases = FIELD_ALIASES.choice_1 || ['choice_1'];
+  var firstChoice = null;
+  for (var i = 0; i < items.length && !firstChoice; i++) {
+    if (choiceAliases.indexOf(items[i].getTitle()) === -1) continue;
+    var t = items[i].getType();
+    if (t === FormApp.ItemType.LIST) firstChoice = items[i].asListItem();
+    else if (t === FormApp.ItemType.MULTIPLE_CHOICE) firstChoice = items[i].asMultipleChoiceItem();
+  }
+  if (!firstChoice) throw new Error('Could not find the First choice project dropdown on the form.');
+
+  var labels = firstChoice.getChoices().map(function (c) { return c.getValue(); });
+
+  var control = _getSheet(SHEET_CONTROL);
+  var headers = control.getRange(1, 1, 1, control.getLastColumn()).getValues()[0];
+  var idCol = headers.indexOf('project_id');
+  var labelCol = headers.indexOf('label');
+  if (idCol < 0 || labelCol < 0) {
+    throw new Error('control sheet is missing project_id or label. Rerun initialSetup.');
+  }
+  var lastRow = control.getLastRow();
+  if (lastRow < 2) throw new Error('control sheet has no project rows. Run seedControlFromProjects first.');
+
+  var projectCount = lastRow - 1;
+  if (labels.length !== projectCount) {
+    throw new Error(
+      'Form has ' + labels.length + ' dropdown options but control sheet has ' + projectCount + ' projects. ' +
+      'Ensure the two are one to one before rerunning captureFormLabels.'
+    );
+  }
+
+  var range = control.getRange(2, labelCol + 1, projectCount, 1);
+  var values = labels.map(function (l) { return [l]; });
+  range.setValues(values);
+
+  CacheService.getScriptCache().remove('project_id_lookup_v1');
+  CacheService.getScriptCache().remove(COUNTS_CACHE_KEY);
 }
 
 /**

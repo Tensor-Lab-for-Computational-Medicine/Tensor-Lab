@@ -163,15 +163,66 @@ function _col(headers, logical) {
 }
 
 /**
- * Choice cells come from a Google Form dropdown whose values are formatted as
- * "project_id :: Title". We only want the id half for counting. Accept plain
- * project_id too for robustness.
+ * Resolve a cell value to a canonical project_id.
+ *
+ * Three strategies, tried in order:
+ *   1. If the cell contains `id :: Title`, return the id half. This matches the
+ *      format that syncFormChoices writes.
+ *   2. If the raw value matches a known project_id in the control sheet,
+ *      return it as is. Covers cases where the form dropdown values are the
+ *      project_id slugs directly.
+ *   3. Reverse lookup against the `label` column in the control sheet.
+ *      Covers cases where the form shows human readable labels set manually,
+ *      for example "LLM Driven Patient Simulation (Kaiser, Dr. McLachlan)".
+ *
+ * Returns empty string when nothing matches.
  */
 function _extractProjectId(cellValue) {
   var raw = String(cellValue || '').trim();
   if (!raw) return '';
   var sep = raw.indexOf('::');
-  return sep === -1 ? raw : raw.substring(0, sep).trim();
+  if (sep !== -1) return raw.substring(0, sep).trim();
+  var table = _projectIdLookupTable();
+  if (table.ids[raw]) return raw;
+  var key = raw.toLowerCase();
+  if (table.labels[key]) return table.labels[key];
+  return raw;
+}
+
+/**
+ * Build and cache a lookup of known project_ids and their labels, read from
+ * the control sheet. Cached in CacheService for 5 minutes to avoid a sheet
+ * read on every submission.
+ *
+ * Shape: { ids: { project_id: true, ... }, labels: { label_lowercase: project_id, ... } }
+ */
+function _projectIdLookupTable() {
+  var cache = CacheService.getScriptCache();
+  var cached = cache.get('project_id_lookup_v1');
+  if (cached) return JSON.parse(cached);
+
+  var out = { ids: {}, labels: {} };
+  var sheet = _getSheet(SHEET_CONTROL);
+  if (!sheet || sheet.getLastRow() < 2) return out;
+
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var idCol = headers.indexOf('project_id');
+  var labelCol = headers.indexOf('label');
+  if (idCol < 0) return out;
+
+  var rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+  rows.forEach(function (r) {
+    var id = String(r[idCol] || '').trim();
+    if (!id) return;
+    out.ids[id] = true;
+    if (labelCol >= 0) {
+      var label = String(r[labelCol] || '').trim();
+      if (label) out.labels[label.toLowerCase()] = id;
+    }
+  });
+
+  cache.put('project_id_lookup_v1', JSON.stringify(out), 300);
+  return out;
 }
 
 /** Fetch a named sheet from the configured spreadsheet. Returns null if missing. */
