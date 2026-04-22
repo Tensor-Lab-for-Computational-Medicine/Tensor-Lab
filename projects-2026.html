@@ -82,8 +82,7 @@
                         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
                     <input type="search" id="catalog-search-input"
-                        placeholder="Search by keyword, problem, dataset, or skill"
-                        aria-label="Search projects">
+                        placeholder="Search by keyword, problem, dataset, or skill" aria-label="Search projects">
                 </div>
 
                 <div class="catalog-filter-groups">
@@ -118,7 +117,8 @@
 
             <!-- Compact card. Full detail opens in a slide-in drawer modal. -->
             <template id="project-card-template">
-                <article class="project-card-2026 pc2-compact" data-specialty="" data-institution="" data-availability="open">
+                <article class="project-card-2026 pc2-compact" data-specialty="" data-institution=""
+                    data-availability="open">
                     <header class="pc2-compact-head">
                         <div class="pc2-tags">
                             <span class="pc2-tag pc2-specialty"></span>
@@ -135,8 +135,14 @@
                     <p class="pc2-clinical-preview"></p>
 
                     <dl class="pc2-compact-meta">
-                        <div><dt>Faculty PI</dt><dd class="pc2-pi"></dd></div>
-                        <div><dt>Medical Student Lead</dt><dd class="pc2-mentor"></dd></div>
+                        <div>
+                            <dt>Faculty PI</dt>
+                            <dd class="pc2-pi"></dd>
+                        </div>
+                        <div>
+                            <dt>Medical Student Lead</dt>
+                            <dd class="pc2-mentor"></dd>
+                        </div>
                     </dl>
 
                     <button type="button" class="pc2-expand-btn" aria-haspopup="dialog" aria-expanded="false">
@@ -152,8 +158,8 @@
         </section>
 
         <!-- Slide-in drawer modal for full project details. -->
-        <div id="project-modal" class="project-modal" hidden aria-hidden="true" role="dialog"
-            aria-modal="true" aria-labelledby="project-modal-title">
+        <div id="project-modal" class="project-modal" hidden aria-hidden="true" role="dialog" aria-modal="true"
+            aria-labelledby="project-modal-title">
             <div class="project-modal-backdrop" data-modal-close></div>
             <div class="project-modal-panel" role="document" tabindex="-1">
                 <header class="project-modal-head">
@@ -174,8 +180,14 @@
                 <h2 id="project-modal-title" class="pm-title"></h2>
 
                 <dl class="pm-meta">
-                    <div><dt>Faculty PI</dt><dd class="pm-pi"></dd></div>
-                    <div><dt>Medical Student Lead</dt><dd class="pm-mentor"></dd></div>
+                    <div>
+                        <dt>Faculty PI</dt>
+                        <dd class="pm-pi"></dd>
+                    </div>
+                    <div>
+                        <dt>Medical Student Lead</dt>
+                        <dd class="pm-mentor"></dd>
+                    </div>
                 </dl>
 
                 <div class="pm-body">
@@ -219,19 +231,18 @@
         <section id="apply" class="catalog-section apply-section">
             <div class="apply-card">
                 <div class="apply-card-copy">
-                    <span class="apply-card-kicker">Apply · Summer 2026</span>
-                    <h2>Submit your application.</h2>
+                    <span class="apply-card-kicker">Summer 2026 Machine Learning Medical Fellowship</span>
+                    <h2>Become a Tensor ML Fellow.</h2>
                     <p>
-                        One application covers all three ranked choices. Plan for about thirty minutes.
-                        You will need a resume or CV, one code sample link, and a few short written
-                        answers. Selected fellows commit fifteen to twenty hours per week from June 16
-                        through August 25, 2026.
+                        To join our team, please submit an application via our Google Forms link. The application will
+                        ask you to rank the three projects you are most interested in. Interviews for projects are sent
+                        out on a rolling basis. When projects are filling, we give you the opportunity to switch your
+                        top choices.
                     </p>
-                    <p style="font-weight: 600; margin-bottom: 0.5rem; color: var(--ink);">What we are looking for:</p>
                     <ul class="apply-card-checklist">
-                        <li><strong>Technical Depth:</strong> A proven track record of building innovative things.</li>
-                        <li><strong>Curiosity:</strong> A genuine desire to solve complex problems.</li>
-                        <li><strong>High Agency:</strong> The ability to lead independent research.</li>
+                        <li>Pick three projects and rank them</li>
+                        <li>Attach resume or CV, link one representative code sample</li>
+                        <li>Answer four short prompts, about 200 words each</li>
                     </ul>
                 </div>
                 <div class="apply-card-actions">
