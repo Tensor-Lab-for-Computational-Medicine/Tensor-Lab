@@ -14,323 +14,282 @@
         rel="stylesheet">
     <link rel="stylesheet" href="styles.css?v=2026-4">
     <style>
-        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-           TEAM PAGE — EDITORIAL LAYOUT
-           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-        body.tp { background: #fafaf8; color: #18181b; }
+        body.t-page {
+            background: #f7f7f5;
+            color: #1a1a1a;
+            font-family: 'Inter', sans-serif;
+        }
 
-        /* ── Dark Hero ── */
-        .tp-hero {
+        /* ── Hero ── */
+        .t-hero {
             position: relative;
-            padding: 11rem 2rem 7rem;
+            padding: 10rem 2rem 5rem;
             text-align: center;
-            background: #0a0a0a;
+            background: #0c0c0c;
             overflow: hidden;
         }
-        .tp-hero::before {
+        .t-hero::before {
             content: '';
             position: absolute;
-            top: -30%;
+            top: -20%;
             left: 50%;
             transform: translateX(-50%);
-            width: 900px;
-            height: 900px;
-            background: radial-gradient(circle, rgba(220,38,38,0.1) 0%, transparent 65%);
+            width: 700px;
+            height: 700px;
+            background: radial-gradient(circle, rgba(200,30,40,0.07) 0%, transparent 65%);
             pointer-events: none;
         }
-        .tp-hero-kicker {
-            font-family: var(--font-sans);
-            font-size: 0.65rem;
-            font-weight: 700;
+        .t-hero-label {
+            font-size: 0.7rem;
+            font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.25em;
+            letter-spacing: 0.2em;
             color: #dc2626;
-            margin-bottom: 2rem;
-            display: block;
-        }
-        .tp-hero h1 {
-            font-family: var(--font-serif);
-            font-size: clamp(3rem, 6vw, 5.5rem);
-            font-weight: 700;
-            font-style: italic;
-            line-height: 1;
-            color: white;
             margin-bottom: 1.5rem;
         }
-        .tp-hero p {
-            font-family: var(--font-sans);
-            font-size: 1rem;
+        .t-hero h1 {
+            font-family: 'EB Garamond', serif;
+            font-size: clamp(2.2rem, 4.5vw, 3.8rem);
+            font-weight: 500;
+            font-style: italic;
+            line-height: 1.15;
+            color: #fff;
+            margin-bottom: 1.25rem;
+        }
+        .t-hero p {
+            font-size: 0.95rem;
             color: rgba(255,255,255,0.4);
-            max-width: 500px;
+            max-width: 480px;
             margin: 0 auto;
-            line-height: 1.7;
+            line-height: 1.65;
         }
 
-        /* ── National Directors — Magazine Strip ── */
-        .tp-directors {
-            max-width: 1100px;
+        /* ── Shared Section Styles ── */
+        .t-section {
+            max-width: 960px;
             margin: 0 auto;
-            padding: 5rem 2rem 4rem;
+            padding: 3.5rem 2rem;
         }
-        .tp-kicker {
-            font-family: var(--font-sans);
+        .t-section + .t-section {
+            border-top: 1px solid #e5e5e3;
+        }
+        .t-label {
             font-size: 0.65rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.15em;
+            letter-spacing: 0.14em;
             color: #dc2626;
-            margin-bottom: 0.75rem;
-        }
-        .tp-h2 {
-            font-family: var(--font-serif);
-            font-size: 2.5rem;
-            font-weight: 700;
-            font-style: italic;
-            line-height: 1.1;
             margin-bottom: 0.5rem;
         }
-        .tp-sub {
-            font-family: var(--font-sans);
-            font-size: 0.9rem;
-            color: #71717a;
+        .t-heading {
+            font-family: 'EB Garamond', serif;
+            font-size: 1.75rem;
+            font-weight: 500;
+            font-style: italic;
+            line-height: 1.2;
+            color: #1a1a1a;
+            margin-bottom: 0.4rem;
+        }
+        .t-desc {
+            font-size: 0.875rem;
+            color: #737373;
             max-width: 520px;
             line-height: 1.6;
-            margin-bottom: 3rem;
+            margin-bottom: 2.5rem;
         }
 
-        /* Horizontal cards with big photos */
-        .dir-strip {
-            display: flex;
+        /* ── National Directors ── */
+        .nd-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
             gap: 1.5rem;
         }
-        .dir-card {
-            flex: 1;
-            position: relative;
-            border-radius: 16px;
+        .nd-card {
+            background: #fff;
+            border: 1px solid #e8e8e6;
+            border-radius: 10px;
             overflow: hidden;
-            background: white;
-            border: 1px solid rgba(0,0,0,0.06);
-            transition: transform 0.35s cubic-bezier(.22,1,.36,1), box-shadow 0.35s;
+            transition: box-shadow 0.3s, transform 0.3s;
         }
-        .dir-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+        .nd-card:hover {
+            box-shadow: 0 12px 32px rgba(0,0,0,0.06);
+            transform: translateY(-3px);
         }
-        .dir-photo {
+        .nd-photo {
             width: 100%;
-            aspect-ratio: 1;
+            aspect-ratio: 4/3;
             object-fit: cover;
             display: block;
-            filter: grayscale(15%);
-            transition: filter 0.4s;
         }
-        .dir-card:hover .dir-photo {
-            filter: grayscale(0%);
+        .nd-body {
+            padding: 1.1rem 1.25rem 1.25rem;
         }
-        .dir-info {
-            padding: 1.25rem 1.5rem 1.5rem;
-        }
-        .dir-name {
-            font-family: var(--font-serif);
-            font-size: 1.4rem;
-            font-weight: 600;
+        .nd-name {
+            font-family: 'EB Garamond', serif;
+            font-size: 1.15rem;
+            font-weight: 500;
             font-style: italic;
-            margin-bottom: 0.2rem;
+            color: #1a1a1a;
+            margin-bottom: 0.15rem;
         }
-        .dir-title {
-            font-family: var(--font-sans);
+        .nd-title {
             font-size: 0.6rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.08em;
             color: #dc2626;
-            margin-bottom: 0.4rem;
+            margin-bottom: 0.3rem;
         }
-        .dir-school {
-            font-family: var(--font-sans);
-            font-size: 0.8rem;
-            color: #a1a1aa;
+        .nd-school {
+            font-size: 0.78rem;
+            color: #999;
         }
 
-        /* ── Chapter Directors — Side-by-side Panels ── */
-        .tp-chapters {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 4rem 2rem 4rem;
-            border-top: 1px solid rgba(0,0,0,0.06);
-        }
-        .ch-duo {
+        /* ── Chapters ── */
+        .ch-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
+            gap: 1.25rem;
         }
-        .ch-box {
-            border-radius: 16px;
+        .ch-card {
+            background: #fff;
+            border: 1px solid #e8e8e6;
+            border-radius: 10px;
             overflow: hidden;
-            border: 1px solid rgba(0,0,0,0.06);
         }
-        .ch-header {
+        .ch-head {
+            padding: 0.9rem 1.25rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 1.25rem 1.5rem;
         }
-        .ch-header--ucsf { background: linear-gradient(135deg, #1b365d, #2a5494); color: white; }
-        .ch-header--umsom { background: linear-gradient(135deg, #8b1a2b, #c8102e); color: white; }
-        .ch-header-name {
-            font-family: var(--font-serif);
-            font-size: 1.3rem;
-            font-weight: 600;
+        .ch-head--ucsf { background: #102a4a; color: #fff; }
+        .ch-head--umsom { background: #7a1525; color: #fff; }
+        .ch-head-name {
+            font-family: 'EB Garamond', serif;
+            font-size: 1rem;
+            font-weight: 500;
             font-style: italic;
         }
-        .ch-header-badge {
-            font-family: var(--font-sans);
+        .ch-head-count {
             font-size: 0.55rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.08em;
-            opacity: 0.7;
+            opacity: 0.65;
         }
-        .ch-list {
-            background: white;
-            padding: 0.5rem 0;
+        .ch-people {
+            padding: 0;
         }
-        .ch-person {
+        .ch-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0.85rem 1.5rem;
-            border-bottom: 1px solid rgba(0,0,0,0.04);
-            transition: background 0.2s;
+            padding: 0.7rem 1.25rem;
+            border-bottom: 1px solid #f2f2f0;
+            font-size: 0.875rem;
         }
-        .ch-person:last-child { border-bottom: none; }
-        .ch-person:hover { background: rgba(0,0,0,0.015); }
-        .ch-person-name {
-            font-family: var(--font-serif);
-            font-size: 1.05rem;
+        .ch-row:last-child { border-bottom: none; }
+        .ch-row-name {
             font-weight: 500;
-            font-style: italic;
+            color: #1a1a1a;
         }
-        .ch-person-role {
-            font-family: var(--font-sans);
-            font-size: 0.6rem;
-            font-weight: 700;
+        .ch-row-role {
+            font-size: 0.65rem;
+            font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: #a1a1aa;
+            letter-spacing: 0.05em;
+            color: #999;
         }
 
-        /* ── Faculty — Two-column list with institution accents ── */
-        .tp-faculty {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 4rem 2rem 5rem;
-            border-top: 1px solid rgba(0,0,0,0.06);
-        }
-        .fac-cols {
+        /* ── Faculty ── */
+        .fac-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
+            gap: 1.25rem;
         }
         .fac-col {
-            border-radius: 16px;
+            background: #fff;
+            border: 1px solid #e8e8e6;
+            border-radius: 10px;
             overflow: hidden;
-            border: 1px solid rgba(0,0,0,0.06);
-            background: white;
         }
-        .fac-col-header {
-            padding: 1rem 1.5rem;
-            font-family: var(--font-sans);
+        .fac-col-head {
+            padding: 0.75rem 1.25rem;
             font-size: 0.6rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.15em;
-            border-bottom: 1px solid rgba(0,0,0,0.06);
+            letter-spacing: 0.12em;
+            border-bottom: 1px solid #f0f0ee;
         }
-        .fac-col-header--ucsf { color: #1b365d; background: rgba(27,54,93,0.04); }
-        .fac-col-header--umsom { color: #c8102e; background: rgba(200,16,46,0.04); }
-
-        .fac-row {
+        .fac-col-head--u { color: #102a4a; }
+        .fac-col-head--m { color: #7a1525; }
+        .fac-link {
             display: flex;
             align-items: center;
-            gap: 0.85rem;
-            padding: 0.9rem 1.5rem;
-            border-bottom: 1px solid rgba(0,0,0,0.03);
+            gap: 0.75rem;
+            padding: 0.65rem 1.25rem;
+            border-bottom: 1px solid #f5f5f3;
             text-decoration: none;
-            color: inherit;
-            transition: background 0.2s, padding-left 0.2s;
+            color: #1a1a1a;
+            transition: background 0.15s;
         }
-        .fac-row:last-child { border-bottom: none; }
-        .fac-row:hover {
-            background: rgba(0,0,0,0.015);
-            padding-left: 1.75rem;
-        }
-        .fac-dot {
+        .fac-link:last-child { border-bottom: none; }
+        .fac-link:hover { background: #fafaf8; }
+        .fac-init {
             flex-shrink: 0;
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: var(--font-sans);
-            font-size: 0.55rem;
+            font-size: 0.5rem;
             font-weight: 700;
-            color: white;
+            color: #fff;
         }
-        .fac-dot--u { background: #1b365d; }
-        .fac-dot--m { background: #c8102e; }
-        .fac-row-info { flex: 1; min-width: 0; }
-        .fac-row-name {
-            font-family: var(--font-serif);
-            font-size: 0.95rem;
-            font-weight: 600;
-            font-style: italic;
+        .fac-init--u { background: #102a4a; }
+        .fac-init--m { background: #7a1525; }
+        .fac-link-info { flex: 1; min-width: 0; }
+        .fac-link-name {
+            font-size: 0.875rem;
+            font-weight: 500;
         }
-        .fac-row-dept {
-            font-family: var(--font-sans);
+        .fac-link-dept {
             font-size: 0.7rem;
-            color: #a1a1aa;
+            color: #999;
         }
-        .fac-row-arrow {
+        .fac-link-arrow {
             flex-shrink: 0;
-            font-size: 0.75rem;
-            color: #d4d4d8;
-            transition: transform 0.2s, color 0.2s;
+            font-size: 0.7rem;
+            color: #ccc;
+            transition: color 0.2s, transform 0.2s;
         }
-        .fac-row:hover .fac-row-arrow {
-            transform: translateX(3px);
+        .fac-link:hover .fac-link-arrow {
             color: #dc2626;
+            transform: translateX(2px);
         }
 
         /* ── Footer ── */
-        .tp-foot {
+        .t-foot {
             text-align: center;
-            padding: 3rem 2rem;
-            border-top: 1px solid rgba(0,0,0,0.06);
-        }
-        .tp-foot p {
-            font-family: var(--font-sans);
+            padding: 2.5rem 2rem;
+            border-top: 1px solid #e5e5e3;
             font-size: 0.7rem;
-            color: #a1a1aa;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
+            color: #999;
         }
 
         /* ── Responsive ── */
-        @media (max-width: 900px) {
-            .dir-strip { flex-direction: column; }
-            .dir-photo { aspect-ratio: 16/9; }
-            .ch-duo, .fac-cols { grid-template-columns: 1fr; }
-        }
-        @media (max-width: 600px) {
-            .tp-hero { padding: 8rem 1.5rem 4rem; }
-            .tp-directors, .tp-chapters, .tp-faculty { padding-left: 1.5rem; padding-right: 1.5rem; }
+        @media (max-width: 768px) {
+            .nd-row { grid-template-columns: 1fr; }
+            .ch-grid, .fac-grid { grid-template-columns: 1fr; }
+            .t-hero { padding: 8rem 1.5rem 3.5rem; }
+            .t-section { padding: 2.5rem 1.5rem; }
         }
     </style>
 </head>
 
-<body class="tp">
+<body class="t-page">
 
     <nav class="surge-nav surge-nav--refined">
         <a href="index.html" class="surge-nav-brand" aria-label="Tensor Lab home">
@@ -340,204 +299,162 @@
             <a href="index.html" class="surge-nav-link">Home</a>
             <a href="team.html" class="surge-nav-link">Our Team</a>
             <a href="projects-2026.html" class="surge-nav-link">Project Catalogue</a>
+            <a href="cohort-2025.html" class="surge-nav-link">2025 Cohort</a>
             <a href="projects-2026.html#apply" class="surge-nav-cta">Apply Now</a>
         </div>
     </nav>
 
-    <!-- ═══ Hero ═══ -->
-    <header class="tp-hero">
-        <span class="tp-hero-kicker">Our Team</span>
-        <h1>The people behind<br>the fellowship.</h1>
-        <p>
-            Led by medical students. Supported by faculty physician advisors at
-            UCSF and the University of Maryland School of Medicine.
-        </p>
+    <header class="t-hero">
+        <div class="t-hero-label">Our Team</div>
+        <h1>The people behind the fellowship.</h1>
+        <p>Led by medical students and supported by faculty physician advisors at the University of California, San Francisco and the University of Maryland School of Medicine.</p>
     </header>
 
-    <!-- ═══ National Directors ═══ -->
-    <section class="tp-directors" id="national-directors">
-        <div class="tp-kicker">National Directors</div>
-        <h2 class="tp-h2">National Leadership</h2>
-        <p class="tp-sub">
-            The national directors oversee project selection, fellow recruitment,
-            faculty partnerships, and program operations across both chapters.
-        </p>
+    <!-- National Directors -->
+    <section class="t-section" id="national-directors">
+        <div class="t-label">National Directors</div>
+        <h2 class="t-heading">National Leadership</h2>
+        <p class="t-desc">The national directors oversee project selection, fellow recruitment, faculty partnerships, and program operations across both chapters.</p>
 
-        <div class="dir-strip">
-            <div class="dir-card">
-                <img src="Portrait Photos/Matt Allen.png" alt="Matt Allen" class="dir-photo" loading="lazy">
-                <div class="dir-info">
-                    <div class="dir-name">Matt Allen</div>
-                    <div class="dir-title">Executive Director, Co-Founder</div>
-                    <div class="dir-school">UCSF School of Medicine</div>
+        <div class="nd-row">
+            <div class="nd-card">
+                <img src="Portrait Photos/Matt Allen.png" alt="Matt Allen" class="nd-photo" loading="lazy">
+                <div class="nd-body">
+                    <div class="nd-name">Matt Allen</div>
+                    <div class="nd-title">Executive Director, Co-Founder</div>
+                    <div class="nd-school">University of California, San Francisco School of Medicine</div>
                 </div>
             </div>
-            <div class="dir-card">
-                <img src="Portrait Photos/Aaron Ge.jpeg" alt="Aaron Ge" class="dir-photo" loading="lazy">
-                <div class="dir-info">
-                    <div class="dir-name">Aaron Ge</div>
-                    <div class="dir-title">Technical Director, Co-Founder</div>
-                    <div class="dir-school">University of Maryland School of Medicine</div>
+            <div class="nd-card">
+                <img src="Portrait Photos/Aaron Ge.jpeg" alt="Aaron Ge" class="nd-photo" loading="lazy">
+                <div class="nd-body">
+                    <div class="nd-name">Aaron Ge</div>
+                    <div class="nd-title">Technical Director, Co-Founder</div>
+                    <div class="nd-school">University of Maryland School of Medicine</div>
                 </div>
             </div>
-            <div class="dir-card">
-                <img src="Portrait Photos/Chy Murali.png" alt="Chy Murali" class="dir-photo" loading="lazy">
-                <div class="dir-info">
-                    <div class="dir-name">Chy Murali</div>
-                    <div class="dir-title">Operations Director</div>
-                    <div class="dir-school">University of Maryland School of Medicine</div>
+            <div class="nd-card">
+                <img src="Portrait Photos/Chy Murali.png" alt="Chy Murali" class="nd-photo" loading="lazy">
+                <div class="nd-body">
+                    <div class="nd-name">Chy Murali</div>
+                    <div class="nd-title">Operations Director</div>
+                    <div class="nd-school">University of Maryland School of Medicine</div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ═══ Chapter Directors ═══ -->
-    <section class="tp-chapters" id="chapters">
-        <div class="tp-kicker">Chapter Leadership</div>
-        <h2 class="tp-h2">Chapter Directors</h2>
-        <p class="tp-sub">
-            Each chapter is led by a team of medical students who manage local
-            operations, curriculum, and fellow mentorship at their institution.
-        </p>
+    <!-- Chapter Directors -->
+    <section class="t-section" id="chapters">
+        <div class="t-label">Chapter Leadership</div>
+        <h2 class="t-heading">Chapter Directors</h2>
+        <p class="t-desc">Each chapter is led by medical students who manage local operations, curriculum, and fellow mentorship at their institution.</p>
 
-        <div class="ch-duo">
-            <div class="ch-box">
-                <div class="ch-header ch-header--ucsf">
-                    <span class="ch-header-name">UCSF</span>
-                    <span class="ch-header-badge">3 Directors</span>
+        <div class="ch-grid">
+            <div class="ch-card">
+                <div class="ch-head ch-head--ucsf">
+                    <span class="ch-head-name">University of California, San Francisco</span>
+                    <span class="ch-head-count">3 Directors</span>
                 </div>
-                <div class="ch-list">
-                    <div class="ch-person">
-                        <span class="ch-person-name">Nathan Robbins</span>
-                        <span class="ch-person-role">Executive Director</span>
-                    </div>
-                    <div class="ch-person">
-                        <span class="ch-person-name">Elisa Danthinne</span>
-                        <span class="ch-person-role">Technical Director</span>
-                    </div>
-                    <div class="ch-person">
-                        <span class="ch-person-name">Enrique Vazquez</span>
-                        <span class="ch-person-role">Operations Director</span>
-                    </div>
+                <div class="ch-people">
+                    <div class="ch-row"><span class="ch-row-name">Nathan Robbins</span><span class="ch-row-role">Executive Director</span></div>
+                    <div class="ch-row"><span class="ch-row-name">Elisa Danthinne</span><span class="ch-row-role">Technical Director</span></div>
+                    <div class="ch-row"><span class="ch-row-name">Enrique Vazquez</span><span class="ch-row-role">Operations Director</span></div>
                 </div>
             </div>
-            <div class="ch-box">
-                <div class="ch-header ch-header--umsom">
-                    <span class="ch-header-name">UMSOM</span>
-                    <span class="ch-header-badge">5 Directors</span>
+            <div class="ch-card">
+                <div class="ch-head ch-head--umsom">
+                    <span class="ch-head-name">University of Maryland</span>
+                    <span class="ch-head-count">5 Directors</span>
                 </div>
-                <div class="ch-list">
-                    <div class="ch-person">
-                        <span class="ch-person-name">Aarushi Negi</span>
-                        <span class="ch-person-role">Executive Director</span>
-                    </div>
-                    <div class="ch-person">
-                        <span class="ch-person-name">Skylar Chan</span>
-                        <span class="ch-person-role">Technical Director</span>
-                    </div>
-                    <div class="ch-person">
-                        <span class="ch-person-name">Dariush Aligholizadeh</span>
-                        <span class="ch-person-role">Operations (Logistics)</span>
-                    </div>
-                    <div class="ch-person">
-                        <span class="ch-person-name">Eric Kim</span>
-                        <span class="ch-person-role">Operations (Curriculum)</span>
-                    </div>
-                    <div class="ch-person">
-                        <span class="ch-person-name">Safi Rifai</span>
-                        <span class="ch-person-role">Research Director</span>
-                    </div>
+                <div class="ch-people">
+                    <div class="ch-row"><span class="ch-row-name">Aarushi Negi</span><span class="ch-row-role">Executive Director</span></div>
+                    <div class="ch-row"><span class="ch-row-name">Skylar Chan</span><span class="ch-row-role">Technical Director</span></div>
+                    <div class="ch-row"><span class="ch-row-name">Dariush Aligholizadeh</span><span class="ch-row-role">Operations (Logistics)</span></div>
+                    <div class="ch-row"><span class="ch-row-name">Eric Kim</span><span class="ch-row-role">Operations (Curriculum)</span></div>
+                    <div class="ch-row"><span class="ch-row-name">Safi Rifai</span><span class="ch-row-role">Research Director</span></div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ═══ Faculty Physician Advisors ═══ -->
-    <section class="tp-faculty" id="faculty">
-        <div class="tp-kicker">Faculty</div>
-        <h2 class="tp-h2">Faculty Physician Advisors</h2>
-        <p class="tp-sub">
-            Each project is supervised by a practicing physician and published
-            researcher who sponsors the work, secures data access, and sets the
-            scientific standard.
-        </p>
+    <!-- Faculty Physician Advisors -->
+    <section class="t-section" id="faculty">
+        <div class="t-label">Faculty</div>
+        <h2 class="t-heading">Faculty Physician Advisors</h2>
+        <p class="t-desc">Each project is supervised by a practicing physician and published researcher who sponsors the work, secures data access, and sets the scientific standard.</p>
 
-        <div class="fac-cols">
-            <!-- UCSF Column -->
+        <div class="fac-grid">
             <div class="fac-col">
-                <div class="fac-col-header fac-col-header--ucsf">UCSF &middot; 6 Advisors</div>
-                <a href="https://profiles.ucsf.edu/jonathan.carter" target="_blank" rel="noopener" class="fac-row">
-                    <div class="fac-dot fac-dot--u">JC</div>
-                    <div class="fac-row-info"><div class="fac-row-name">Dr. Jonathan Carter</div><div class="fac-row-dept">General Surgery</div></div>
-                    <span class="fac-row-arrow">&rarr;</span>
+                <div class="fac-col-head fac-col-head--u">University of California, San Francisco &middot; 6 Advisors</div>
+                <a href="https://profiles.ucsf.edu/jonathan.carter" target="_blank" rel="noopener" class="fac-link">
+                    <div class="fac-init fac-init--u">JC</div>
+                    <div class="fac-link-info"><div class="fac-link-name">Dr. Jonathan Carter</div><div class="fac-link-dept">General Surgery</div></div>
+                    <span class="fac-link-arrow">&rarr;</span>
                 </a>
-                <a href="https://profiles.ucsf.edu/michael.chow" target="_blank" rel="noopener" class="fac-row">
-                    <div class="fac-dot fac-dot--u">MC</div>
-                    <div class="fac-row-info"><div class="fac-row-name">Dr. Michael Chow</div><div class="fac-row-dept">Head &amp; Neck Surgery</div></div>
-                    <span class="fac-row-arrow">&rarr;</span>
+                <a href="https://profiles.ucsf.edu/michael.chow" target="_blank" rel="noopener" class="fac-link">
+                    <div class="fac-init fac-init--u">MC</div>
+                    <div class="fac-link-info"><div class="fac-link-name">Dr. Michael Chow</div><div class="fac-link-dept">Head &amp; Neck Surgery</div></div>
+                    <span class="fac-link-arrow">&rarr;</span>
                 </a>
-                <a href="https://profiles.ucsf.edu/maggie.chung" target="_blank" rel="noopener" class="fac-row">
-                    <div class="fac-dot fac-dot--u">MC</div>
-                    <div class="fac-row-info"><div class="fac-row-name">Dr. Maggie Chung</div><div class="fac-row-dept">Radiology, Breast Imaging</div></div>
-                    <span class="fac-row-arrow">&rarr;</span>
+                <a href="https://profiles.ucsf.edu/maggie.chung" target="_blank" rel="noopener" class="fac-link">
+                    <div class="fac-init fac-init--u">MC</div>
+                    <div class="fac-link-info"><div class="fac-link-name">Dr. Maggie Chung</div><div class="fac-link-dept">Radiology, Breast Imaging</div></div>
+                    <span class="fac-link-arrow">&rarr;</span>
                 </a>
-                <a href="https://profiles.ucsf.edu/pierre.martin" target="_blank" rel="noopener" class="fac-row">
-                    <div class="fac-dot fac-dot--u">PM</div>
-                    <div class="fac-row-info"><div class="fac-row-name">Dr. Pierre Martin</div><div class="fac-row-dept">Neurology</div></div>
-                    <span class="fac-row-arrow">&rarr;</span>
+                <a href="https://profiles.ucsf.edu/pierre.martin" target="_blank" rel="noopener" class="fac-link">
+                    <div class="fac-init fac-init--u">PM</div>
+                    <div class="fac-link-info"><div class="fac-link-name">Dr. Pierre Martin</div><div class="fac-link-dept">Neurology</div></div>
+                    <span class="fac-link-arrow">&rarr;</span>
                 </a>
-                <a href="https://profiles.ucsf.edu/thomas.nelson" target="_blank" rel="noopener" class="fac-row">
-                    <div class="fac-dot fac-dot--u">TN</div>
-                    <div class="fac-row-info"><div class="fac-row-name">Dr. Thomas Nelson</div><div class="fac-row-dept">Neuro-Oncology</div></div>
-                    <span class="fac-row-arrow">&rarr;</span>
+                <a href="https://profiles.ucsf.edu/thomas.nelson" target="_blank" rel="noopener" class="fac-link">
+                    <div class="fac-init fac-init--u">TN</div>
+                    <div class="fac-link-info"><div class="fac-link-name">Dr. Thomas Nelson</div><div class="fac-link-dept">Neuro-Oncology</div></div>
+                    <span class="fac-link-arrow">&rarr;</span>
                 </a>
-                <a href="https://profiles.ucsf.edu/coleen.sabatini" target="_blank" rel="noopener" class="fac-row">
-                    <div class="fac-dot fac-dot--u">CS</div>
-                    <div class="fac-row-info"><div class="fac-row-name">Dr. Coleen Sabatini</div><div class="fac-row-dept">Orthopedic Surgery</div></div>
-                    <span class="fac-row-arrow">&rarr;</span>
+                <a href="https://profiles.ucsf.edu/coleen.sabatini" target="_blank" rel="noopener" class="fac-link">
+                    <div class="fac-init fac-init--u">CS</div>
+                    <div class="fac-link-info"><div class="fac-link-name">Dr. Coleen Sabatini</div><div class="fac-link-dept">Orthopedic Surgery</div></div>
+                    <span class="fac-link-arrow">&rarr;</span>
                 </a>
             </div>
-
-            <!-- UMSOM Column -->
             <div class="fac-col">
-                <div class="fac-col-header fac-col-header--umsom">UMSOM &middot; 6 Advisors</div>
-                <a href="https://www.medschool.umaryland.edu/profiles/Maron-Bradley/" target="_blank" rel="noopener" class="fac-row">
-                    <div class="fac-dot fac-dot--m">BM</div>
-                    <div class="fac-row-info"><div class="fac-row-name">Dr. Bradley Maron</div><div class="fac-row-dept">Pulmonary Hypertension</div></div>
-                    <span class="fac-row-arrow">&rarr;</span>
+                <div class="fac-col-head fac-col-head--m">University of Maryland School of Medicine &middot; 6 Advisors</div>
+                <a href="https://www.medschool.umaryland.edu/profiles/Maron-Bradley/" target="_blank" rel="noopener" class="fac-link">
+                    <div class="fac-init fac-init--m">BM</div>
+                    <div class="fac-link-info"><div class="fac-link-name">Dr. Bradley Maron</div><div class="fac-link-dept">Pulmonary Hypertension</div></div>
+                    <span class="fac-link-arrow">&rarr;</span>
                 </a>
-                <a href="https://www.medschool.umaryland.edu/profiles/Williams-Brittney/" target="_blank" rel="noopener" class="fac-row">
-                    <div class="fac-dot fac-dot--m">BW</div>
-                    <div class="fac-row-info"><div class="fac-row-name">Dr. Brittney Williams</div><div class="fac-row-dept">Cardiothoracic Anesthesiology</div></div>
-                    <span class="fac-row-arrow">&rarr;</span>
+                <a href="https://www.medschool.umaryland.edu/profiles/Williams-Brittney/" target="_blank" rel="noopener" class="fac-link">
+                    <div class="fac-init fac-init--m">BW</div>
+                    <div class="fac-link-info"><div class="fac-link-name">Dr. Brittney Williams</div><div class="fac-link-dept">Cardiothoracic Anesthesiology</div></div>
+                    <span class="fac-link-arrow">&rarr;</span>
                 </a>
-                <a href="https://www.medschool.umaryland.edu/profiles/Ciryam-Prajwal/" target="_blank" rel="noopener" class="fac-row">
-                    <div class="fac-dot fac-dot--m">PC</div>
-                    <div class="fac-row-info"><div class="fac-row-name">Dr. Prajwal Ciryam</div><div class="fac-row-dept">Neurocritical Care</div></div>
-                    <span class="fac-row-arrow">&rarr;</span>
+                <a href="https://www.medschool.umaryland.edu/profiles/Ciryam-Prajwal/" target="_blank" rel="noopener" class="fac-link">
+                    <div class="fac-init fac-init--m">PC</div>
+                    <div class="fac-link-info"><div class="fac-link-name">Dr. Prajwal Ciryam</div><div class="fac-link-dept">Neurocritical Care</div></div>
+                    <span class="fac-link-arrow">&rarr;</span>
                 </a>
-                <a href="https://www.medschool.umaryland.edu/profiles/Siddiqui-Mohummad-Minhaj/" target="_blank" rel="noopener" class="fac-row">
-                    <div class="fac-dot fac-dot--m">MS</div>
-                    <div class="fac-row-info"><div class="fac-row-name">Dr. Minhaj Siddiqui</div><div class="fac-row-dept">Urologic Oncology</div></div>
-                    <span class="fac-row-arrow">&rarr;</span>
+                <a href="https://www.medschool.umaryland.edu/profiles/Siddiqui-Mohummad-Minhaj/" target="_blank" rel="noopener" class="fac-link">
+                    <div class="fac-init fac-init--m">MS</div>
+                    <div class="fac-link-info"><div class="fac-link-name">Dr. Minhaj Siddiqui</div><div class="fac-link-dept">Urologic Oncology</div></div>
+                    <span class="fac-link-arrow">&rarr;</span>
                 </a>
-                <a href="https://www.medschool.umaryland.edu/profiles/Ratzki-Leewing-Alexandria/" target="_blank" rel="noopener" class="fac-row">
-                    <div class="fac-dot fac-dot--m">AR</div>
-                    <div class="fac-row-info"><div class="fac-row-name">Dr. Alexandria Ratzki-Leewing</div><div class="fac-row-dept">Epidemiology, Diabetes</div></div>
-                    <span class="fac-row-arrow">&rarr;</span>
+                <a href="https://www.medschool.umaryland.edu/profiles/Ratzki-Leewing-Alexandria/" target="_blank" rel="noopener" class="fac-link">
+                    <div class="fac-init fac-init--m">AR</div>
+                    <div class="fac-link-info"><div class="fac-link-name">Dr. Alexandria Ratzki-Leewing</div><div class="fac-link-dept">Epidemiology, Diabetes</div></div>
+                    <span class="fac-link-arrow">&rarr;</span>
                 </a>
-                <a href="https://www.medschool.umaryland.edu/profiles/Tee-Sui-Seng/" target="_blank" rel="noopener" class="fac-row">
-                    <div class="fac-dot fac-dot--m">ST</div>
-                    <div class="fac-row-info"><div class="fac-row-name">Dr. Sui Seng Tee</div><div class="fac-row-dept">Radiology, Nuclear Medicine</div></div>
-                    <span class="fac-row-arrow">&rarr;</span>
+                <a href="https://www.medschool.umaryland.edu/profiles/Tee-Sui-Seng/" target="_blank" rel="noopener" class="fac-link">
+                    <div class="fac-init fac-init--m">ST</div>
+                    <div class="fac-link-info"><div class="fac-link-name">Dr. Sui Seng Tee</div><div class="fac-link-dept">Radiology, Nuclear Medicine</div></div>
+                    <span class="fac-link-arrow">&rarr;</span>
                 </a>
             </div>
         </div>
     </section>
 
-    <footer class="tp-foot">
-        <p>&copy; 2026 Tensor Lab &middot; Open Science &middot; Open Code</p>
-    </footer>
+    <footer class="t-foot">&copy; 2026 Tensor Lab &middot; Open Science &middot; Open Code</footer>
 
 </body>
 
