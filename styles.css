@@ -1503,3 +1503,293 @@ summary::marker {
         grid-template-columns: 1fr;
     }
 }
+/* ==========================================================================
+   2026 Projects Marketplace (projects-2026.html)
+   Applicant counter badges (F1) plus rich project card layout.
+   ========================================================================== */
+
+.projects-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.project-card-2026 {
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 1rem;
+    padding: 2rem 2.25rem;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.03);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.project-card-2026:hover {
+    box-shadow: 0 2px 4px rgba(15, 23, 42, 0.06), 0 16px 40px rgba(15, 23, 42, 0.06);
+    transform: translateY(-2px);
+}
+
+.pc2-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+}
+
+.pc2-tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.pc2-tag {
+    display: inline-block;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    font-family: var(--font-mono, 'Space Mono', monospace);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border: 1px solid rgba(15, 23, 42, 0.15);
+    color: #334155;
+    background: #f8fafc;
+}
+
+.pc2-tag.pc2-institution {
+    color: #0f766e;
+    border-color: rgba(15, 118, 110, 0.3);
+    background: rgba(15, 118, 110, 0.06);
+}
+
+.pc2-footer-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+}
+
+.pc2-availability {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    font-family: var(--font-mono, 'Space Mono', monospace);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    background: rgba(22, 163, 74, 0.1);
+    color: #15803d;
+    border: 1px solid rgba(22, 163, 74, 0.3);
+}
+
+.pc2-availability::before {
+    content: '';
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.pc2-availability[data-availability="filled"] {
+    background: rgba(220, 38, 38, 0.08);
+    color: #b91c1c;
+    border-color: rgba(220, 38, 38, 0.3);
+}
+
+.pc2-title {
+    font-family: var(--font-serif, 'EB Garamond', serif);
+    font-size: 1.75rem;
+    font-style: italic;
+    line-height: 1.25;
+    margin: 0 0 1.25rem 0;
+    color: #0f172a;
+}
+
+.pc2-people {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem 2rem;
+    margin: 0 0 1.5rem 0;
+    padding: 1rem 1.25rem;
+    background: #f8fafc;
+    border-radius: 0.6rem;
+    border: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.pc2-people > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+}
+
+.pc2-people dt {
+    font-family: var(--font-mono, 'Space Mono', monospace);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b;
+    margin: 0;
+}
+
+.pc2-people dd {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #0f172a;
+    line-height: 1.35;
+    word-wrap: break-word;
+}
+
+.pc2-section {
+    margin-bottom: 1.25rem;
+}
+
+.pc2-section h4 {
+    font-family: var(--font-mono, 'Space Mono', monospace);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #64748b;
+    margin: 0 0 0.5rem 0;
+}
+
+.pc2-section p {
+    margin: 0;
+    font-family: var(--font-serif, 'EB Garamond', serif);
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: #1e293b;
+}
+
+.pc2-section .pc2-sub {
+    margin-top: 0.5rem;
+    font-size: 0.95rem;
+    color: #475569;
+    font-style: italic;
+}
+
+.pc2-skills {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.pc2-skills li {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    background: #eef2ff;
+    color: #3730a3;
+    border: 1px solid rgba(67, 56, 202, 0.2);
+    border-radius: 0.4rem;
+    font-size: 0.85rem;
+    font-family: var(--font-sans, 'Inter', sans-serif);
+    font-weight: 500;
+}
+
+.pc2-note {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding: 1rem 1.25rem;
+    background: rgba(234, 179, 8, 0.06);
+    border: 1px solid rgba(234, 179, 8, 0.25);
+    border-left: 3px solid #eab308;
+    border-radius: 0.5rem;
+}
+
+.pc2-note-label {
+    font-family: var(--font-mono, 'Space Mono', monospace);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #854d0e;
+    white-space: nowrap;
+    padding-top: 0.15rem;
+}
+
+.pc2-note-text {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: #3f3f46;
+}
+
+/* Applicant counter badge */
+.applicant-counter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    font-family: var(--font-mono, 'Space Mono', monospace);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    background: rgba(59, 130, 246, 0.08);
+    color: #1d4ed8;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+.applicant-counter::before {
+    content: '';
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.8;
+}
+
+.applicant-counter.counter-crowded {
+    background: rgba(234, 88, 12, 0.1);
+    color: #c2410c;
+    border-color: rgba(234, 88, 12, 0.35);
+}
+
+.applicant-counter.counter-hidden {
+    display: none;
+}
+
+.card-filled {
+    opacity: 0.7;
+}
+
+.card-filled .pc2-title {
+    text-decoration: line-through;
+    text-decoration-color: rgba(185, 28, 28, 0.4);
+    text-decoration-thickness: 1px;
+}
+
+@media (max-width: 640px) {
+    .project-card-2026 {
+        padding: 1.5rem 1.25rem;
+        border-radius: 0.75rem;
+    }
+
+    .pc2-title {
+        font-size: 1.45rem;
+    }
+
+    .pc2-people {
+        grid-template-columns: 1fr;
+        padding: 0.9rem 1rem;
+    }
+
+    .pc2-section p {
+        font-size: 1rem;
+    }
+
+    .pc2-note {
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+}

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 Projects, The Tensor Lab</title>
+    <meta name="description"
+        content="Browse the 13 projects in the Tensor Lab Summer 2026 cohort. Rank your top three and apply.">
+    <meta property="og:title" content="2026 Projects, The Tensor Lab">
+    <meta property="og:description"
+        content="Browse the 13 projects in the Tensor Lab Summer 2026 cohort. Rank your top three and apply.">
+    <meta property="og:url" content="https://thetensorlab.org/projects-2026.html">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://thetensorlab.org/logo2.png">
+
+    <!--
+        Apps Script web app URL. Overwrite this at deploy time or edit config.json.
+        Example: <meta name="tensor-lab-api" content="https://script.google.com/macros/s/AKfycb.../exec">
+    -->
+    <meta name="tensor-lab-api" content="">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <nav class="surge-nav" style="justify-content: space-between; padding: 2rem;">
+        <a href="index.html" style="display:inline-flex;align-items:center;">
+            <img src="logo2.png" alt="The Tensor Lab" style="height: 64px; width: auto;">
+        </a>
+        <div class="dropdown">
+            <button class="nav-item dropbtn"
+                style="color: white; border: none; padding: 0.5rem 0; background: transparent; cursor: pointer; font-family: var(--font-sans); letter-spacing: 0.1em; font-size: 0.9rem;">MENU
+                +</button>
+            <div class="dropdown-content">
+                <a href="index.html#roles">The Approach</a>
+                <a href="index.html#timeline">Timeline</a>
+                <a href="index.html#about">Our Team</a>
+                <a href="projects-2026.html">2026 Projects</a>
+                <a href="index.html#faq">FAQ</a>
+                <a href="index.html#open-roles" style="color: var(--alert);">Join the Team</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="surge-hero">
+        <h1 class="hero-title">Summer 2026 Projects</h1>
+        <div class="hero-divider">
+            <img src="Logo.png" alt="Tensor Lab"
+                style="height: 24px; width: auto; filter: grayscale(100%); opacity: 0.8;">
+        </div>
+        <p class="hero-subtext">
+            Pick any three. Rank them in your application. Counts update every 30 seconds so you can see how crowded
+            each project is before you commit.
+        </p>
+    </div>
+
+    <div class="layout-grid">
+        <main class="feed" style="grid-column: 1 / -1;">
+
+            <section id="projects" class="journal-section">
+                <div class="section-label">2026 // PROJECT MARKETPLACE</div>
+                <h2 class="headline">Choose Your Top Three</h2>
+                <p style="margin-bottom: 2rem; color: var(--ink-light); max-width: 780px;">
+                    These are the 13 research projects for the 2026 cohort. Each card has everything you need to decide,
+                    the clinical problem, the technical approach, the deliverable, the data, the skills we are looking
+                    for, and any heads up from leadership. The counter on each card tallies every first, second, and
+                    third choice equally and updates every 30 seconds.
+                </p>
+
+                <div class="filter-bar" id="specialty-filter"></div>
+
+                <div id="projects-grid" class="projects-list"></div>
+
+                <template id="project-card-template">
+                    <article class="project-card-2026" data-specialty="">
+                        <header class="pc2-header">
+                            <div class="pc2-tags">
+                                <span class="pc2-tag pc2-specialty"></span>
+                                <span class="pc2-tag pc2-institution"></span>
+                            </div>
+                            <div class="pc2-footer-meta">
+                                <span class="applicant-counter counter-hidden" data-applicant-counter=""
+                                    aria-live="polite"></span>
+                                <span class="pc2-availability" data-availability="open">Open for applications</span>
+                            </div>
+                        </header>
+
+                        <h3 class="pc2-title"></h3>
+
+                        <dl class="pc2-people">
+                            <div><dt>Faculty PI</dt><dd class="pc2-pi"></dd></div>
+                            <div><dt>Medical Mentor</dt><dd class="pc2-mentor"></dd></div>
+                        </dl>
+
+                        <div class="pc2-section">
+                            <h4>The Clinical Problem</h4>
+                            <p class="pc2-clinical"></p>
+                        </div>
+
+                        <div class="pc2-section">
+                            <h4>Technical Approach</h4>
+                            <p class="pc2-technical"></p>
+                        </div>
+
+                        <div class="pc2-section">
+                            <h4>Expected Deliverable</h4>
+                            <p class="pc2-deliverable"></p>
+                        </div>
+
+                        <div class="pc2-section">
+                            <h4>Data and Access</h4>
+                            <p class="pc2-data"></p>
+                            <p class="pc2-access pc2-sub"></p>
+                        </div>
+
+                        <div class="pc2-section pc2-progress">
+                            <h4>Already Done</h4>
+                            <p class="pc2-progress-text"></p>
+                        </div>
+
+                        <div class="pc2-section">
+                            <h4>Preferred Skills</h4>
+                            <ul class="pc2-skills"></ul>
+                        </div>
+
+                        <aside class="pc2-note">
+                            <span class="pc2-note-label">Heads up</span>
+                            <p class="pc2-note-text"></p>
+                        </aside>
+                    </article>
+                </template>
+            </section>
+
+            <section id="apply" class="journal-section">
+                <div class="section-label">APPLY</div>
+                <h2 class="headline">Submit Your Application</h2>
+                <p style="margin-bottom: 1rem; color: var(--ink-light); max-width: 780px;">
+                    One submission covers all three ranked choices. Expect about 30 minutes for background, code
+                    samples, project preferences, and short written responses. Selected fellows commit 15 to 20 hours
+                    per week from June through August 2026.
+                </p>
+                <p style="margin-bottom: 1.5rem;">
+                    <a class="journal-btn" target="_blank" rel="noopener"
+                        href="https://docs.google.com/forms/d/e/1FAIpQLSeSaV9tziI6pzsyJCENK4uxtl92bme1ikiQ8umYujCo-hVm6w/viewform">
+                        Open application in a new tab
+                    </a>
+                </p>
+                <div id="application-embed"
+                    style="background:#fff; border:1px solid rgba(0,0,0,0.08); border-radius: 0.5rem; overflow: hidden;">
+                    <iframe title="Tensor Lab Fellow Application, Summer 2026"
+                        src="https://docs.google.com/forms/d/e/1FAIpQLSeSaV9tziI6pzsyJCENK4uxtl92bme1ikiQ8umYujCo-hVm6w/viewform?embedded=true"
+                        width="100%" height="1600" frameborder="0" marginheight="0" marginwidth="0" loading="lazy">
+                        Loading application form.
+                    </iframe>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="projects-2026.js"></script>
+    <script src="applicantCounter.js"></script>
+</body>
+
+</html>

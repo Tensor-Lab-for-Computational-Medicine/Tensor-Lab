@@ -391,6 +391,118 @@ These 5-minute videos explain the basics:
 
 **Remember:** You can't permanently break anything! Every change is tracked, and we can always undo mistakes. Don't be afraid to experiment.
 
+## 2026 Application System (F1, F2, F3)
+
+This section documents the three features added for the 2026 cohort: the live applicant counter, the applicant redirection system, and the Google Forms integration. See `DEPLOY.md` for step by step deploy instructions.
+
+### Architecture at a glance
+
+```
+Applicant -> Google Form -> Sheet (applications tab)
+                                       |
+                                       v
+                          Apps Script (validate, assign redirect_token)
+
+Frontend projects-2026.html -> polls /exec?action=counts every 30s
+                                       |
+                                       v
+                          Apps Script getProjectCounts (CacheService 60s)
+                                       |
+                                       v
+                                  Sheet (applications, tallied)
+
+Leadership calls markProjectFilled(project_id, selected_email)
+   -> Sheet control tab status=filled
+   -> notifyDisplacedApplicants sends prefilled reselection URL
+   -> Applicant submits reselection -> handleReselectionSubmit
+   -> Sheet applications updated in place
+   -> Sheet redirect_log appended
+```
+
+### Repo layout for the 2026 features
+
+- `data/projects_2026.json` canonical project list (13 projects).
+- `apps-script/api.gs` `doGet` router and `getProjectCounts`.
+- `apps-script/triggers.gs` `markProjectFilled`, `notifyDisplacedApplicants`, `onApplicationSubmit`, `handleReselectionSubmit`.
+- `apps-script/email.gs` prefilled URL builder and email sender.
+- `apps-script/setup.gs` `initialSetup`, `seedControlFromProjects`, `syncFormChoices`, `installTriggers`.
+- `apps-script/appsscript.json` manifest with OAuth scopes and web app settings.
+- `applicantCounter.js` frontend polling module.
+- `projects-2026.html` project marketplace page with counter badges and form embed.
+- `projects-2026.js` renders cards from the JSON file.
+- `config.json` public ops references (web app URL, form id, sheet id, JSON URL).
+
+### Setup steps, new environment
+
+1. Create a Google Sheet. Note the spreadsheet id from its URL.
+2. Create a Google Form for applications with the required fields (see below). Set it to submit to the sheet, tab name `applications`.
+3. Create a second form for reselections (or branch the same form). Submit responses to tab `reselections`.
+4. Create a new Apps Script project. Paste in the files under `apps-script/`.
+5. Under Project Settings, set Script properties:
+   - `SPREADSHEET_ID`
+   - `APPLICATION_FORM_ID`
+   - `RESELECTION_FORM_ID`
+   - `PROJECTS_JSON_URL` (public URL to the committed `data/projects_2026.json`)
+6. Run `initialSetup` once. This creates any missing tabs and seeds the `control` tab.
+7. Run `syncFormChoices` to push the dropdown values to the application form.
+8. Run `installTriggers` once.
+9. Deploy as a web app. Execute as: Me. Access: Anyone. Copy the URL.
+10. Paste the URL into `projects-2026.html` (the `tensor-lab-api` meta tag) and `config.json`.
+11. Paste the Google Form embed URL into the iframe `data-form-src` on `projects-2026.html`.
+12. Commit and push. GitHub Pages deploys the frontend within 2 minutes.
+
+### Required application form fields
+
+The form must include these question titles exactly, because the validator and the pre-filler look them up by title:
+
+- `name`, `email`, `school`, `year` (short answer)
+- `choice_1`, `choice_2`, `choice_3` (dropdown, populated by `syncFormChoices`)
+- `resume_url`, `portfolio_url` (short answer)
+- `response_debugging`, `response_teamwork`, `response_motivation` (long answer)
+- `redirect_token` (short answer, hidden pre-fill, leave blank on the public form)
+
+The reselection form must include:
+
+- `email` (short answer)
+- `redirect_token` (short answer, prefilled)
+- `surviving_choice_1`, `surviving_choice_2` (read only display is acceptable, but keep the titles)
+- `new_choice` (dropdown)
+
+### Required spreadsheet tabs
+
+Created automatically by `initialSetup`:
+
+- `applications` responses tab with the column headers listed above plus `timestamp` and `status`.
+- `reselections` responses tab for new third choices.
+- `control` one row per project, columns `project_id`, `status`, `filled_at`, `selected_applicant`.
+- `redirect_log` audit trail for every email and reselection.
+- `error_log` append only log of internal failures.
+
+### Rotating credentials and ids
+
+1. Open the Apps Script project, Project Settings, Script properties.
+2. Replace the target property value (for example `APPLICATION_FORM_ID`).
+3. If the sheet or form changed, run `installTriggers` from the editor to rewire the submit triggers.
+4. Redeploy only if `api.gs` or `triggers.gs` changed (Deploy, Manage deployments, new version on the existing deployment).
+5. The web app URL is stable across versions unless you create a new deployment.
+
+### Testing results
+
+Run these before declaring the work done. Record outcomes here with a date.
+
+| Test | Expected | Status |
+|---|---|---|
+| Submit three applications with overlapping ranks | Counter badges update within 90 seconds on the public page | pending initial deploy |
+| Mark one project filled | Displaced applicants receive email within 5 minutes with prefilled URL carrying two surviving choices | pending initial deploy |
+| Submit a reselection | Original applications row updates, no duplicate row created | pending initial deploy |
+| Trigger a deliberate error | Row appears in `error_log`, applicant flow is unaffected | pending initial deploy |
+| Submit with invalid `project_id` | Row marked `rejected_invalid_project`, logged | pending initial deploy |
+| Submit duplicate from same email without token | Row marked `rejected_duplicate`, logged | pending initial deploy |
+
+### Copy rules
+
+All user facing strings avoid dashes (commas, periods, or sentence breaks instead), stay in active voice, and target Flesch reading ease 80 or higher.
+
 ## 🌐 Deployment
 
 The site is automatically deployed to GitHub Pages from the `main` branch. Any push to `main` triggers a deployment.

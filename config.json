@@ -1,0 +1,12 @@
+{
+  "comment": "Non secret public config. Secrets live in Apps Script PropertiesService, not here.",
+  "apps_script_web_app_url": "REPLACE_WITH_DEPLOYED_WEB_APP_URL",
+  "application_form_public_url": "https://docs.google.com/forms/d/e/1FAIpQLSeSaV9tziI6pzsyJCENK4uxtl92bme1ikiQ8umYujCo-hVm6w/viewform",
+  "application_form_short_url": "https://forms.gle/TvHSdQiQb3TKxnaF7",
+  "application_form_editor_url": "https://docs.google.com/forms/d/1hBeIrOlH_5PSxZJh1re16vggwas_bCQ132_whNQ6ty8/edit",
+  "application_form_id": "1hBeIrOlH_5PSxZJh1re16vggwas_bCQ132_whNQ6ty8",
+  "reselection_form_id": "1hBeIrOlH_5PSxZJh1re16vggwas_bCQ132_whNQ6ty8",
+  "reselection_form_id_note": "Defaults to the application form id, assuming a single form with section navigation per the brief. Set this to a separate form id if a dedicated reselection form is created.",
+  "spreadsheet_id": "REPLACE_WITH_SHEET_ID",
+  "projects_json_url": "https://thetensorlab.org/data/projects_2026.json"
+}
