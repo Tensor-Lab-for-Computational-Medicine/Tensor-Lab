@@ -31,17 +31,21 @@
 
 <body>
 
-    <nav class="surge-nav surge-nav--refined">
-        <a href="index.html" class="surge-nav-brand" aria-label="Tensor Lab home">
-            <img src="logo2.png" alt="The Tensor Lab" class="surge-nav-logo">
+    <nav class="surge-nav" style="justify-content: space-between; padding: 2rem;">
+        <a href="index.html" aria-label="Tensor Lab home">
+            <img src="logo2.png" alt="The Tensor Lab" style="height: 64px; width: auto;">
         </a>
-        <div class="surge-nav-links">
-            <a href="index.html" class="surge-nav-link">Home</a>
-            <a href="index.html#approach" class="surge-nav-link">Approach</a>
-            <a href="index.html#timeline" class="surge-nav-link">Timeline</a>
-            <a href="index.html#cohort-2025" class="surge-nav-link">2025 Cohort</a>
-            <a href="index.html#faq" class="surge-nav-link">FAQ</a>
-            <a href="#apply" class="surge-nav-cta">Apply</a>
+        <div class="dropdown">
+            <button class="dropbtn" aria-label="Open menu"
+                style="color: white; border: none; padding: 0.5rem 0; background: transparent; cursor: pointer; font-family: var(--font-sans); letter-spacing: 0.1em; font-size: 0.9rem;">MENU
+                +</button>
+            <div class="dropdown-content">
+                <a href="index.html">HOME</a>
+                <a href="index.html#approach">HOW IT WORKS</a>
+                <a href="projects-2026.html">PROJECT CATALOGUE</a>
+                <a href="cohort-2025.html">2025 COHORT</a>
+                <a href="projects-2026.html#apply" style="color: var(--alert);">JOIN US</a>
+            </div>
         </div>
     </nav>
 
@@ -132,7 +136,7 @@
 
                     <dl class="pc2-compact-meta">
                         <div><dt>Faculty PI</dt><dd class="pc2-pi"></dd></div>
-                        <div><dt>Medical Lead</dt><dd class="pc2-mentor"></dd></div>
+                        <div><dt>Medical Student Lead</dt><dd class="pc2-mentor"></dd></div>
                     </dl>
 
                     <button type="button" class="pc2-expand-btn" aria-haspopup="dialog" aria-expanded="false">
@@ -171,7 +175,7 @@
 
                 <dl class="pm-meta">
                     <div><dt>Faculty PI</dt><dd class="pm-pi"></dd></div>
-                    <div><dt>Medical Lead</dt><dd class="pm-mentor"></dd></div>
+                    <div><dt>Medical Student Lead</dt><dd class="pm-mentor"></dd></div>
                 </dl>
 
                 <div class="pm-body">
@@ -223,10 +227,11 @@
                         answers. Selected fellows commit fifteen to twenty hours per week from June 16
                         through August 25, 2026.
                     </p>
+                    <p style="font-weight: 600; margin-bottom: 0.5rem; color: var(--ink);">What we are looking for:</p>
                     <ul class="apply-card-checklist">
-                        <li>Pick three projects and rank them</li>
-                        <li>Attach resume or CV, link one representative code sample</li>
-                        <li>Answer four short prompts, about 200 words each</li>
+                        <li><strong>Technical Depth:</strong> A proven track record of building innovative things.</li>
+                        <li><strong>Curiosity:</strong> A genuine desire to solve complex problems.</li>
+                        <li><strong>High Agency:</strong> The ability to lead independent research.</li>
                     </ul>
                 </div>
                 <div class="apply-card-actions">

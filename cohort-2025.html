@@ -5,288 +5,284 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2025 Cohort | The Tensor Lab</title>
+    <meta name="description"
+        content="Results from the inaugural 2025 Tensor Lab cohort. Seven projects across clinical ML, NLP, computer vision, and causal inference.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@700;800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700;1,800&family=Inter:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=2026-4">
+    <style>
+        .cohort-page {
+            background: var(--paper);
+            color: var(--ink);
+            min-height: 100vh;
+        }
+
+        .cohort-hero {
+            padding: 10rem 2rem 5rem;
+            text-align: center;
+            background: var(--bg-dark);
+            color: white;
+            position: relative;
+        }
+
+        .cohort-hero::before {
+            content: '';
+            position: absolute;
+            top: -40%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 700px;
+            height: 700px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .cohort-hero-label {
+            font-family: var(--font-sans);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--alert);
+            margin-bottom: 2rem;
+        }
+
+        .cohort-hero-title {
+            font-family: var(--font-serif);
+            font-size: clamp(2.5rem, 5vw, 4.5rem);
+            font-weight: 700;
+            font-style: italic;
+            line-height: 1;
+            margin-bottom: 1.5rem;
+        }
+
+        .cohort-hero-sub {
+            font-family: var(--font-sans);
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.45);
+            max-width: 540px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+
+        .cohort-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        .cohort-content .section-label {
+            margin-bottom: 1rem;
+        }
+
+        .cohort-content .headline {
+            margin-bottom: 1rem;
+        }
+
+        .cohort-content .section-lede {
+            font-family: var(--font-sans);
+            font-size: 0.95rem;
+            color: var(--ink-light);
+            max-width: 640px;
+            line-height: 1.6;
+            margin-bottom: 3rem;
+        }
+
+        .cohort-divider {
+            border: none;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            margin: 0;
+        }
+
+        .cohort-footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            font-family: var(--font-sans);
+            font-size: 0.75rem;
+            color: var(--ink-light);
+        }
+
+        @media (max-width: 768px) {
+            .cohort-hero {
+                padding: 8rem 1.5rem 3rem;
+            }
+
+            .cohort-content {
+                padding: 3rem 1.5rem;
+            }
+        }
+    </style>
 </head>
 
-<body>
+<body class="cohort-page">
 
-    <canvas id="starfield"></canvas>
-    <div class="starfield-overlay"></div>
-
-    <header>
-        <div class="container">
-            <nav>
-                <a href="index.html" class="logo">
-                    <img src="Logo.png" alt="Logo" style="height: 40px; width: auto; margin-right: 10px;"
-                        loading="eager">
-                    <div style="display: flex; flex-direction: column; line-height: 1;">
-                        <div style="white-space: nowrap; width: 100%;">THE TENSOR LAB</div>
-                        <div
-                            style="font-size: 0.62rem; color: var(--text-muted); letter-spacing: 0.05em; font-weight: 600; margin-top: 2px; white-space: nowrap; width: 100%;">
-                            FOR COMPUTATIONAL MEDICINE</div>
-                    </div>
-                </a>
-                <div class="nav-links">
-                    <a href="team.html">Our Team</a>
-                    <a href="approach.html">The Approach</a>
-                    <a href="cohort-2025.html" class="active">2025 Cohort</a>
-                    <a href="index.html#open-roles" class="nav-cta">Join The Team</a>
-                </div>
-                <button class="mobile-menu-btn" aria-label="Toggle menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-            </nav>
+    <nav class="surge-nav" style="justify-content: space-between; padding: 2rem;">
+        <a href="index.html" aria-label="Tensor Lab home">
+            <img src="logo2.png" alt="The Tensor Lab" style="height: 64px; width: auto;">
+        </a>
+        <div class="dropdown">
+            <button class="dropbtn" aria-label="Open menu"
+                style="color: white; border: none; padding: 0.5rem 0; background: transparent; cursor: pointer; font-family: var(--font-sans); letter-spacing: 0.1em; font-size: 0.9rem;">MENU
+                +</button>
+            <div class="dropdown-content">
+                <a href="index.html">HOME</a>
+                <a href="index.html#approach">HOW IT WORKS</a>
+                <a href="projects-2026.html">PROJECT CATALOGUE</a>
+                <a href="cohort-2025.html">2025 COHORT</a>
+                <a href="projects-2026.html#apply" style="color: var(--alert);">JOIN US</a>
+            </div>
         </div>
+    </nav>
+
+    <header class="cohort-hero">
+        <div class="cohort-hero-label">Class of 2025</div>
+        <h1 class="cohort-hero-title">Foundational<br>Research.</h1>
+        <p class="cohort-hero-sub">
+            Seven pioneering initiatives across clinical ML, NLP, computer vision, and causal inference.
+        </p>
     </header>
 
-    <main>
-        <div class="parallax-wrapper">
-            <div class="parallax-bg" style="background-image: url('NASA%20Photos/Orion.png');"></div>
+    <div class="cohort-content">
+        <div class="section-label">PROJECTS</div>
+        <h2 class="headline">2025 cohort results</h2>
+        <p class="section-lede">
+            Below is a curated selection of research led by our inaugural class of 2025.
+        </p>
 
-            <!-- SELECTED WORKS (Marketplace) -->
-            <section id="marketplace" class="section-surface">
-                <div class="container">
-                    <div class="section-header">
-                        <h2>2025 Pilot Cohort: Selected Works</h2>
-                        <p style="color:var(--text-muted)">Deep dives into the projects delivered by our first cohort.
-                        </p>
-                    </div>
-
-                    <div class="filter-bar">
-                        <button class="filter-btn active" onclick="filterProjects('all')">All Systems</button>
-                        <button class="filter-btn" onclick="filterProjects('vision')">Computer Vision</button>
-                        <button class="filter-btn" onclick="filterProjects('llm')">LLMs / NLP</button>
-                        <button class="filter-btn" onclick="filterProjects('predict')">Prediction</button>
-                    </div>
-
-                    <div class="grid">
-
-                        <!-- Jialong -->
-                        <div class="card project-card" data-category="llm">
-                            <div class="project-meta"><span>Benchmarking / ICU Data</span> <span
-                                    style="color:var(--primary)">NCI</span></div>
-                            <h3 style="margin-bottom:0.5rem;">LLMs vs. Traditional ML for Clinical Prediction</h3>
-                            <div class="team-meta"
-                                style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem; background:rgba(255,255,255,0.03); padding:0.5rem; border-radius:0.5rem;">
-                                <div><strong>PI:</strong> Dr. Jonas De Almeida</div>
-                                <div><strong>Mentor:</strong> Aaron Ge</div>
-                                <div><strong>Fellow:</strong> Jialong</div>
-                            </div>
-                            <p style="color:var(--text-muted); font-size:0.9rem;">Compared the performance of LLM-based
-                                semantic models (using LLM embeddings) against traditional ML models (XGBoost) across
-                                different clinical prediction tasks.</p>
-                            <div
-                                style="margin-top:1rem; font-size:0.85rem; border-top:1px solid var(--border); padding-top:0.5rem;">
-                                <strong>Result:</strong> Text representation critically affects performance; traditional
-                                ML excels at physiological data.
-                            </div>
-                            <div class="tech">XGBoost, LLM Embeddings, Python</div>
-                        </div>
-
-                        <!-- Dmitry -->
-                        <div class="card project-card" data-category="llm">
-                            <div class="project-meta"><span>Pharmacogenomics</span> <span
-                                    style="color:var(--primary)">UCSF</span></div>
-                            <h3 style="margin-bottom:0.5rem;">Oncology Pharmacogenomics Knowledge Graph</h3>
-                            <div class="team-meta"
-                                style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem; background:rgba(255,255,255,0.03); padding:0.5rem; border-radius:0.5rem;">
-                                <div><strong>PI:</strong> Dr. Brian Schulte</div>
-                                <div><strong>Mentors:</strong> Diem My, Chy Murali</div>
-                                <div><strong>Fellow:</strong> Dmitry</div>
-                            </div>
-                            <p style="color:var(--text-muted); font-size:0.9rem;">Developed the OPMG prototype to
-                                accelerate clinical evidence synthesis using an ETL-First strategy and Knowledge Graph
-                                RAG system.</p>
-                            <div
-                                style="margin-top:1rem; font-size:0.85rem; border-top:1px solid var(--border); padding-top:0.5rem;">
-                                <strong>Result:</strong> Validated ETL-first strategy and end-to-end KG-RAG pipeline
-                                functionality.
-                            </div>
-                            <div class="tech">Knowledge Graph, RAG, Gemini, ETL</div>
-                        </div>
-
-                        <!-- Malavika -->
-                        <div class="card project-card" data-category="predict">
-                            <div class="project-meta"><span>Oncology / SDOH</span> <span
-                                    style="color:var(--primary)">UCSF</span></div>
-                            <h3 style="margin-bottom:0.5rem;">Modeling Prostate Cancer Using SDOH</h3>
-                            <div class="team-meta"
-                                style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem; background:rgba(255,255,255,0.03); padding:0.5rem; border-radius:0.5rem;">
-                                <div><strong>PI:</strong> Dr. Scott Campbell</div>
-                                <div><strong>Mentors:</strong> Chy Murali, Diem My</div>
-                                <div><strong>Fellow:</strong> Malavika</div>
-                            </div>
-                            <p style="color:var(--text-muted); font-size:0.9rem;">Trained ML models using SEER registry
-                                data linked with Social Determinants of Health proxies to stratify prostate cancer
-                                patients.</p>
-                            <div
-                                style="margin-top:1rem; font-size:0.85rem; border-top:1px solid var(--border); padding-top:0.5rem;">
-                                <strong>Result:</strong> SDOH adds measurable predictive value, highlighting the
-                                importance of social context.
-                            </div>
-                            <div class="tech">Logistic Regression, SDOH Data, Python</div>
-                        </div>
-
-                        <!-- Koushik -->
-                        <div class="card project-card" data-category="predict">
-                            <div class="project-meta"><span>Head & Neck Cancer</span> <span
-                                    style="color:var(--primary)">UMSOM</span></div>
-                            <h3 style="margin-bottom:0.5rem;">RFS Prediction with/without Segmentation</h3>
-                            <div class="team-meta"
-                                style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem; background:rgba(255,255,255,0.03); padding:0.5rem; border-radius:0.5rem;">
-                                <div><strong>PI:</strong> Dr. Grace Snow</div>
-                                <div><strong>Mentor:</strong> Laura Chen</div>
-                                <div><strong>Fellow:</strong> Koushik</div>
-                            </div>
-                            <p style="color:var(--text-muted); font-size:0.9rem;">Investigated whether a simplified
-                                multimodal model using only PET/CT and clinical data could achieve comparable RFS
-                                prediction to expert-annotated models.</p>
-                            <div
-                                style="margin-top:1rem; font-size:0.85rem; border-top:1px solid var(--border); padding-top:0.5rem;">
-                                <strong>Result:</strong> Simpler PET/CT model achieved comparable performance and is
-                                more generalizable.
-                            </div>
-                            <div class="tech">Multimodal ML, PET/CT, Survival Analysis</div>
-                        </div>
-
-                        <!-- Ashwin -->
-                        <div class="card project-card" data-category="llm">
-                            <div class="project-meta"><span>Emergency Medicine</span> <span
-                                    style="color:var(--primary)">Kaiser</span></div>
-                            <h3 style="margin-bottom:0.5rem;">LLM-Powered ER Triage Simulator</h3>
-                            <div class="team-meta"
-                                style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem; background:rgba(255,255,255,0.03); padding:0.5rem; border-radius:0.5rem;">
-                                <div><strong>PI:</strong> Dr. Ian McLachlan</div>
-                                <div><strong>Mentor:</strong> Aaron Ge</div>
-                                <div><strong>Fellow:</strong> Ashwin</div>
-                            </div>
-                            <p style="color:var(--text-muted); font-size:0.9rem;">Developed a training simulator using
-                                LLMs to create interactive, data-grounded emergency triage encounters from MIMIC-IV
-                                data.</p>
-                            <div
-                                style="margin-top:1rem; font-size:0.85rem; border-top:1px solid var(--border); padding-top:0.5rem;">
-                                <strong>Result:</strong> Confirmed feasibility of using LLMs for realistic, scalable
-                                medical training tools.
-                            </div>
-                            <div class="tech">LLMs, MIMIC-IV, Interactive Systems</div>
-                        </div>
-
-                        <!-- Shravya -->
-                        <div class="card project-card" data-category="llm">
-                            <div class="project-meta"><span>Cardiology / Readmission</span> <span
-                                    style="color:var(--primary)">UCSF</span></div>
-                            <h3 style="margin-bottom:0.5rem;">Predicting Hospital Readmissions</h3>
-                            <div class="team-meta"
-                                style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem; background:rgba(255,255,255,0.03); padding:0.5rem; border-radius:0.5rem;">
-                                <div><strong>PI:</strong> Dr. Geoff Tison</div>
-                                <div><strong>Mentor:</strong> Griffith Hughes</div>
-                                <div><strong>Fellow:</strong> Shravya</div>
-                            </div>
-                            <p style="color:var(--text-muted); font-size:0.9rem;">Developed an attention-based deep
-                                learning model (BioClinicalBERT) to predict 30-day readmissions from free-text discharge
-                                summaries.</p>
-                            <div
-                                style="margin-top:1rem; font-size:0.85rem; border-top:1px solid var(--border); padding-top:0.5rem;">
-                                <strong>Result:</strong> Achieved AUROC 0.730 with interpretable predictions via SHAP.
-                            </div>
-                            <div class="tech">BioClinicalBERT, SHAP, NLP</div>
-                        </div>
-
-                    </div>
-
-                    <!-- Juan Arturo - Centered with same max-width as grid cards -->
-                    <div style="text-align: center; margin-top: 2rem;">
-                        <div class="card project-card" data-category="vision"
-                            style="display: inline-block; width: 100%; max-width: 350px; text-align: left;">
-                            <div class="project-meta"><span>Lung Cancer</span> <span
-                                    style="color:var(--primary)">UCSF</span></div>
-                            <h3 style="margin-bottom:0.5rem;">Deep Learning for CT Lung Classification</h3>
-                            <div class="team-meta"
-                                style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem; background:rgba(255,255,255,0.03); padding:0.5rem; border-radius:0.5rem;">
-                                <div><strong>PI:</strong> Dr. Julian Hong</div>
-                                <div><strong>Mentor:</strong> Matt Kim</div>
-                                <div><strong>Fellow:</strong> Juan Arturo</div>
-                            </div>
-                            <p style="color:var(--text-muted); font-size:0.9rem;">Compared ResNet50, VGG16, and
-                                InceptionV3 for CT-based lung lesion classification using the IQ-OTH/NCCD dataset.</p>
-                            <div
-                                style="margin-top:1rem; font-size:0.85rem; border-top:1px solid var(--border); padding-top:0.5rem;">
-                                <strong>Result:</strong> InceptionV3 showed the most consistent performance (0.92
-                                F1-Score) for diagnostics.
-                            </div>
-                            <div class="tech">InceptionV3, Computer Vision, CNNs</div>
-                        </div>
-                    </div>
+        <div class="past-projects-grid">
+            <article class="past-project">
+                <div class="past-project-meta">
+                    <span>Benchmarking &middot; ICU</span><span class="past-project-institution">NCI</span>
                 </div>
-            </section>
+                <h3>LLMs vs. traditional ML</h3>
+                <div class="past-project-byline">Jialong &middot; Mentored by Aaron Ge</div>
+                <p>Compared LLM based semantic models against XGBoost across clinical prediction tasks.</p>
+                <div class="past-project-result"><strong>Result.</strong> Text representation critically affects
+                    performance. Traditional ML still wins on pure physiological signals.</div>
+            </article>
 
-            <!-- FELLOW STORIES -->
-            <section id="testimonials" class="testimonial-section">
-                <div class="container">
-                    <div class="section-header">
-                        <h2>Fellow Stories</h2>
-                        <p style="color:var(--text-muted)">Hear from our inaugural cohort.</p>
-                    </div>
-                    <div class="testimonial-wall">
-                        <div class="testimonial-card">
-                            <div class="quote-icon">“</div>
-                            <p class="testimonial-text">Tensor Lab showed me meaningful challenges that combine both
-                                clinical and technical domains. As I prepare for my PhD applications, this experience
-                                was invaluable in clearly defining my research direction.</p>
-                            <span class="testimonial-author">Jialong</span>
-                            <span class="testimonial-role">Research Fellow</span>
-                        </div>
-                        <div class="testimonial-card">
-                            <div class="quote-icon">“</div>
-                            <p class="testimonial-text">Tensor Lab taught me to conceptualize and develop applications
-                                for LLMs that require significant domain knowledge.</p>
-                            <span class="testimonial-author">Ashwin</span>
-                            <span class="testimonial-role">Research Fellow</span>
-                        </div>
-                        <div class="testimonial-card">
-                            <div class="quote-icon">“</div>
-                            <p class="testimonial-text">The guidance from the faculty and mentors was exceptional... I
-                                wouldn’t have reached our final publication goals without their help.</p>
-                            <span class="testimonial-author">Koushik</span>
-                            <span class="testimonial-role">Research Fellow</span>
-                        </div>
-                        <div class="testimonial-card">
-                            <div class="quote-icon">“</div>
-                            <p class="testimonial-text">Collaborating with a global cohort... provided me with a network
-                                of contacts for future projects.</p>
-                            <span class="testimonial-author">Juan Arturo</span>
-                            <span class="testimonial-role">Research Fellow</span>
-                        </div>
-                    </div>
+            <article class="past-project">
+                <div class="past-project-meta">
+                    <span>Pharmacogenomics</span><span class="past-project-institution">UCSF</span>
                 </div>
-        </div>
-        </section>
-        </div>
-    </main>
+                <h3>Oncology knowledge graph</h3>
+                <div class="past-project-byline">Dmitry &middot; Mentored by Diem My</div>
+                <p>Built an ETL first prototype for clinical evidence synthesis using a Knowledge Graph RAG
+                    system.</p>
+                <div class="past-project-result"><strong>Result.</strong> Validated ETL first strategy and end
+                    to end KG RAG functionality on real oncology cases.</div>
+            </article>
 
-    <footer style="padding-top: 3rem;">
-        <div class="container">
-            <p>The Tensor Lab for Computational Medicine &copy; 2025</p>
-        </div>
-    </footer>
+            <article class="past-project">
+                <div class="past-project-meta">
+                    <span>Oncology &middot; SDOH</span><span class="past-project-institution">UCSF</span>
+                </div>
+                <h3>Prostate cancer and SDOH</h3>
+                <div class="past-project-byline">Malavika &middot; Mentored by Chy Murali</div>
+                <p>Used SEER registry data linked with social determinants of health proxies to stratify
+                    prostate cancer patients.</p>
+                <div class="past-project-result"><strong>Result.</strong> SDOH adds measurable predictive value,
+                    highlighting social context in risk models.</div>
+            </article>
 
-    <!-- POSTER MODAL -->
-    <div id="poster-modal" class="modal" onclick="closeModal(event)">
-        <span class="close-modal" onclick="closeModal(event)">&times;</span>
-        <iframe id="modal-frame" class="modal-content" src="" style="width:80vw; height:80vh; border:none;"></iframe>
-        <div id="modal-caption" style="color:white; margin-top:1rem; font-size:1.2rem;"></div>
-        <button id="download-btn" class="btn"
-            style="margin-top:1rem; border:1px solid white; background:transparent;">Download PDF</button>
+            <article class="past-project">
+                <div class="past-project-meta">
+                    <span>Head and Neck Cancer</span><span class="past-project-institution">UMSOM</span>
+                </div>
+                <h3>RFS prediction via PET/CT</h3>
+                <div class="past-project-byline">Koushik &middot; Mentored by Laura Chen</div>
+                <p>Investigated whether a simplified multimodal model using only PET/CT and clinical data could
+                    match expert annotated performance.</p>
+                <div class="past-project-result"><strong>Result.</strong> Simpler model matched performance and
+                    generalized better across institutions.</div>
+            </article>
+
+            <article class="past-project">
+                <div class="past-project-meta">
+                    <span>Emergency Medicine</span><span class="past-project-institution">Kaiser</span>
+                </div>
+                <h3>LLM ER triage simulator</h3>
+                <div class="past-project-byline">Ashwin &middot; Mentored by Aaron Ge</div>
+                <p>Built a training simulator using LLMs to create interactive, data grounded emergency triage
+                    encounters from MIMIC IV.</p>
+                <div class="past-project-result"><strong>Result.</strong> Confirmed feasibility of LLMs for
+                    realistic medical training tools.</div>
+            </article>
+
+            <article class="past-project">
+                <div class="past-project-meta">
+                    <span>Cardiology &middot; Readmissions</span><span class="past-project-institution">UCSF</span>
+                </div>
+                <h3>Predicting readmissions</h3>
+                <div class="past-project-byline">Shravya &middot; Mentored by Griffith Hughes</div>
+                <p>Attention based deep learning over free text discharge summaries to predict thirty day
+                    readmissions.</p>
+                <div class="past-project-result"><strong>Result.</strong> AUROC 0.730 with interpretable
+                    predictions via SHAP.</div>
+            </article>
+
+            <article class="past-project">
+                <div class="past-project-meta">
+                    <span>Lung Cancer</span><span class="past-project-institution">UCSF</span>
+                </div>
+                <h3>Deep learning for CT lung</h3>
+                <div class="past-project-byline">Juan Arturo &middot; Mentored by Matt Kim</div>
+                <p>Compared ResNet50, VGG16, and InceptionV3 for CT based lung lesion classification on the IQ
+                    OTH NCCD dataset.</p>
+                <div class="past-project-result"><strong>Result.</strong> InceptionV3 showed the most consistent
+                    performance with 0.92 F1.</div>
+            </article>
+        </div>
     </div>
 
-    <script src="script.js"></script>
+    <hr class="cohort-divider">
+
+    <div class="cohort-content">
+        <div class="section-label">FELLOW STORIES</div>
+        <h2 class="headline">In their own words.</h2>
+        <p class="section-lede">What our 2025 fellows said about their experience.</p>
+
+        <div class="testimonial-wall">
+            <div class="testimonial-card">
+                <div class="quote-icon">"</div>
+                <p class="testimonial-text">Tensor Lab showed me meaningful challenges that combine both
+                    clinical and technical domains. As I prepare for my PhD applications, this experience
+                    was invaluable in clearly defining my research direction.</p>
+                <span class="testimonial-author">Jialong</span>
+                <span class="testimonial-role">Research Fellow, 2025</span>
+            </div>
+            <div class="testimonial-card">
+                <div class="quote-icon">"</div>
+                <p class="testimonial-text">Tensor Lab taught me to conceptualize and develop applications
+                    for LLMs that require significant domain knowledge.</p>
+                <span class="testimonial-author">Ashwin</span>
+                <span class="testimonial-role">Research Fellow, 2025</span>
+            </div>
+            <div class="testimonial-card">
+                <div class="quote-icon">"</div>
+                <p class="testimonial-text">The guidance from the faculty and mentors was exceptional. I
+                    wouldn't have reached our final publication goals without their help.</p>
+                <span class="testimonial-author">Koushik</span>
+                <span class="testimonial-role">Research Fellow, 2025</span>
+            </div>
+            <div class="testimonial-card">
+                <div class="quote-icon">"</div>
+                <p class="testimonial-text">Collaborating with a global cohort provided me with a network
+                    of contacts for future projects.</p>
+                <span class="testimonial-author">Juan Arturo</span>
+                <span class="testimonial-role">Research Fellow, 2025</span>
+            </div>
+        </div>
+    </div>
+
+    <footer class="cohort-footer">
+        <p>&copy; 2026 Tensor Lab. Open Science &middot; Open Code.</p>
+    </footer>
+
 </body>
 
 </html>
