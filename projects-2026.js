@@ -416,7 +416,11 @@
     var id = (window.location.hash || '').replace(/^#/, '');
     if (!id) return;
     try { id = decodeURIComponent(id); } catch (e) { /* raw */ }
-    if (id === 'apply' || id === 'projects') return;
+    if (id === 'apply' || id === 'projects') {
+      var section = document.getElementById(id);
+      if (section) setTimeout(function () { section.scrollIntoView({ behavior: 'smooth' }); }, 50);
+      return;
+    }
     if (!findProject(id)) return;
 
     var grid = document.getElementById('projects-grid');
