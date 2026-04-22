@@ -7,7 +7,9 @@
  * Feature 1 (F1) lives here: getProjectCounts reads the applications tab,
  * tallies all three ranked choice columns, and returns { project_id: count }.
  *
- * No applicant personally identifying data is ever returned by this endpoint.
+ * This file also hosts the shared constants and column alias lookup that
+ * triggers.gs and setup.gs reuse. Apps Script merges all .gs files into a
+ * single runtime namespace, so these symbols are available everywhere.
  */
 
 /** Sheet and cache constants. */
@@ -20,7 +22,64 @@ var SHEET_RESELECTIONS = 'reselections';
 var COUNTS_CACHE_KEY = 'project_counts_v1';
 var COUNTS_CACHE_TTL_SECONDS = 60;
 
+/** Logical names used throughout the code. */
 var CHOICE_COLUMNS = ['choice_1', 'choice_2', 'choice_3'];
+
+/**
+ * Column alias map.
+ *
+ * Keys are logical names used in the Apps Script. Values are a list of
+ * possible column header strings in the order they should be tried. The first
+ * exact match wins. If nothing matches, a case insensitive match is tried.
+ *
+ * Add new aliases here when the form question titles change. Do not hunt for
+ * indexOf calls scattered through the code, they all route through _col.
+ */
+var FIELD_ALIASES = {
+  timestamp:            ['timestamp', 'Timestamp'],
+  email:                ['email', 'Email Address', 'Email'],
+  name:                 ['name', 'Full name', 'Name'],
+  preferred_name:       ['preferred_name', 'Preferred name'],
+  pronouns:             ['pronouns', 'Pronouns'],
+  phone:                ['phone', 'Phone number'],
+  school:               ['school', 'Current (or most recent) institution', 'Institution'],
+  program:              ['program', 'Program or major'],
+  year:                 ['year', 'What is your current (or highest achieved) academic level?', 'Academic level'],
+  graduation_date:      ['graduation_date', 'Expected graduation date for current academic program'],
+  linkedin_url:         ['linkedin_url', 'LinkedIn URL'],
+  portfolio_url:        ['portfolio_url', 'Personal website or portfolio URL'],
+  github_url:           ['github_url', 'GitHub URL'],
+  resume_url:           ['resume_url', 'Resume or CV link', 'Resume URL'],
+  languages:            ['languages', 'Programming languages and proficiency'],
+  ml_frameworks:        ['ml_frameworks', 'ML frameworks and libraries you have used'],
+  ml_project:           ['ml_project', 'Describe one ML project you have built end to end'],
+  publications:         ['publications', 'Have you published or presented research?'],
+  code_sample:          ['code_sample', 'Pick one code sample that best represents your work and link it here. Briefly describe what it shows.'],
+  clinical_data:        ['clinical_data', 'Have you worked with clinical or biomedical data before?'],
+  choice_1:             ['choice_1', 'First choice project', 'First choice'],
+  choice_1_elaborate:   ['choice_1_elaborate', 'Elaborate on your interest in this first project.', 'Elaborate on your interest in this first project. '],
+  choice_2:             ['choice_2', 'Second choice project', 'Second choice'],
+  choice_2_elaborate:   ['choice_2_elaborate', 'Elaborate on your interest in this second project.', 'Elaborate on your interest in this second project. '],
+  choice_3:             ['choice_3', 'Third choice project', 'Third choice'],
+  choice_3_elaborate:   ['choice_3_elaborate', 'Elaborate on your interest in this third project.', 'Elaborate on your interest in this third project. '],
+  response_debugging:   ['response_debugging', 'Walk us through how you debug a model that is training but not learning. (200 Word Maximum)'],
+  response_teamwork:    ['response_teamwork', 'Describe a time you worked on a team toward a shared goal. (200 Word Maximum)'],
+  response_motivation:  ['response_motivation', 'Why Tensor Lab? What do you hope to gain? (200 Word Maximum)'],
+  response_extra:       ['response_extra', 'Tell us about something you built or learned that is not on your resume. (200 Word Maximum)'],
+  commit_hours:         ['commit_hours', 'Can you commit 10 to 15 hours per week from June through August 2026?'],
+  absences:             ['absences', 'If you have constraints or planned absences, describe them here.'],
+  earliest_start:       ['earliest_start', 'Earliest start date'],
+  latest_end:           ['latest_end', 'Latest end date'],
+  time_zone:            ['time_zone', 'Time zone you will be working in'],
+  other_programs:       ['other_programs', 'List any other summer programs, internships, or jobs you have applied to or accepted.'],
+  top_priority:         ['top_priority', 'Is Tensor Lab your top summer priority?'],
+  referral:             ['referral', 'How did you hear about Tensor Lab?'],
+  anything_else:        ['anything_else', "Is there anything else you'd want us to know?"],
+  confirmation:         ['confirmation', 'Do you confirm the following?'],
+  redirect_token:       ['redirect_token'],
+  resume_upload:        ['resume_upload', 'Resume or CV'],
+  status:               ['status', 'Application status']
+};
 
 /**
  * Web app router. Inputs: e (Apps Script event). Outputs: JSON ContentService.
@@ -60,7 +119,7 @@ function getProjectCounts() {
 
   var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   var columnIndexes = CHOICE_COLUMNS
-    .map(function (name) { return headers.indexOf(name); })
+    .map(function (name) { return _col(headers, name); })
     .filter(function (idx) { return idx !== -1; });
 
   if (columnIndexes.length === 0) {
@@ -74,7 +133,7 @@ function getProjectCounts() {
     for (var j = 0; j < columnIndexes.length; j++) {
       var raw = row[columnIndexes[j]];
       if (!raw) continue;
-      var projectId = String(raw).trim();
+      var projectId = _extractProjectId(raw);
       if (!projectId) continue;
       counts[projectId] = (counts[projectId] || 0) + 1;
     }
@@ -82,6 +141,37 @@ function getProjectCounts() {
 
   cache.put(COUNTS_CACHE_KEY, JSON.stringify(counts), COUNTS_CACHE_TTL_SECONDS);
   return counts;
+}
+
+/**
+ * Resolve a logical column name to a column index on a given header row.
+ * Tries each alias exact match first, then falls back to a trimmed case
+ * insensitive match. Returns -1 when no alias resolves.
+ */
+function _col(headers, logical) {
+  var aliases = FIELD_ALIASES[logical] || [logical];
+  for (var i = 0; i < aliases.length; i++) {
+    var idx = headers.indexOf(aliases[i]);
+    if (idx !== -1) return idx;
+  }
+  var lower = headers.map(function (h) { return String(h || '').trim().toLowerCase(); });
+  for (var j = 0; j < aliases.length; j++) {
+    var ix = lower.indexOf(String(aliases[j] || '').trim().toLowerCase());
+    if (ix !== -1) return ix;
+  }
+  return -1;
+}
+
+/**
+ * Choice cells come from a Google Form dropdown whose values are formatted as
+ * "project_id :: Title". We only want the id half for counting. Accept plain
+ * project_id too for robustness.
+ */
+function _extractProjectId(cellValue) {
+  var raw = String(cellValue || '').trim();
+  if (!raw) return '';
+  var sep = raw.indexOf('::');
+  return sep === -1 ? raw : raw.substring(0, sep).trim();
 }
 
 /** Fetch a named sheet from the configured spreadsheet. Returns null if missing. */

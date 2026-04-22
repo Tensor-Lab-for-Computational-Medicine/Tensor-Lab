@@ -9,43 +9,91 @@
  *   APPLICATION_FORM_ID   The main application form id.
  *   RESELECTION_FORM_ID   The reselection form id (may equal the above).
  *   PROJECTS_JSON_URL     Raw URL to data/projects_2026.json.
+ *
+ * The applications tab is driven by a Google Form. This file never overwrites
+ * its header row. It only appends a `status` column at the end when missing,
+ * because the Apps Script needs a place to write validation outcomes.
+ *
+ * The reselections tab is also form driven once a reselection form exists.
+ * Until then, initialSetup leaves an empty tab in place with the minimum
+ * columns the reselection trigger expects.
  */
 
-var REQUIRED_TABS = {
-  applications: [
-    'timestamp', 'email', 'name', 'school', 'year',
-    'choice_1', 'choice_2', 'choice_3',
-    'resume_url', 'portfolio_url',
-    'response_debugging', 'response_teamwork', 'response_motivation',
-    'redirect_token', 'status'
-  ],
-  reselections: ['timestamp', 'email', 'redirect_token', 'new_choice'],
+/** Headers for the tabs this code owns end to end. */
+var OWNED_TABS = {
   control: ['project_id', 'status', 'filled_at', 'selected_applicant'],
   redirect_log: ['timestamp', 'applicant_email', 'project_removed', 'project_added'],
   error_log: ['timestamp', 'function_name', 'message', 'stack']
 };
 
 /**
- * Create any missing tabs and header rows on the configured spreadsheet.
- * Inputs: none. Output: void.
+ * Tabs that a Google Form writes to. initialSetup does not overwrite their
+ * headers. For `applications` it only ensures a `status` column exists at the
+ * end. For `reselections` it seeds a minimal header row only when the tab is
+ * empty, so a future form can bind to it.
+ */
+var FORM_DRIVEN_TABS = ['applications', 'reselections'];
+
+/** Minimum columns the reselection trigger expects to find, by logical name. */
+var RESELECTION_MINIMUM_COLUMNS = ['timestamp', 'email', 'redirect_token', 'new_choice'];
+
+/**
+ * Create any missing tabs and make sure `status` exists on the applications
+ * tab. Safe to rerun. Inputs: none. Output: void.
  */
 function initialSetup() {
   var props = PropertiesService.getScriptProperties();
   var spreadsheetId = props.getProperty('SPREADSHEET_ID');
   if (!spreadsheetId) throw new Error('Set SPREADSHEET_ID script property first.');
   var ss = SpreadsheetApp.openById(spreadsheetId);
-  Object.keys(REQUIRED_TABS).forEach(function (name) {
+
+  Object.keys(OWNED_TABS).forEach(function (name) {
     var sheet = ss.getSheetByName(name) || ss.insertSheet(name);
-    var headers = REQUIRED_TABS[name];
+    var desired = OWNED_TABS[name];
     var existing = sheet.getLastColumn() > 0
       ? sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0]
       : [];
-    if (existing.join('|') !== headers.join('|')) {
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    if (existing.join('|') !== desired.join('|')) {
+      sheet.getRange(1, 1, 1, desired.length).setValues([desired]);
       sheet.setFrozenRows(1);
     }
   });
+
+  _ensureApplicationsStatusColumn(ss);
+  _ensureReselectionsTab(ss);
+
   seedControlFromProjects();
+}
+
+/**
+ * Make sure the applications tab has a `status` column. Appended at the end
+ * so existing form driven columns stay untouched. No op if already present.
+ */
+function _ensureApplicationsStatusColumn(ss) {
+  var sheet = ss.getSheetByName(SHEET_APPLICATIONS);
+  if (!sheet) {
+    throw new Error('The applications tab does not exist yet. Link your Google Form to the spreadsheet and rename the response tab to `applications`, then rerun initialSetup.');
+  }
+  var lastCol = sheet.getLastColumn();
+  if (lastCol === 0) {
+    throw new Error('The applications tab has no columns yet. Submit one test response through your Google Form so Google creates the header row, then rerun initialSetup.');
+  }
+  var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  if (_col(headers, 'status') >= 0) return;
+  sheet.getRange(1, lastCol + 1).setValue('status');
+  sheet.setFrozenRows(1);
+}
+
+/**
+ * Seed the reselections tab with a minimum header row so the trigger has
+ * something to look up. Only runs when the tab is missing or empty, so a
+ * linked Google Form remains the source of truth once one exists.
+ */
+function _ensureReselectionsTab(ss) {
+  var sheet = ss.getSheetByName(SHEET_RESELECTIONS) || ss.insertSheet(SHEET_RESELECTIONS);
+  if (sheet.getLastColumn() > 0) return;
+  sheet.getRange(1, 1, 1, RESELECTION_MINIMUM_COLUMNS.length).setValues([RESELECTION_MINIMUM_COLUMNS]);
+  sheet.setFrozenRows(1);
 }
 
 /**
@@ -75,8 +123,10 @@ function seedControlFromProjects() {
 }
 
 /**
- * Sync form dropdown options for the three ranked choice questions to match
- * the current projects_2026.json. Safe to rerun. Inputs: none. Output: void.
+ * Sync form dropdown options for the three ranked choice questions so the
+ * options match the current projects_2026.json. The function looks up
+ * questions by title using FIELD_ALIASES, so renaming a question only
+ * requires updating the alias list in api.gs. Safe to rerun.
  */
 function syncFormChoices() {
   var props = PropertiesService.getScriptProperties();
@@ -84,13 +134,25 @@ function syncFormChoices() {
   if (!formId) throw new Error('Set APPLICATION_FORM_ID script property first.');
 
   var projects = _fetchProjects();
-  var choices = projects.map(function (p) { return p.project_id + ' :: ' + p.title; });
+  var choiceValues = projects.map(function (p) { return p.project_id + ' :: ' + p.title; });
   var form = FormApp.getFormById(formId);
-  var titles = ['choice_1', 'choice_2', 'choice_3'];
-  form.getItems().forEach(function (item) {
-    if (titles.indexOf(item.getTitle()) === -1) return;
-    if (item.getType() !== FormApp.ItemType.LIST) return;
-    item.asListItem().setChoiceValues(choices);
+  var items = form.getItems();
+
+  CHOICE_COLUMNS.forEach(function (logical) {
+    var aliases = FIELD_ALIASES[logical] || [logical];
+    for (var i = 0; i < items.length; i++) {
+      var title = items[i].getTitle();
+      if (aliases.indexOf(title) === -1) continue;
+      var type = items[i].getType();
+      if (type === FormApp.ItemType.LIST) {
+        items[i].asListItem().setChoiceValues(choiceValues);
+      } else if (type === FormApp.ItemType.MULTIPLE_CHOICE) {
+        items[i].asMultipleChoiceItem().setChoiceValues(choiceValues);
+      } else {
+        throw new Error('Question "' + title + '" must be a Dropdown or Multiple choice item.');
+      }
+      break;
+    }
   });
 }
 

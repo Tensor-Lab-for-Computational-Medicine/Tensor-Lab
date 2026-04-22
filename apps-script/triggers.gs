@@ -4,6 +4,9 @@
  * Feature 2 (F2) Applicant Redirection System and the onFormSubmit validator
  * for Feature 3 (F3). All sheet writes run under LockService to avoid race
  * conditions when the counts poller and the form triggers fire at once.
+ *
+ * All column lookups go through _col(headers, logicalName) which consults
+ * FIELD_ALIASES in api.gs. Nothing in this file uses indexOf on a raw string.
  */
 
 /**
@@ -12,7 +15,7 @@
  * Output: { ok: true, notified: number } or throws on invalid input.
  *
  * This function must only be invoked by leadership from the Apps Script editor
- * or from a leadership-only menu. It is not exposed through doGet.
+ * or from a leadership only menu. It is not exposed through doGet.
  */
 function markProjectFilled(projectId, selectedApplicantEmail) {
   if (!projectId || !selectedApplicantEmail) {
@@ -73,11 +76,11 @@ function notifyDisplacedApplicants(projectId, selectedApplicantEmail) {
   if (!apps || apps.getLastRow() < 2) return 0;
 
   var headers = apps.getRange(1, 1, 1, apps.getLastColumn()).getValues()[0];
-  var emailCol = headers.indexOf('email');
-  var tokenCol = headers.indexOf('redirect_token');
-  var choiceCols = CHOICE_COLUMNS.map(function (c) { return headers.indexOf(c); });
+  var emailCol = _col(headers, 'email');
+  var tokenCol = _col(headers, 'redirect_token');
+  var choiceCols = CHOICE_COLUMNS.map(function (c) { return _col(headers, c); });
   if (emailCol < 0 || tokenCol < 0 || choiceCols.indexOf(-1) !== -1) {
-    throw new Error('applications sheet missing required columns');
+    throw new Error('applications sheet missing required columns, check FIELD_ALIASES in api.gs');
   }
 
   var rows = apps.getRange(2, 1, apps.getLastRow() - 1, apps.getLastColumn()).getValues();
@@ -89,7 +92,7 @@ function notifyDisplacedApplicants(projectId, selectedApplicantEmail) {
     var row = rows[i];
     var email = String(row[emailCol]).trim().toLowerCase();
     if (!email || email === String(selectedApplicantEmail).trim().toLowerCase()) continue;
-    var ranks = choiceCols.map(function (c) { return String(row[c] || '').trim(); });
+    var ranks = choiceCols.map(function (c) { return _extractProjectId(row[c]); });
     if (ranks.indexOf(projectId) === -1) continue;
     if (alreadyNotified[email]) continue;
 
@@ -124,38 +127,38 @@ function onApplicationSubmit(e) {
     var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
     var values = sheet.getRange(row, 1, 1, sheet.getLastColumn()).getValues()[0];
 
-    var get = function (name) {
-      var idx = headers.indexOf(name);
+    var get = function (logical) {
+      var idx = _col(headers, logical);
       return idx >= 0 ? String(values[idx] || '').trim() : '';
     };
-    var set = function (name, val) {
-      var idx = headers.indexOf(name);
+    var setLogical = function (logical, val) {
+      var idx = _col(headers, logical);
       if (idx >= 0) sheet.getRange(row, idx + 1).setValue(val);
     };
 
     var email = get('email').toLowerCase();
     var token = get('redirect_token');
-    var choices = CHOICE_COLUMNS.map(function (c) { return _sanitize(get(c)); });
+    var choices = CHOICE_COLUMNS.map(function (c) { return _sanitize(_extractProjectId(get(c))); });
     var validIds = _validProjectIds();
 
     for (var i = 0; i < choices.length; i++) {
-      if (choices[i] && validIds.indexOf(choices[i]) === -1) {
-        set('status', 'rejected_invalid_project');
+      if (choices[i] && validIds.length > 0 && validIds.indexOf(choices[i]) === -1) {
+        setLogical('status', 'rejected_invalid_project');
         _logError('onApplicationSubmit', new Error('Invalid project_id: ' + choices[i] + ' row ' + row));
         return;
       }
     }
 
     if (!token && _hasOpenApplication(email, row)) {
-      set('status', 'rejected_duplicate');
+      setLogical('status', 'rejected_duplicate');
       _logError('onApplicationSubmit', new Error('Duplicate application without token: ' + email + ' row ' + row));
       return;
     }
 
     if (!token) {
-      set('redirect_token', Utilities.getUuid());
+      setLogical('redirect_token', Utilities.getUuid());
     }
-    if (!get('status')) set('status', 'submitted');
+    if (!get('status')) setLogical('status', 'submitted');
 
     CacheService.getScriptCache().remove(COUNTS_CACHE_KEY);
   } catch (err) {
@@ -181,23 +184,23 @@ function handleReselectionSubmit(e) {
     var row = e.range.getRow();
     var headers = reselectSheet.getRange(1, 1, 1, reselectSheet.getLastColumn()).getValues()[0];
     var values = reselectSheet.getRange(row, 1, 1, reselectSheet.getLastColumn()).getValues()[0];
-    var get = function (name) {
-      var idx = headers.indexOf(name);
+    var get = function (logical) {
+      var idx = _col(headers, logical);
       return idx >= 0 ? String(values[idx] || '').trim() : '';
     };
     var token = get('redirect_token');
-    var newChoice = _sanitize(get('new_choice'));
+    var newChoice = _sanitize(_extractProjectId(get('new_choice')));
     if (!token || !newChoice) return;
 
     var validIds = _validProjectIds();
-    if (validIds.indexOf(newChoice) === -1) {
+    if (validIds.length > 0 && validIds.indexOf(newChoice) === -1) {
       _logError('handleReselectionSubmit', new Error('Invalid new_choice: ' + newChoice));
       return;
     }
 
     var appsHeaders = appsSheet.getRange(1, 1, 1, appsSheet.getLastColumn()).getValues()[0];
-    var tokenCol = appsHeaders.indexOf('redirect_token');
-    var choiceCols = CHOICE_COLUMNS.map(function (c) { return appsHeaders.indexOf(c); });
+    var tokenCol = _col(appsHeaders, 'redirect_token');
+    var choiceCols = CHOICE_COLUMNS.map(function (c) { return _col(appsHeaders, c); });
     if (tokenCol < 0 || choiceCols.indexOf(-1) !== -1) return;
 
     var tokens = appsSheet.getRange(2, tokenCol + 1, appsSheet.getLastRow() - 1, 1).getValues();
@@ -205,7 +208,7 @@ function handleReselectionSubmit(e) {
       if (String(tokens[i][0]).trim() === token) {
         var targetRow = i + 2;
         var existing = CHOICE_COLUMNS.map(function (c, idx) {
-          return String(appsSheet.getRange(targetRow, choiceCols[idx] + 1).getValue() || '').trim();
+          return _extractProjectId(appsSheet.getRange(targetRow, choiceCols[idx] + 1).getValue());
         });
         var replacedProject = '';
         for (var j = 0; j < existing.length; j++) {
@@ -262,7 +265,7 @@ function _hasOpenApplication(email, currentRow) {
   var sheet = _getSheet(SHEET_APPLICATIONS);
   if (!sheet || sheet.getLastRow() < 2) return false;
   var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  var emailCol = headers.indexOf('email');
+  var emailCol = _col(headers, 'email');
   if (emailCol < 0) return false;
   var values = sheet.getRange(2, emailCol + 1, sheet.getLastRow() - 1, 1).getValues();
   for (var i = 0; i < values.length; i++) {
@@ -299,7 +302,7 @@ function _appendRedirectLog(email, projectRemoved, projectAdded) {
 
 /** Email column lookup for a specific row in applications. */
 function _getEmailForRow(sheet, headers, row) {
-  var idx = headers.indexOf('email');
+  var idx = _col(headers, 'email');
   if (idx < 0) return '';
   return String(sheet.getRange(row, idx + 1).getValue() || '').trim();
 }
