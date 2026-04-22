@@ -5,124 +5,678 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Our Team | The Tensor Lab</title>
+    <meta name="description"
+        content="Meet the national directors, chapter leadership, and faculty physician advisors behind the Tensor Lab fellowship.">
+    <meta property="og:title" content="Our Team | The Tensor Lab">
+    <meta property="og:description"
+        content="Meet the national directors, chapter leadership, and faculty physician advisors behind the Tensor Lab fellowship.">
+    <meta property="og:url" content="https://thetensorlab.org/team.html">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://thetensorlab.org/logo2.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@700;800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700;1,800&family=Inter:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=2026-4">
+    <style>
+        /* ── Team Page Specific Styles ── */
+        .team-page {
+            background: var(--paper);
+            color: var(--ink);
+            min-height: 100vh;
+        }
+
+        .team-hero {
+            padding: 10rem 2rem 4rem;
+            text-align: center;
+            background: var(--bg-dark);
+            color: var(--text-light);
+            position: relative;
+        }
+
+        .team-hero::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 120px;
+            background: linear-gradient(to bottom, transparent, var(--paper));
+        }
+
+        .team-hero .section-label {
+            color: var(--alert);
+            margin-bottom: 1.5rem;
+        }
+
+        .team-hero-title {
+            font-family: var(--font-serif);
+            font-size: clamp(2.5rem, 5vw, 4.5rem);
+            font-weight: 700;
+            font-style: italic;
+            line-height: 1;
+            color: white;
+            margin-bottom: 1.5rem;
+        }
+
+        .team-hero-sub {
+            font-family: var(--font-sans);
+            font-size: 1.05rem;
+            color: var(--text-dim);
+            max-width: 640px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+
+        /* ── Section Container ── */
+        .team-section {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        .team-section-header {
+            margin-bottom: 2.5rem;
+        }
+
+        .team-section-label {
+            font-family: var(--font-sans);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--alert);
+            margin-bottom: 0.75rem;
+        }
+
+        .team-section-title {
+            font-family: var(--font-serif);
+            font-size: 2.5rem;
+            font-weight: 700;
+            font-style: italic;
+            line-height: 1.1;
+            color: var(--ink);
+        }
+
+        .team-section-desc {
+            font-family: var(--font-sans);
+            font-size: 0.95rem;
+            color: var(--ink-light);
+            margin-top: 0.75rem;
+            max-width: 640px;
+            line-height: 1.6;
+        }
+
+        .team-divider {
+            border: none;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            margin: 0;
+        }
+
+        /* ── National Directors Grid ── */
+        .directors-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .director-card {
+            text-align: center;
+            padding: 2rem 1rem;
+            border-radius: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .director-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .director-img {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.25rem;
+        }
+
+        .director-name {
+            font-family: var(--font-serif);
+            font-size: 1.5rem;
+            font-weight: 500;
+            font-style: italic;
+            color: var(--ink);
+            margin-bottom: 0.25rem;
+        }
+
+        .director-title {
+            font-family: var(--font-sans);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--alert);
+            margin-bottom: 0.5rem;
+        }
+
+        .director-school {
+            font-family: var(--font-sans);
+            font-size: 0.85rem;
+            color: var(--ink-light);
+        }
+
+        /* ── Chapter Accordion ── */
+        .chapter-accordion {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .chapter-panel {
+            background: white;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .chapter-panel:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+        }
+
+        .chapter-toggle {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem 2rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: var(--font-serif);
+            font-size: 1.5rem;
+            font-weight: 600;
+            font-style: italic;
+            color: var(--ink);
+            transition: background 0.2s;
+            list-style: none;
+        }
+
+        .chapter-toggle::-webkit-details-marker {
+            display: none;
+        }
+
+        .chapter-toggle:hover {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        .chapter-toggle-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .chapter-badge {
+            font-family: var(--font-sans);
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: white;
+            background: var(--alert);
+            padding: 0.25rem 0.75rem;
+            border-radius: 100px;
+            font-style: normal;
+        }
+
+        .chapter-chevron {
+            font-size: 1.25rem;
+            color: var(--ink-light);
+            transition: transform 0.3s ease;
+        }
+
+        .chapter-panel[open] .chapter-chevron {
+            transform: rotate(180deg);
+        }
+
+        .chapter-body {
+            padding: 0 2rem 2rem;
+        }
+
+        .chapter-directors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .chapter-director {
+            text-align: center;
+            padding: 1.5rem 1rem;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.02);
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .chapter-director:hover {
+            background: rgba(0, 0, 0, 0.04);
+            transform: translateY(-2px);
+        }
+
+        .chapter-director-name {
+            font-family: var(--font-serif);
+            font-size: 1.15rem;
+            font-weight: 500;
+            font-style: italic;
+            color: var(--ink);
+            margin-bottom: 0.25rem;
+        }
+
+        .chapter-director-role {
+            font-family: var(--font-sans);
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--alert);
+        }
+
+        /* ── Faculty PI Grid ── */
+        .pi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .pi-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1.25rem 1.5rem;
+            background: white;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--ink);
+            transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+        }
+
+        .pi-card:hover {
+            border-color: var(--alert);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+            transform: translateY(-2px);
+        }
+
+        .pi-icon {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            font-family: var(--font-sans);
+            color: white;
+        }
+
+        .pi-icon--ucsf {
+            background: linear-gradient(135deg, #1b365d, #4a7fb5);
+        }
+
+        .pi-icon--umsom {
+            background: linear-gradient(135deg, #c8102e, #e8405c);
+        }
+
+        .pi-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .pi-name {
+            font-family: var(--font-serif);
+            font-size: 1.1rem;
+            font-weight: 600;
+            font-style: italic;
+            margin-bottom: 0.15rem;
+            color: var(--ink);
+        }
+
+        .pi-dept {
+            font-family: var(--font-sans);
+            font-size: 0.75rem;
+            color: var(--ink-light);
+            line-height: 1.4;
+        }
+
+        .pi-arrow {
+            flex-shrink: 0;
+            font-size: 0.85rem;
+            color: var(--ink-light);
+            align-self: center;
+            transition: transform 0.2s, color 0.2s;
+        }
+
+        .pi-card:hover .pi-arrow {
+            transform: translateX(3px);
+            color: var(--alert);
+        }
+
+        /* ── Footer ── */
+        .team-footer {
+            text-align: center;
+            padding: 4rem 2rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .team-footer p {
+            font-family: var(--font-sans);
+            font-size: 0.8rem;
+            color: var(--ink-light);
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .directors-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .chapter-directors-grid {
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            }
+
+            .pi-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .team-hero {
+                padding: 8rem 1.5rem 3rem;
+            }
+
+            .team-section {
+                padding: 3rem 1.5rem;
+            }
+        }
+    </style>
 </head>
 
-<body>
+<body class="team-page">
 
-    <canvas id="starfield"></canvas>
-    <div class="starfield-overlay"></div>
-
-    <header>
-        <div class="container">
-            <nav>
-                <a href="index.html" class="logo">
-                    <img src="Logo.png" alt="Logo" style="height: 40px; width: auto; margin-right: 10px;"
-                        loading="eager">
-                    <div style="display: flex; flex-direction: column; line-height: 1;">
-                        <div style="white-space: nowrap; width: 100%;">THE TENSOR LAB</div>
-                        <div
-                            style="font-size: 0.62rem; color: var(--text-muted); letter-spacing: 0.05em; font-weight: 600; margin-top: 2px; white-space: nowrap; width: 100%;">
-                            FOR COMPUTATIONAL MEDICINE</div>
-                    </div>
-                </a>
-                <div class="nav-links">
-                    <a href="team.html" class="active">Our Team</a>
-                    <a href="approach.html">The Approach</a>
-                    <a href="cohort-2025.html">2025 Cohort</a>
-                    <a href="index.html#open-roles" class="nav-cta">Join The Team</a>
-                </div>
-                <button class="mobile-menu-btn" aria-label="Toggle menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-            </nav>
+    <nav class="surge-nav surge-nav--refined">
+        <a href="index.html" class="surge-nav-brand" aria-label="Tensor Lab home">
+            <img src="logo2.png" alt="The Tensor Lab" class="surge-nav-logo">
+        </a>
+        <div class="surge-nav-links">
+            <a href="index.html" class="surge-nav-link">Home</a>
+            <a href="team.html" class="surge-nav-link">Our Team</a>
+            <a href="projects-2026.html" class="surge-nav-link">Project Catalogue</a>
+            <a href="projects-2026.html#apply" class="surge-nav-cta">Apply Now</a>
         </div>
+    </nav>
+
+    <!-- Hero -->
+    <header class="team-hero">
+        <div class="section-label">OUR TEAM</div>
+        <h1 class="team-hero-title">The people behind the fellowship.</h1>
+        <p class="team-hero-sub">
+            Tensor Lab is led by medical students and supported by faculty physician advisors
+            at UCSF and the University of Maryland School of Medicine.
+        </p>
     </header>
 
-    <main>
-        <div class="parallax-wrapper">
-            <div class="parallax-bg" style="background-image: url('NASA%20Photos/Orion.png');"></div>
+    <!-- National Directors -->
+    <section class="team-section" id="national-directors">
+        <div class="team-section-header">
+            <div class="team-section-label">National Directors</div>
+            <h2 class="team-section-title">National Leadership</h2>
+            <p class="team-section-desc">
+                The national directors oversee project selection, fellow recruitment, faculty
+                partnerships, and program operations across both chapters.
+            </p>
+        </div>
 
-            <section class="about-section" style="padding-top: 4rem;">
-                <div class="container">
-                    <div class="leadership-section">
-                        <h3 style="margin-bottom:2rem; text-align:center;">Leadership Team</h3>
-                        <!-- Founders Row -->
-                        <div class="leadership-grid" style="margin-bottom: 1.5rem; justify-content: center;">
-                            <div class="leader-card">
-                                <img src="Portrait%20Photos/Aaron%20Ge.jpeg" alt="Aaron Ge" class="leader-img"
-                                    loading="lazy">
-                                <span class="leader-name">Aaron Ge</span>
-                                <span class="leader-role">Co-Founder & Technical Director<br><span
-                                        style="font-size: 0.7em; opacity: 0.8; text-transform: none;">University of
-                                        Maryland School of Medicine</span></span>
-                                <a href="https://www.linkedin.com/in/aaron-ge-6395681b2/" target="_blank"
-                                    class="leader-link">LinkedIn ↗</a>
-                            </div>
-                            <div class="leader-card">
-                                <img src="Portrait%20Photos/Matt%20Allen.png" alt="Matt Allen" class="leader-img"
-                                    loading="lazy">
-                                <span class="leader-name">Matt Allen</span>
-                                <span class="leader-role">Co-Founder & Executive Director<br><span
-                                        style="font-size: 0.7em; opacity: 0.8; text-transform: none;">University of
-                                        California, San Francisco School of Medicine</span></span>
-                                <a href="https://www.linkedin.com/in/matthewallen001/" target="_blank"
-                                    class="leader-link">LinkedIn ↗</a>
-                            </div>
+        <div class="directors-grid">
+            <div class="director-card">
+                <img src="Portrait Photos/Matt Allen.png" alt="Matt Allen" class="director-img" loading="lazy">
+                <div class="director-name">Matt Allen</div>
+                <div class="director-title">Executive Director, Co-Founder</div>
+                <div class="director-school">UCSF School of Medicine</div>
+            </div>
+            <div class="director-card">
+                <img src="Portrait Photos/Aaron Ge.jpeg" alt="Aaron Ge" class="director-img" loading="lazy">
+                <div class="director-name">Aaron Ge</div>
+                <div class="director-title">Technical Director, Co-Founder</div>
+                <div class="director-school">University of Maryland School of Medicine</div>
+            </div>
+            <div class="director-card">
+                <img src="Portrait Photos/Chy Murali.png" alt="Chy Murali" class="director-img" loading="lazy">
+                <div class="director-name">Chy Murali</div>
+                <div class="director-title">Operations Director</div>
+                <div class="director-school">University of Maryland School of Medicine</div>
+            </div>
+        </div>
+    </section>
+
+    <hr class="team-divider">
+
+    <!-- Chapter Leadership -->
+    <section class="team-section" id="chapters">
+        <div class="team-section-header">
+            <div class="team-section-label">Chapter Leadership</div>
+            <h2 class="team-section-title">Chapter Directors</h2>
+            <p class="team-section-desc">
+                Each chapter is led by a team of medical students who manage local operations,
+                curriculum, and fellow mentorship at their institution.
+            </p>
+        </div>
+
+        <div class="chapter-accordion">
+            <!-- UCSF Chapter -->
+            <details class="chapter-panel" open>
+                <summary class="chapter-toggle">
+                    <span class="chapter-toggle-meta">
+                        <span>UCSF Chapter</span>
+                        <span class="chapter-badge">3 Directors</span>
+                    </span>
+                    <span class="chapter-chevron" aria-hidden="true">&#9662;</span>
+                </summary>
+                <div class="chapter-body">
+                    <div class="chapter-directors-grid">
+                        <div class="chapter-director">
+                            <div class="chapter-director-name">Nathan Robbins</div>
+                            <div class="chapter-director-role">Executive Director</div>
                         </div>
-                        <!-- Directors Row -->
-                        <div class="leadership-grid">
-                            <div class="leader-card">
-                                <img src="Portrait%20Photos/Chy%20Murali.png" alt="Chy Murali" class="leader-img"
-                                    loading="lazy">
-                                <span class="leader-name">Chy Murali</span>
-                                <span class="leader-role">Operational Director<br><span
-                                        style="font-size: 0.7em; opacity: 0.8; text-transform: none;">University of
-                                        Maryland School of Medicine</span></span>
-                                <a href="#" target="_blank" class="leader-link">LinkedIn ↗</a>
-                            </div>
-
-                            <div class="leader-card">
-                                <img src="Portrait%20Photos/Gavin%20Shu.png" alt="Gavin Shu" class="leader-img"
-                                    loading="lazy">
-                                <span class="leader-name">Gavin Shu</span>
-                                <span class="leader-role">Strategic Director<br><span
-                                        style="font-size: 0.7em; opacity: 0.8; text-transform: none;">University of
-                                        California, San Francisco School of Medicine</span></span>
-                                <a href="https://www.linkedin.com/in/chang-gavin-shu/" target="_blank"
-                                    class="leader-link">LinkedIn ↗</a>
-                            </div>
-                            <div class="leader-card">
-                                <img src="Portrait%20Photos/Angie%20Lee.jpeg" alt="Angie Lee" class="leader-img"
-                                    loading="lazy">
-                                <span class="leader-name">Angie Lee</span>
-                                <span class="leader-role">Business Director<br><span
-                                        style="font-size: 0.7em; opacity: 0.8; text-transform: none;">University of
-                                        Maryland School of Medicine</span></span>
-                                <a href="https://www.linkedin.com/in/angie-christine-lee99/" target="_blank"
-                                    class="leader-link">LinkedIn ↗</a>
-                            </div>
+                        <div class="chapter-director">
+                            <div class="chapter-director-name">Elisa Danthinne</div>
+                            <div class="chapter-director-role">Technical Director</div>
+                        </div>
+                        <div class="chapter-director">
+                            <div class="chapter-director-name">Enrique Vazquez</div>
+                            <div class="chapter-director-role">Operations Director</div>
                         </div>
                     </div>
                 </div>
-            </section>
-        </div>
-    </main>
+            </details>
 
-    <footer style="padding-top: 3rem;">
-        <div class="container">
-            <p>The Tensor Lab for Computational Medicine &copy; 2025</p>
+            <!-- UMSOM Chapter -->
+            <details class="chapter-panel" open>
+                <summary class="chapter-toggle">
+                    <span class="chapter-toggle-meta">
+                        <span>UMSOM Chapter</span>
+                        <span class="chapter-badge">5 Directors</span>
+                    </span>
+                    <span class="chapter-chevron" aria-hidden="true">&#9662;</span>
+                </summary>
+                <div class="chapter-body">
+                    <div class="chapter-directors-grid">
+                        <div class="chapter-director">
+                            <div class="chapter-director-name">Aarushi Negi</div>
+                            <div class="chapter-director-role">Executive Director</div>
+                        </div>
+                        <div class="chapter-director">
+                            <div class="chapter-director-name">Skylar Chan</div>
+                            <div class="chapter-director-role">Technical Director</div>
+                        </div>
+                        <div class="chapter-director">
+                            <div class="chapter-director-name">Dariush Aligholizadeh</div>
+                            <div class="chapter-director-role">Operations (Logistics)</div>
+                        </div>
+                        <div class="chapter-director">
+                            <div class="chapter-director-name">Eric Kim</div>
+                            <div class="chapter-director-role">Operations (Curriculum)</div>
+                        </div>
+                        <div class="chapter-director">
+                            <div class="chapter-director-name">Safi Rifai</div>
+                            <div class="chapter-director-role">Research Director</div>
+                        </div>
+                    </div>
+                </div>
+            </details>
         </div>
+    </section>
+
+    <hr class="team-divider">
+
+    <!-- Faculty Physician Advisors -->
+    <section class="team-section" id="faculty">
+        <div class="team-section-header">
+            <div class="team-section-label">Faculty</div>
+            <h2 class="team-section-title">Faculty Physician Advisors</h2>
+            <p class="team-section-desc">
+                Each project is supervised by a practicing physician and published researcher
+                who sponsors the work, secures data access, and sets the scientific standard.
+            </p>
+        </div>
+
+        <div class="pi-grid">
+            <!-- UCSF PIs -->
+            <a href="https://profiles.ucsf.edu/jonathan.carter" target="_blank" rel="noopener" class="pi-card">
+                <div class="pi-icon pi-icon--ucsf">JC</div>
+                <div class="pi-info">
+                    <div class="pi-name">Dr. Jonathan Carter</div>
+                    <div class="pi-dept">General Surgery &middot; UCSF</div>
+                </div>
+                <span class="pi-arrow" aria-hidden="true">&rarr;</span>
+            </a>
+
+            <a href="https://profiles.ucsf.edu/michael.chow" target="_blank" rel="noopener" class="pi-card">
+                <div class="pi-icon pi-icon--ucsf">MC</div>
+                <div class="pi-info">
+                    <div class="pi-name">Dr. Michael Chow</div>
+                    <div class="pi-dept">Head &amp; Neck Surgery &middot; UCSF</div>
+                </div>
+                <span class="pi-arrow" aria-hidden="true">&rarr;</span>
+            </a>
+
+            <a href="https://profiles.ucsf.edu/maggie.chung" target="_blank" rel="noopener" class="pi-card">
+                <div class="pi-icon pi-icon--ucsf">MC</div>
+                <div class="pi-info">
+                    <div class="pi-name">Dr. Maggie Chung</div>
+                    <div class="pi-dept">Radiology, Breast Imaging &middot; UCSF</div>
+                </div>
+                <span class="pi-arrow" aria-hidden="true">&rarr;</span>
+            </a>
+
+            <a href="https://profiles.ucsf.edu/pierre.martin" target="_blank" rel="noopener" class="pi-card">
+                <div class="pi-icon pi-icon--ucsf">PM</div>
+                <div class="pi-info">
+                    <div class="pi-name">Dr. Pierre Martin</div>
+                    <div class="pi-dept">Neurology &middot; UCSF</div>
+                </div>
+                <span class="pi-arrow" aria-hidden="true">&rarr;</span>
+            </a>
+
+            <a href="https://profiles.ucsf.edu/thomas.nelson" target="_blank" rel="noopener" class="pi-card">
+                <div class="pi-icon pi-icon--ucsf">TN</div>
+                <div class="pi-info">
+                    <div class="pi-name">Dr. Thomas Nelson</div>
+                    <div class="pi-dept">Neuro-Oncology &middot; UCSF</div>
+                </div>
+                <span class="pi-arrow" aria-hidden="true">&rarr;</span>
+            </a>
+
+            <a href="https://profiles.ucsf.edu/coleen.sabatini" target="_blank" rel="noopener" class="pi-card">
+                <div class="pi-icon pi-icon--ucsf">CS</div>
+                <div class="pi-info">
+                    <div class="pi-name">Dr. Coleen Sabatini</div>
+                    <div class="pi-dept">Orthopedic Surgery &middot; UCSF</div>
+                </div>
+                <span class="pi-arrow" aria-hidden="true">&rarr;</span>
+            </a>
+
+            <!-- UMSOM PIs -->
+            <a href="https://www.medschool.umaryland.edu/profiles/Maron-Bradley/" target="_blank" rel="noopener"
+                class="pi-card">
+                <div class="pi-icon pi-icon--umsom">BM</div>
+                <div class="pi-info">
+                    <div class="pi-name">Dr. Bradley Maron</div>
+                    <div class="pi-dept">Pulmonary Hypertension &middot; UMSOM</div>
+                </div>
+                <span class="pi-arrow" aria-hidden="true">&rarr;</span>
+            </a>
+
+            <a href="https://www.medschool.umaryland.edu/profiles/Williams-Brittney/" target="_blank" rel="noopener"
+                class="pi-card">
+                <div class="pi-icon pi-icon--umsom">BW</div>
+                <div class="pi-info">
+                    <div class="pi-name">Dr. Brittney Williams</div>
+                    <div class="pi-dept">Cardiothoracic Anesthesiology &middot; UMSOM</div>
+                </div>
+                <span class="pi-arrow" aria-hidden="true">&rarr;</span>
+            </a>
+
+            <a href="https://www.medschool.umaryland.edu/profiles/Ciryam-Prajwal/" target="_blank" rel="noopener"
+                class="pi-card">
+                <div class="pi-icon pi-icon--umsom">PC</div>
+                <div class="pi-info">
+                    <div class="pi-name">Dr. Prajwal Ciryam</div>
+                    <div class="pi-dept">Neurocritical Care &middot; UMSOM</div>
+                </div>
+                <span class="pi-arrow" aria-hidden="true">&rarr;</span>
+            </a>
+
+            <a href="https://www.medschool.umaryland.edu/profiles/Siddiqui-Mohummad-Minhaj/" target="_blank"
+                rel="noopener" class="pi-card">
+                <div class="pi-icon pi-icon--umsom">MS</div>
+                <div class="pi-info">
+                    <div class="pi-name">Dr. Minhaj Siddiqui</div>
+                    <div class="pi-dept">Urologic Oncology &middot; UMSOM</div>
+                </div>
+                <span class="pi-arrow" aria-hidden="true">&rarr;</span>
+            </a>
+
+            <a href="https://www.medschool.umaryland.edu/profiles/Ratzki-Leewing-Alexandria/" target="_blank"
+                rel="noopener" class="pi-card">
+                <div class="pi-icon pi-icon--umsom">AR</div>
+                <div class="pi-info">
+                    <div class="pi-name">Dr. Alexandria Ratzki-Leewing</div>
+                    <div class="pi-dept">Epidemiology, Diabetes &middot; UMSOM</div>
+                </div>
+                <span class="pi-arrow" aria-hidden="true">&rarr;</span>
+            </a>
+
+            <a href="https://www.medschool.umaryland.edu/profiles/Tee-Sui-Seng/" target="_blank" rel="noopener"
+                class="pi-card">
+                <div class="pi-icon pi-icon--umsom">ST</div>
+                <div class="pi-info">
+                    <div class="pi-name">Dr. Sui Seng Tee</div>
+                    <div class="pi-dept">Radiology, Nuclear Medicine &middot; UMSOM</div>
+                </div>
+                <span class="pi-arrow" aria-hidden="true">&rarr;</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="team-footer">
+        <p>&copy; 2026 Tensor Lab. Open Science &middot; Open Code.</p>
     </footer>
 
-    <script src="script.js"></script>
 </body>
 
 </html>
