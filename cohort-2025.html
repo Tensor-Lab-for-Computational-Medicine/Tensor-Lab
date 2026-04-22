@@ -14,7 +14,11 @@
         rel="stylesheet">
     <link rel="stylesheet" href="styles.css?v=2026-4">
     <style>
-        .cohort-page { background: var(--paper); color: var(--ink); min-height: 100vh; }
+        .cohort-page {
+            background: var(--paper);
+            color: var(--ink);
+            min-height: 100vh;
+        }
 
         .cohort-hero {
             padding: 10rem 2rem 5rem;
@@ -23,6 +27,7 @@
             color: white;
             position: relative;
         }
+
         .cohort-hero::before {
             content: '';
             position: absolute;
@@ -34,6 +39,7 @@
             background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 70%);
             pointer-events: none;
         }
+
         .cohort-hero-label {
             font-family: var(--font-sans);
             font-size: 0.7rem;
@@ -43,6 +49,7 @@
             color: var(--alert);
             margin-bottom: 2rem;
         }
+
         .cohort-hero-title {
             font-family: var(--font-serif);
             font-size: clamp(2.5rem, 5vw, 4.5rem);
@@ -51,10 +58,11 @@
             line-height: 1;
             margin-bottom: 1.5rem;
         }
+
         .cohort-hero-sub {
             font-family: var(--font-sans);
             font-size: 1rem;
-            color: rgba(255,255,255,0.45);
+            color: rgba(255, 255, 255, 0.45);
             max-width: 540px;
             margin: 0 auto;
             line-height: 1.7;
@@ -65,12 +73,15 @@
             margin: 0 auto;
             padding: 4rem 2rem;
         }
+
         .cohort-content .section-label {
             margin-bottom: 1rem;
         }
+
         .cohort-content .headline {
             margin-bottom: 1rem;
         }
+
         .cohort-content .section-lede {
             font-family: var(--font-sans);
             font-size: 0.95rem;
@@ -82,64 +93,59 @@
 
         .cohort-divider {
             border: none;
-            border-top: 1px solid rgba(0,0,0,0.08);
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
             margin: 0;
         }
 
         .cohort-footer {
             text-align: center;
             padding: 3rem 2rem;
-            border-top: 1px solid rgba(0,0,0,0.08);
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
             font-family: var(--font-sans);
             font-size: 0.75rem;
             color: var(--ink-light);
         }
 
         @media (max-width: 768px) {
-            .cohort-hero { padding: 8rem 1.5rem 3rem; }
-            .cohort-content { padding: 3rem 1.5rem; }
+            .cohort-hero {
+                padding: 8rem 1.5rem 3rem;
+            }
+
+            .cohort-content {
+                padding: 3rem 1.5rem;
+            }
         }
     </style>
 </head>
 
 <body class="cohort-page">
 
-    <nav class="surge-nav" style="justify-content: space-between; padding: 2rem;">
-        <a href="index.html" aria-label="Tensor Lab home">
-            <img src="logo2.png" alt="The Tensor Lab" style="height: 64px; width: auto;">
+    <nav class="surge-nav surge-nav--refined">
+        <a href="index.html" class="surge-nav-brand" aria-label="Tensor Lab home">
+            <img src="logo2.png" alt="The Tensor Lab" class="surge-nav-logo">
         </a>
-        <div class="dropdown">
-            <button class="dropbtn" aria-label="Open menu"
-                style="color: white; border: none; padding: 0.5rem 0; background: transparent; cursor: pointer; font-family: var(--font-sans); letter-spacing: 0.1em; font-size: 0.9rem;">MENU
-                +</button>
-            <div class="dropdown-content">
-                <a href="index.html">Home</a>
-                <a href="index.html#approach">How It Works</a>
-                <a href="index.html#timeline">Timeline</a>
-                <a href="team.html">Our Team</a>
-                <a href="projects-2026.html">Project Catalogue</a>
-                <a href="cohort-2025.html">2025 Cohort</a>
-                <a href="index.html#faq">FAQ</a>
-                <a href="projects-2026.html#apply" style="color: var(--alert);">Apply Now</a>
-            </div>
+        <div class="surge-nav-links">
+            <a href="index.html" class="surge-nav-link">Home</a>
+            <a href="team.html" class="surge-nav-link">Our Team</a>
+            <a href="projects-2026.html" class="surge-nav-link">Project Catalogue</a>
+            <a href="cohort-2025.html" class="surge-nav-link">2025 Cohort</a>
+            <a href="projects-2026.html#apply" class="surge-nav-cta">Apply Now</a>
         </div>
     </nav>
 
     <header class="cohort-hero">
-        <div class="cohort-hero-label">2025 Cohort</div>
-        <h1 class="cohort-hero-title">What the inaugural<br>cohort built.</h1>
+        <div class="cohort-hero-label">Class of 2025</div>
+        <h1 class="cohort-hero-title">Foundational<br>Research.</h1>
         <p class="cohort-hero-sub">
-            Seven projects across clinical ML, NLP, computer vision, and causal inference.
-            Each team presented at the 2025 Tensor Lab Symposium.
+            Seven pioneering initiatives across clinical ML, NLP, computer vision, and causal inference.
         </p>
     </header>
 
     <div class="cohort-content">
         <div class="section-label">PROJECTS</div>
-        <h2 class="headline">2025 cohort results.</h2>
+        <h2 class="headline">2025 cohort results</h2>
         <p class="section-lede">
-            Our inaugural cohort completed seven projects. Every team shipped final results at the
-            summer symposium.
+            Below is a curated selection of research led by our inaugural class of 2025.
         </p>
 
         <div class="past-projects-grid">
@@ -273,4 +279,5 @@
     </footer>
 
 </body>
+
 </html>
