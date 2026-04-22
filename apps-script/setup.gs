@@ -141,7 +141,7 @@ function captureFormLabels() {
   var formId = props.getProperty('APPLICATION_FORM_ID');
   if (!formId) throw new Error('Set APPLICATION_FORM_ID script property first.');
 
-  var form = FormApp.getFormById(formId);
+  var form = FormApp.openById(formId);
   var items = form.getItems();
   var choiceAliases = FIELD_ALIASES.choice_1 || ['choice_1'];
   var firstChoice = null;
@@ -194,7 +194,7 @@ function syncFormChoices() {
 
   var projects = _fetchProjects();
   var choiceValues = projects.map(function (p) { return p.project_id + ' :: ' + p.title; });
-  var form = FormApp.getFormById(formId);
+  var form = FormApp.openById(formId);
   var items = form.getItems();
 
   CHOICE_COLUMNS.forEach(function (logical) {
@@ -216,6 +216,21 @@ function syncFormChoices() {
 }
 
 /**
+ * Turn on response editing and email collection on the application form.
+ * Run once after creating the form. Required for the reselection email to
+ * send an edit URL that preserves every answer the applicant already gave.
+ * Inputs: none. Output: void.
+ */
+function enableApplicationEditing() {
+  var props = PropertiesService.getScriptProperties();
+  var formId = props.getProperty('APPLICATION_FORM_ID');
+  if (!formId) throw new Error('Set APPLICATION_FORM_ID script property first.');
+  var form = FormApp.openById(formId);
+  form.setAllowResponseEdits(true);
+  form.setCollectEmail(true);
+}
+
+/**
  * Install form submit triggers. Idempotent. Inputs: none. Output: void.
  */
 function installTriggers() {
@@ -224,13 +239,14 @@ function installTriggers() {
   if (!spreadsheetId) throw new Error('Set SPREADSHEET_ID script property first.');
   var ss = SpreadsheetApp.openById(spreadsheetId);
 
+  var managed = ['onApplicationSubmit', 'handleReselectionSubmit', 'onControlEdit', 'onOpenSpreadsheet'];
   ScriptApp.getProjectTriggers().forEach(function (t) {
-    if (['onApplicationSubmit', 'handleReselectionSubmit'].indexOf(t.getHandlerFunction()) !== -1) {
-      ScriptApp.deleteTrigger(t);
-    }
+    if (managed.indexOf(t.getHandlerFunction()) !== -1) ScriptApp.deleteTrigger(t);
   });
   ScriptApp.newTrigger('onApplicationSubmit').forSpreadsheet(ss).onFormSubmit().create();
   ScriptApp.newTrigger('handleReselectionSubmit').forSpreadsheet(ss).onFormSubmit().create();
+  ScriptApp.newTrigger('onControlEdit').forSpreadsheet(ss).onEdit().create();
+  ScriptApp.newTrigger('onOpenSpreadsheet').forSpreadsheet(ss).onOpen().create();
 }
 
 /** Fetch the canonical project list from the configured URL or throw. */

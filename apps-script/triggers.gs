@@ -15,7 +15,7 @@
  * Output: { ok: true, notified: number } or throws on invalid input.
  *
  * This function must only be invoked by leadership from the Apps Script editor
- * or from a leadership only menu. It is not exposed through doGet.
+ * or from a leadership-only menu. It is not exposed through doGet.
  */
 function markProjectFilled(projectId, selectedApplicantEmail) {
   if (!projectId || !selectedApplicantEmail) {
@@ -56,6 +56,7 @@ function markProjectFilled(projectId, selectedApplicantEmail) {
       if (filledAtCol >= 0) control.getRange(targetRow, filledAtCol + 1).setValue(new Date());
       if (selectedCol >= 0) control.getRange(targetRow, selectedCol + 1).setValue(selectedApplicantEmail);
     }
+    _stampApplicationStatus(selectedApplicantEmail, 'selected');
   } finally {
     lock.releaseLock();
   }
@@ -88,6 +89,16 @@ function notifyDisplacedApplicants(projectId, selectedApplicantEmail) {
   var sent = 0;
   var BATCH_LIMIT = 100;
 
+  var selectedEmail = String(selectedApplicantEmail || '').trim().toLowerCase();
+  if (selectedEmail && !_alreadyCongratulated(selectedEmail, projectId)) {
+    try {
+      _sendCongratulationsEmail(selectedEmail, _lookupProjectLabel(projectId));
+      _appendRedirectLog(selectedEmail, '', projectId);
+    } catch (err) {
+      _logError('notifyDisplacedApplicants.congrats', err);
+    }
+  }
+
   for (var i = 0; i < rows.length && sent < BATCH_LIMIT; i++) {
     var row = rows[i];
     var email = String(row[emailCol]).trim().toLowerCase();
@@ -103,8 +114,9 @@ function notifyDisplacedApplicants(projectId, selectedApplicantEmail) {
       apps.getRange(i + 2, tokenCol + 1).setValue(token);
     }
 
-    var prefilledUrl = _buildReselectionUrl(token, survivingChoices);
-    _sendReselectionEmail(email, prefilledUrl);
+    var editUrl = _buildEditApplicationUrl(email);
+    var linkUrl = editUrl || _buildReselectionUrl(token, survivingChoices);
+    _sendReselectionEmail(email, linkUrl, editUrl ? 'edit' : 'reselect');
     _appendRedirectLog(email, projectId, '');
     alreadyNotified[email] = true;
     sent++;
@@ -300,6 +312,51 @@ function _appendRedirectLog(email, projectRemoved, projectAdded) {
   sheet.appendRow([new Date(), email, projectRemoved, projectAdded]);
 }
 
+/**
+ * Return true if this applicant has already received a congratulations email
+ * for this project. We mark congrats rows in redirect_log with
+ * project_removed = '' and project_added = projectId so the existing schema
+ * stays untouched.
+ */
+function _alreadyCongratulated(email, projectId) {
+  var sheet = _getSheet(SHEET_REDIRECT_LOG);
+  if (!sheet || sheet.getLastRow() < 2) return false;
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var emailCol = headers.indexOf('applicant_email');
+  var removedCol = headers.indexOf('project_removed');
+  var addedCol = headers.indexOf('project_added');
+  if (emailCol < 0 || removedCol < 0 || addedCol < 0) return false;
+  var rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+  var target = String(email || '').trim().toLowerCase();
+  for (var i = 0; i < rows.length; i++) {
+    if (String(rows[i][emailCol]).trim().toLowerCase() !== target) continue;
+    if (String(rows[i][removedCol]).trim() !== '') continue;
+    if (String(rows[i][addedCol]).trim() !== projectId) continue;
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Return the human readable label for a project id from the control sheet,
+ * falling back to the id itself if no label is set.
+ */
+function _lookupProjectLabel(projectId) {
+  var sheet = _getSheet(SHEET_CONTROL);
+  if (!sheet || sheet.getLastRow() < 2) return projectId;
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var idCol = headers.indexOf('project_id');
+  var labelCol = headers.indexOf('label');
+  if (idCol < 0) return projectId;
+  var rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+  for (var i = 0; i < rows.length; i++) {
+    if (String(rows[i][idCol]).trim() !== projectId) continue;
+    var label = labelCol >= 0 ? String(rows[i][labelCol] || '').trim() : '';
+    return label || projectId;
+  }
+  return projectId;
+}
+
 /** Email column lookup for a specific row in applications. */
 function _getEmailForRow(sheet, headers, row) {
   var idx = _col(headers, 'email');
@@ -316,4 +373,78 @@ function _rowForHeaders(headers, obj) {
 function _sanitize(s) {
   if (s === null || s === undefined) return '';
   return String(s).replace(/[\x00-\x1F\x7F]/g, '').trim();
+}
+
+/**
+ * onEdit trigger. Watches the control sheet for status changes to `filled`
+ * and kicks off the redirection flow automatically. Leadership can mark a
+ * project filled by typing `filled` in the status column and putting the
+ * selected applicant's email in the selected_applicant column on the same
+ * row. No function call needed.
+ *
+ * Installed via setup.gs:installTriggers. Must be an INSTALLABLE edit
+ * trigger, not a simple onEdit, because it calls MailApp.
+ */
+function onControlEdit(e) {
+  try {
+    if (!e || !e.range) return;
+    var range = e.range;
+    if (range.getSheet().getName() !== SHEET_CONTROL) return;
+    if (range.getNumRows() !== 1 || range.getNumColumns() !== 1) return;
+    if (range.getRow() < 2) return;
+
+    var sheet = range.getSheet();
+    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    var statusCol = headers.indexOf('status');
+    var idCol = headers.indexOf('project_id');
+    var selectedCol = headers.indexOf('selected_applicant');
+    if (statusCol < 0 || idCol < 0) return;
+    if (range.getColumn() !== statusCol + 1) return;
+    if (String(e.value || '').trim().toLowerCase() !== 'filled') return;
+    if (String(e.oldValue || '').trim().toLowerCase() === 'filled') return;
+
+    var row = range.getRow();
+    var projectId = String(sheet.getRange(row, idCol + 1).getValue() || '').trim();
+    var selectedEmail = selectedCol >= 0
+      ? String(sheet.getRange(row, selectedCol + 1).getValue() || '').trim()
+      : '';
+
+    if (!projectId) return;
+    if (!selectedEmail) {
+      _logError('onControlEdit', new Error(
+        'Status set to filled for ' + projectId + ' but selected_applicant is empty. ' +
+        'Populate the selected_applicant cell before marking a project filled.'
+      ));
+      return;
+    }
+
+    var filledAtCol = headers.indexOf('filled_at');
+    if (filledAtCol >= 0 && !sheet.getRange(row, filledAtCol + 1).getValue()) {
+      sheet.getRange(row, filledAtCol + 1).setValue(new Date());
+    }
+    notifyDisplacedApplicants(projectId, selectedEmail);
+    CacheService.getScriptCache().remove(COUNTS_CACHE_KEY);
+  } catch (err) {
+    _logError('onControlEdit', err);
+  }
+}
+
+/**
+ * onOpen simple trigger. Adds a Tensor Lab menu to the spreadsheet so
+ * leadership can mark a project filled through a guided dialog instead of
+ * editing cells or running Apps Script functions.
+ */
+function onOpenSpreadsheet() {
+  var ui = SpreadsheetApp.getUi();
+  ui.createMenu('Tensor Lab')
+    .addItem('Manage applicants…', 'openManagementDialog')
+    .addSeparator()
+    .addItem('Refresh applicant counts cache', 'clearCountsCache')
+    .addToUi();
+}
+
+/** Menu helper. Manually clear the 60 second counts cache. */
+function clearCountsCache() {
+  CacheService.getScriptCache().remove(COUNTS_CACHE_KEY);
+  SpreadsheetApp.getActiveSpreadsheet().toast('Counts cache cleared.', 'Tensor Lab', 3);
 }

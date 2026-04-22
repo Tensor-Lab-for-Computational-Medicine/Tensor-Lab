@@ -18,6 +18,7 @@ var SHEET_CONTROL = 'control';
 var SHEET_REDIRECT_LOG = 'redirect_log';
 var SHEET_ERROR_LOG = 'error_log';
 var SHEET_RESELECTIONS = 'reselections';
+var SHEET_INTERVIEW_LOG = 'interview_log';
 
 var COUNTS_CACHE_KEY = 'project_counts_v1';
 var COUNTS_CACHE_TTL_SECONDS = 60;

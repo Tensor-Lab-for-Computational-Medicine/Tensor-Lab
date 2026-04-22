@@ -26,145 +26,222 @@
     <link
         href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=2026-4">
 </head>
 
 <body>
 
-    <nav class="surge-nav" style="justify-content: space-between; padding: 2rem;">
-        <a href="index.html" style="display:inline-flex;align-items:center;">
-            <img src="logo2.png" alt="The Tensor Lab" style="height: 64px; width: auto;">
+    <nav class="surge-nav surge-nav--refined">
+        <a href="index.html" class="surge-nav-brand" aria-label="Tensor Lab home">
+            <img src="logo2.png" alt="The Tensor Lab" class="surge-nav-logo">
         </a>
-        <div class="dropdown">
-            <button class="nav-item dropbtn"
-                style="color: white; border: none; padding: 0.5rem 0; background: transparent; cursor: pointer; font-family: var(--font-sans); letter-spacing: 0.1em; font-size: 0.9rem;">MENU
-                +</button>
-            <div class="dropdown-content">
-                <a href="index.html#roles">The Approach</a>
-                <a href="index.html#timeline">Timeline</a>
-                <a href="index.html#about">Our Team</a>
-                <a href="projects-2026.html">2026 Projects</a>
-                <a href="index.html#faq">FAQ</a>
-                <a href="index.html#open-roles" style="color: var(--alert);">Join the Team</a>
-            </div>
+        <div class="surge-nav-links">
+            <a href="index.html" class="surge-nav-link">Home</a>
+            <a href="index.html#approach" class="surge-nav-link">Approach</a>
+            <a href="index.html#timeline" class="surge-nav-link">Timeline</a>
+            <a href="index.html#cohort-2025" class="surge-nav-link">2025 Cohort</a>
+            <a href="index.html#faq" class="surge-nav-link">FAQ</a>
+            <a href="#apply" class="surge-nav-cta">Apply</a>
         </div>
     </nav>
 
-    <div class="surge-hero">
-        <h1 class="hero-title">Summer 2026 Projects</h1>
-        <div class="hero-divider">
-            <img src="Logo.png" alt="Tensor Lab"
-                style="height: 24px; width: auto; filter: grayscale(100%); opacity: 0.8;">
+    <header class="catalog-hero">
+        <div class="catalog-hero-inner">
+            <div class="hero-badge">
+                <span class="hero-badge-dot" aria-hidden="true"></span>
+                Summer 2026 <span class="hero-badge-sep">·</span> Applications open through May 26
+            </div>
+            <h1 class="catalog-title">The 2026 project catalog.</h1>
+            <p class="catalog-subtext">
+                Thirteen research projects across emergency medicine, cardiology, oncology, psychiatry, and more.
+                Search, filter, and scan the cards below. Pick any three and rank them on your application.
+                Live applicant counts refresh every thirty seconds so you can see how competitive each one is.
+            </p>
+            <div class="catalog-cta-row">
+                <a href="#apply" class="btn btn-primary btn-lg">Apply now →</a>
+                <a href="#projects" class="btn btn-ghost btn-lg">Browse the catalog</a>
+            </div>
         </div>
-        <p class="hero-subtext">
-            Pick any three. Rank them in your application. Counts update every 30 seconds so you can see how crowded
-            each project is before you commit.
-        </p>
-    </div>
+    </header>
 
-    <div class="layout-grid">
-        <main class="feed" style="grid-column: 1 / -1;">
+    <main class="catalog-main">
 
-            <section id="projects" class="journal-section">
-                <div class="section-label">2026 // PROJECT MARKETPLACE</div>
-                <h2 class="headline">Choose Your Top Three</h2>
-                <p style="margin-bottom: 2rem; color: var(--ink-light); max-width: 780px;">
-                    These are the 13 research projects for the 2026 cohort. Each card has everything you need to decide,
-                    the clinical problem, the technical approach, the deliverable, the data, the skills we are looking
-                    for, and any heads up from leadership. The counter on each card tallies every first, second, and
-                    third choice equally and updates every 30 seconds.
-                </p>
+        <section id="projects" class="catalog-section">
 
-                <div class="filter-bar" id="specialty-filter"></div>
-
-                <div id="projects-grid" class="projects-list"></div>
-
-                <template id="project-card-template">
-                    <article class="project-card-2026" data-specialty="">
-                        <header class="pc2-header">
-                            <div class="pc2-tags">
-                                <span class="pc2-tag pc2-specialty"></span>
-                                <span class="pc2-tag pc2-institution"></span>
-                            </div>
-                            <div class="pc2-footer-meta">
-                                <span class="applicant-counter counter-hidden" data-applicant-counter=""
-                                    aria-live="polite"></span>
-                                <span class="pc2-availability" data-availability="open">Open for applications</span>
-                            </div>
-                        </header>
-
-                        <h3 class="pc2-title"></h3>
-
-                        <dl class="pc2-people">
-                            <div><dt>Faculty PI</dt><dd class="pc2-pi"></dd></div>
-                            <div><dt>Medical Mentor</dt><dd class="pc2-mentor"></dd></div>
-                        </dl>
-
-                        <div class="pc2-section">
-                            <h4>The Clinical Problem</h4>
-                            <p class="pc2-clinical"></p>
-                        </div>
-
-                        <div class="pc2-section">
-                            <h4>Technical Approach</h4>
-                            <p class="pc2-technical"></p>
-                        </div>
-
-                        <div class="pc2-section">
-                            <h4>Expected Deliverable</h4>
-                            <p class="pc2-deliverable"></p>
-                        </div>
-
-                        <div class="pc2-section">
-                            <h4>Data and Access</h4>
-                            <p class="pc2-data"></p>
-                            <p class="pc2-access pc2-sub"></p>
-                        </div>
-
-                        <div class="pc2-section pc2-progress">
-                            <h4>Already Done</h4>
-                            <p class="pc2-progress-text"></p>
-                        </div>
-
-                        <div class="pc2-section">
-                            <h4>Preferred Skills</h4>
-                            <ul class="pc2-skills"></ul>
-                        </div>
-
-                        <aside class="pc2-note">
-                            <span class="pc2-note-label">Heads up</span>
-                            <p class="pc2-note-text"></p>
-                        </aside>
-                    </article>
-                </template>
-            </section>
-
-            <section id="apply" class="journal-section">
-                <div class="section-label">APPLY</div>
-                <h2 class="headline">Submit Your Application</h2>
-                <p style="margin-bottom: 1rem; color: var(--ink-light); max-width: 780px;">
-                    One submission covers all three ranked choices. Expect about 30 minutes for background, code
-                    samples, project preferences, and short written responses. Selected fellows commit 15 to 20 hours
-                    per week from June through August 2026.
-                </p>
-                <p style="margin-bottom: 1.5rem;">
-                    <a class="journal-btn" target="_blank" rel="noopener"
-                        href="https://docs.google.com/forms/d/e/1FAIpQLSeSaV9tziI6pzsyJCENK4uxtl92bme1ikiQ8umYujCo-hVm6w/viewform">
-                        Open application in a new tab
-                    </a>
-                </p>
-                <div id="application-embed"
-                    style="background:#fff; border:1px solid rgba(0,0,0,0.08); border-radius: 0.5rem; overflow: hidden;">
-                    <iframe title="Tensor Lab Fellow Application, Summer 2026"
-                        src="https://docs.google.com/forms/d/e/1FAIpQLSeSaV9tziI6pzsyJCENK4uxtl92bme1ikiQ8umYujCo-hVm6w/viewform?embedded=true"
-                        width="100%" height="1600" frameborder="0" marginheight="0" marginwidth="0" loading="lazy">
-                        Loading application form.
-                    </iframe>
+            <div class="catalog-toolbar" role="region" aria-label="Search and filter projects">
+                <div class="catalog-search">
+                    <svg class="catalog-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        aria-hidden="true">
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input type="search" id="catalog-search-input"
+                        placeholder="Search by keyword, problem, dataset, or skill"
+                        aria-label="Search projects">
                 </div>
-            </section>
 
-        </main>
-    </div>
+                <div class="catalog-filter-groups">
+                    <div class="catalog-filter-group" data-facet="specialty">
+                        <span class="catalog-filter-label">Specialty</span>
+                        <div class="catalog-filter-chips" id="specialty-filter"></div>
+                    </div>
+                    <div class="catalog-filter-group" data-facet="institution">
+                        <span class="catalog-filter-label">Institution</span>
+                        <div class="catalog-filter-chips" id="institution-filter"></div>
+                    </div>
+                    <div class="catalog-filter-group" data-facet="availability">
+                        <span class="catalog-filter-label">Status</span>
+                        <div class="catalog-filter-chips" id="availability-filter">
+                            <button class="filter-chip active" data-value="all" type="button">All</button>
+                            <button class="filter-chip" data-value="open" type="button">Open only</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="catalog-meta">
+                    <span id="catalog-count" aria-live="polite">Showing all 13 projects</span>
+                    <button type="button" id="catalog-reset" class="catalog-reset-btn" hidden>Reset filters</button>
+                </div>
+            </div>
+
+            <div id="projects-grid" class="projects-grid-compact" aria-live="polite"></div>
+
+            <p id="catalog-empty" class="catalog-empty" hidden>
+                No projects match these filters. Try broadening your search or resetting filters.
+            </p>
+
+            <!-- Compact card. Full detail opens in a slide-in drawer modal. -->
+            <template id="project-card-template">
+                <article class="project-card-2026 pc2-compact" data-specialty="" data-institution="" data-availability="open">
+                    <header class="pc2-compact-head">
+                        <div class="pc2-tags">
+                            <span class="pc2-tag pc2-specialty"></span>
+                            <span class="pc2-tag pc2-institution"></span>
+                        </div>
+                        <div class="pc2-footer-meta">
+                            <span class="applicant-counter counter-hidden" data-applicant-counter=""
+                                aria-live="polite"></span>
+                            <span class="pc2-availability" data-availability="open">Open</span>
+                        </div>
+                    </header>
+
+                    <h3 class="pc2-title"></h3>
+                    <p class="pc2-clinical-preview"></p>
+
+                    <dl class="pc2-compact-meta">
+                        <div><dt>Faculty PI</dt><dd class="pc2-pi"></dd></div>
+                        <div><dt>Medical Lead</dt><dd class="pc2-mentor"></dd></div>
+                    </dl>
+
+                    <button type="button" class="pc2-expand-btn" aria-haspopup="dialog" aria-expanded="false">
+                        <span class="pc2-expand-label">View full details</span>
+                        <svg class="pc2-expand-icon" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                            aria-hidden="true">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
+                </article>
+            </template>
+        </section>
+
+        <!-- Slide-in drawer modal for full project details. -->
+        <div id="project-modal" class="project-modal" hidden aria-hidden="true" role="dialog"
+            aria-modal="true" aria-labelledby="project-modal-title">
+            <div class="project-modal-backdrop" data-modal-close></div>
+            <div class="project-modal-panel" role="document" tabindex="-1">
+                <header class="project-modal-head">
+                    <div class="pm-tags">
+                        <span class="pc2-tag pm-specialty"></span>
+                        <span class="pc2-tag pm-institution"></span>
+                        <span class="pc2-availability pm-availability" data-availability="open">Open</span>
+                    </div>
+                    <button type="button" class="project-modal-close" data-modal-close aria-label="Close">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </header>
+
+                <h2 id="project-modal-title" class="pm-title"></h2>
+
+                <dl class="pm-meta">
+                    <div><dt>Faculty PI</dt><dd class="pm-pi"></dd></div>
+                    <div><dt>Medical Lead</dt><dd class="pm-mentor"></dd></div>
+                </dl>
+
+                <div class="pm-body">
+                    <section class="pm-section">
+                        <h3>The Clinical Problem</h3>
+                        <p class="pm-clinical"></p>
+                    </section>
+                    <section class="pm-section">
+                        <h3>Technical Approach</h3>
+                        <p class="pm-technical"></p>
+                    </section>
+                    <section class="pm-section">
+                        <h3>Expected Deliverable</h3>
+                        <p class="pm-deliverable"></p>
+                    </section>
+                    <section class="pm-section">
+                        <h3>Data and Access</h3>
+                        <p class="pm-data"></p>
+                        <p class="pm-access pm-sub"></p>
+                    </section>
+                    <section class="pm-section pm-progress">
+                        <h3>Already Done</h3>
+                        <p class="pm-progress-text"></p>
+                    </section>
+                    <section class="pm-section">
+                        <h3>Preferred Skills</h3>
+                        <ul class="pm-skills"></ul>
+                    </section>
+                    <aside class="pm-note">
+                        <span class="pm-note-label">Heads up</span>
+                        <p class="pm-note-text"></p>
+                    </aside>
+                </div>
+
+                <footer class="pm-footer">
+                    <a class="btn btn-primary btn-lg" href="#apply" data-modal-apply>Apply to this project →</a>
+                </footer>
+            </div>
+        </div>
+
+        <section id="apply" class="catalog-section apply-section">
+            <div class="apply-card">
+                <div class="apply-card-copy">
+                    <span class="apply-card-kicker">Apply · Summer 2026</span>
+                    <h2>Submit your application.</h2>
+                    <p>
+                        One application covers all three ranked choices. Plan for about thirty minutes.
+                        You will need a resume or CV, one code sample link, and a few short written answers.
+                        Selected fellows commit fifteen to twenty hours a week from June 16 through August 25, 2026.
+                    </p>
+                    <ul class="apply-card-checklist">
+                        <li>Pick three projects and rank them</li>
+                        <li>Attach resume or CV, link one representative code sample</li>
+                        <li>Answer four short prompts, about 200 words each</li>
+                    </ul>
+                </div>
+                <div class="apply-card-actions">
+                    <a class="btn btn-primary btn-lg apply-card-btn"
+                        href="https://docs.google.com/forms/d/e/1FAIpQLSeSaV9tziI6pzsyJCENK4uxtl92bme1ikiQ8umYujCo-hVm6w/viewform"
+                        target="_blank" rel="noopener">
+                        Open application in Google Forms →
+                    </a>
+                    <p class="apply-card-fine">
+                        Opens in a new tab. Google sign in is required so you can save drafts and edit your
+                        responses later from the confirmation email.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
 
     <script src="script.js"></script>
     <script src="projects-2026.js"></script>
