@@ -69,7 +69,7 @@
 
   function buildSearchIndex(p) {
     var pieces = [
-      p.title, p.specialty, p.institution, p.faculty_pi, p.med_mentor,
+      p.title, p.specialty, p.institution, p.faculty_pi, p.med_student_lead,
       p.clinical_problem, p.technical_approach, p.deliverable,
       p.data_type, p.access_note, p.progress_note, p.mentor_note
     ];
@@ -124,7 +124,7 @@
     setText(frag, '.pc2-title', project.title);
     setText(frag, '.pc2-clinical-preview', truncate(project.clinical_problem, CLINICAL_PREVIEW_CHARS));
     setText(frag, '.pc2-pi', project.faculty_pi || 'To be confirmed');
-    setText(frag, '.pc2-mentor', project.med_mentor || 'To be confirmed');
+    setText(frag, '.pc2-mentor', project.med_student_lead || 'To be confirmed');
     renderAvailability(article, project.availability || 'open');
 
     var counter = frag.querySelector('[data-applicant-counter]');
@@ -291,8 +291,25 @@
     setText(modal, '.pm-specialty', project.specialty);
     setText(modal, '.pm-institution', shortInstitution(project.institution));
     setText(modal, '.pm-title', project.title);
-    setText(modal, '.pm-pi', project.faculty_pi || 'To be confirmed');
-    setText(modal, '.pm-mentor', project.med_mentor || 'To be confirmed');
+
+    // Faculty PI: render as link if URL available
+    var piEl = modal.querySelector('.pm-pi');
+    if (piEl) {
+      piEl.innerHTML = '';
+      var piName = project.faculty_pi || 'To be confirmed';
+      if (project.faculty_pi_url) {
+        var piLink = document.createElement('a');
+        piLink.href = project.faculty_pi_url;
+        piLink.target = '_blank';
+        piLink.rel = 'noopener';
+        piLink.textContent = piName;
+        piEl.appendChild(piLink);
+      } else {
+        piEl.textContent = piName;
+      }
+    }
+
+    setText(modal, '.pm-mentor', project.med_student_lead || 'To be confirmed');
     setText(modal, '.pm-clinical', project.clinical_problem);
     setText(modal, '.pm-technical', project.technical_approach);
     setText(modal, '.pm-deliverable', project.deliverable);
