@@ -3253,14 +3253,14 @@ body.modal-open { overflow: hidden; }
     display: inline-block;
     font-family: var(--font-mono, 'Space Mono', monospace);
     font-size: 0.75rem;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: #ef4444;
-    margin-bottom: 1.5rem;
-    background: rgba(239, 68, 68, 0.1);
+    color: #94a3b8;
+    margin-bottom: 1rem;
+    background: rgba(255, 255, 255, 0.05);
     padding: 0.4rem 0.8rem;
-    border-radius: 0.25rem;
-    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .apply-card h2 {
@@ -3310,17 +3310,6 @@ body.modal-open { overflow: hidden; }
 .apply-card-checklist li strong {
     color: #fff;
     font-weight: 600;
-}
-
-.apply-card-checklist li::before {
-    content: '';
-    display: inline-block;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #ef4444;
-    box-shadow: 0 0 10px #ef4444;
-    position: static;
 }
 
 .apply-card-btn {
