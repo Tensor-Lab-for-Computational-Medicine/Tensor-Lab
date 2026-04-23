@@ -2853,7 +2853,7 @@ summary::marker {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
     gap: 1.5rem;
-    align-items: start;
+    align-items: stretch;
 }
 
 .project-card-2026.pc2-compact {
@@ -2888,6 +2888,10 @@ summary::marker {
     line-height: 1.25;
     color: #0f172a;
     margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .pc2-clinical-preview {
@@ -2896,6 +2900,10 @@ summary::marker {
     font-size: 1rem;
     line-height: 1.55;
     color: #475569;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .pc2-compact-meta {
