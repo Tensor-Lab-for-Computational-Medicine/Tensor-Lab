@@ -70,7 +70,7 @@ Projects are organized into triads: a machine learning fellow who builds, a medi
 * **Do medical students need to know how to code?** No. As a medical student, you bring the research question and clinical expertise. We match you with a Machine Learning fellow who handles all the coding.
 * **How much time do medical students spend per week?** About 2-4 hours per week. You'll meet with your fellow regularly to review progress and guide the direction of the research.
 * **Do Machine Learning fellows need a medical background?** No. Your medical student partner will teach you everything you need to know about the clinical context. We're looking for strong Python/ML skills.
-* **How much time do Machine Learning fellows spend per week?** Plan for 15-20 hours per week during the 10-week summer sprint. Think of it like a serious research internship.
+* **How much time do Machine Learning fellows spend per week?** Plan for 10-15 hours per week during the 10-week summer sprint. Think of it like a serious research internship.
 * **Is this remote or in-person?** Mostly remote. You'll meet with your team over Zoom/Discord, but some chapters organize optional in-person sessions.
 * **Is this paid?** Not yet. Right now, this is an unpaid fellowship focused on research experience and publication. We're working on funding for future cohorts.
 * **Who owns the code and research?** We believe in open science. Code is open-sourced, and all team members share authorship. Patient data stays under the PI's institutional controls.
