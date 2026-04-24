@@ -557,8 +557,8 @@ a {
 }
 
 .hero-subtext {
-    font-family: 'Inter', sans-serif;
-    font-size: 1.1rem;
+    font-family: var(--font-serif);
+    font-size: 1.3rem;
     color: var(--text-dim);
     max-width: 600px;
     line-height: 1.7;
@@ -670,7 +670,8 @@ a {
 }
 
 .manifesto-detail {
-    font-size: 0.85rem;
+    font-family: var(--font-serif);
+    font-size: 1.1rem;
     color: var(--ink-light);
     line-height: 1.6;
 }
