@@ -421,7 +421,7 @@ Leadership calls markProjectFilled(project_id, selected_email)
 
 ### Repo layout for the 2026 features
 
-- `data/projects_2026.json` canonical project list (13 projects).
+- `data/projects_2026.json` canonical project list (14 projects).
 - `apps-script/api.gs` `doGet` router and `getProjectCounts`.
 - `apps-script/triggers.gs` `markProjectFilled`, `notifyDisplacedApplicants`, `onApplicationSubmit`, `handleReselectionSubmit`.
 - `apps-script/email.gs` prefilled URL builder and email sender.

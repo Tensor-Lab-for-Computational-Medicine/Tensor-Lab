@@ -324,6 +324,32 @@
       "access_note": "No IRB required. Segmentation outputs are already in hand.",
       "progress_note": "Baseline segmentation has been completed using AssemblyNet on 416 MP2RAGE scans across 416 adolescents aged 9 to 14. Gray matter, white matter, and total brain volume estimates are ready for each subject.",
       "mentor_note": "The AI component is not yet finalized. Strong fit for fellows who enjoy causal inference methodology."
+    },
+    {
+      "project_id": "gtps-postmenopausal-risk-profiling",
+      "title": "Hormonal and Metabolic Risk Profiling for Greater Trochanteric Pain Syndrome in Postmenopausal Women",
+      "specialty": "Orthopedic Surgery, Women's Health",
+      "institution": "University of California, San Francisco School of Medicine",
+      "faculty_pi": "Dr. Stefano Bini",
+      "faculty_pi_url": "https://profiles.ucsf.edu/stefano.bini",
+      "med_student_lead": "Nathan Robbins",
+      "clinical_problem": "Greater trochanteric pain syndrome and gluteus medius tendinopathy are common and debilitating conditions in postmenopausal women, but clinicians have no reliable way to identify which patients are at highest risk before symptoms become severe. The hormonal, metabolic, and reproductive factors that drive risk are poorly characterized and likely interact in ways that simple regression models cannot capture.",
+      "technical_approach": "Apply predictive modeling and interpretable ML to the UCSF Information Commons dataset to identify which combination of hormonal, metabolic, reproductive, and demographic factors best predicts who develops these conditions. Build risk stratification profiles for high risk patient subgroups. If needed, validate findings externally using All of Us, UK Biobank, or NHANES.",
+      "deliverable": "A validated risk stratification model with interpretable feature importance outputs, suitable for publication in a musculoskeletal or women's health journal.",
+      "data_type": "UCSF Information Commons, de identified and IRB approved. Potential supplemental use of All of Us, UK Biobank, and NHANES, all of which are publicly available or accessible through standard data use agreements.",
+      "preferred_skills": [
+        "Python",
+        "Predictive modeling and feature engineering",
+        "Interpretable ML, SHAP or equivalent",
+        "Risk stratification",
+        "Reproducible validation pipelines",
+        "Healthcare data preprocessing"
+      ],
+      "availability": "open",
+      "capacity": 1,
+      "access_note": "IRB is already in place and the dataset is de identified, putting this project in good administrative shape.",
+      "progress_note": null,
+      "mentor_note": "The main scoping question before the sprint is which specific hormonal and metabolic variables are available in the Information Commons and whether the outcome, GTPS or gluteus medius tendinopathy diagnosis, can be reliably extracted via ICD code or requires additional phenotyping logic. Resolving that upfront will save significant time during the data preparation phase."
     }
   ]
 }

@@ -284,7 +284,7 @@ and the decline email goes out. Do not use this just because a single choice
 got filled by someone else.
 
 **Close cohort.** Only enabled after every project in `control` has status
-`filled`. The tab shows live progress (e.g. `8 of 13 projects filled`) and
+`filled`. The tab shows live progress (e.g. `8 of 14 projects filled`) and
 lists remaining open projects. When all projects are closed, clicking the
 button sends the standard decline email to every applicant still in pending
 state and stamps each row as `rejected`. Server-side guard: the function
