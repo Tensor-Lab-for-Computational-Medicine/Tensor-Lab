@@ -439,6 +439,7 @@ function onOpenSpreadsheet() {
   ui.createMenu('Tensor Lab')
     .addItem('Manage applicants…', 'openManagementDialog')
     .addSeparator()
+    .addItem('Sync project catalog from JSON', 'refreshCatalogFromJson')
     .addItem('Refresh applicant counts cache', 'clearCountsCache')
     .addToUi();
 }

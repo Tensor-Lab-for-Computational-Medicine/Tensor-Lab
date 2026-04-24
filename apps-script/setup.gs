@@ -249,6 +249,38 @@ function installTriggers() {
   ScriptApp.newTrigger('onOpenSpreadsheet').forSpreadsheet(ss).onOpen().create();
 }
 
+/**
+ * One click refresh for when `data/projects_YYYY.json` has changed. Runs the
+ * three idempotent sync steps in the correct order so leadership does not
+ * have to remember them:
+ *
+ *   1. seedControlFromProjects — append control rows for any new project_ids
+ *   2. syncFormChoices         — rewrite the three ranked choice dropdowns
+ *   3. captureFormLabels       — copy the new dropdown labels into control.label
+ *
+ * Also clears the counts cache so the public site reflects the new catalog
+ * within one poll interval instead of waiting for the 60 second TTL.
+ *
+ * Safe to rerun. No op if the JSON has not changed. Wired to the Tensor Lab
+ * menu in the spreadsheet via onOpenSpreadsheet in triggers.gs.
+ */
+function refreshCatalogFromJson() {
+  seedControlFromProjects();
+  syncFormChoices();
+  captureFormLabels();
+  CacheService.getScriptCache().remove(COUNTS_CACHE_KEY);
+  CacheService.getScriptCache().remove('project_id_lookup_v1');
+
+  var control = _getSheet(SHEET_CONTROL);
+  var projectCount = control && control.getLastRow() > 1 ? control.getLastRow() - 1 : 0;
+  try {
+    SpreadsheetApp.getActiveSpreadsheet().toast(
+      'Catalog refreshed. ' + projectCount + ' projects in control sheet.',
+      'Tensor Lab', 5);
+  } catch (_noUi) { /* running from editor, no active spreadsheet UI */ }
+  return { ok: true, projectCount: projectCount };
+}
+
 /** Fetch the canonical project list from the configured URL or throw. */
 function _fetchProjects() {
   var props = PropertiesService.getScriptProperties();

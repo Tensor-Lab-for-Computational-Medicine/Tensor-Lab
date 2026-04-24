@@ -304,12 +304,17 @@ the row to look pristine.
 
 ### Changing project list mid-cycle
 
-Edit `data/projects_YYYY.json`, push, then run from the Apps Script editor:
+Edit `data/projects_YYYY.json`, push, then either:
 
-1. `seedControlFromProjects` — appends new project rows, does not delete.
-2. `syncFormChoices` — updates the dropdown choices on the application form.
-3. `captureFormLabels` — refreshes the `label` column so `_extractProjectId`
-   keeps working.
+- **One-click:** open the spreadsheet and pick **Tensor Lab > Sync project
+  catalog from JSON**. This calls `refreshCatalogFromJson`, which runs all
+  three steps below in order, clears the counts cache, and toasts the new
+  project count. Safe to rerun, no op if the JSON is unchanged.
+- **Manual:** from the Apps Script editor, run in this order:
+  1. `seedControlFromProjects` — appends new project rows, does not delete.
+  2. `syncFormChoices` — updates the dropdown choices on the application form.
+  3. `captureFormLabels` — refreshes the `label` column so `_extractProjectId`
+     keeps working.
 
 ### Clearing the counts cache
 
