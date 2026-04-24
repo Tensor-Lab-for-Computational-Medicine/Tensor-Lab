@@ -3275,8 +3275,9 @@ body.modal-open { overflow: hidden; }
 }
 
 .apply-card p {
+    font-family: var(--font-serif, 'EB Garamond', serif);
     color: #a1a1aa;
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     line-height: 1.6;
     margin: 0 0 1rem 0;
     max-width: 650px;
@@ -3293,10 +3294,11 @@ body.modal-open { overflow: hidden; }
 }
 
 .apply-card-checklist li {
+    font-family: var(--font-serif, 'EB Garamond', serif);
     position: relative;
     padding: 0.75rem 1.25rem;
     color: #d4d4d8;
-    font-size: 0.95rem;
+    font-size: 1.1rem;
     line-height: 1;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.08);

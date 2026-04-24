@@ -37,28 +37,30 @@
       "mentor_note": "Great fit for fellows who enjoy building full stack products on top of clinical data."
     },
     {
-      "project_id": "mandibular-reconstruction-risk",
-      "title": "Perioperative Risk Prediction in Mandibular Reconstruction",
-      "specialty": "Surgical Oncology, Head and Neck Surgery",
+      "project_id": "gtps-postmenopausal-risk-profiling",
+      "title": "Hormonal and Metabolic Risk Profiling for Greater Trochanteric Pain Syndrome in Postmenopausal Women",
+      "specialty": "Orthopedic Surgery, Women's Health",
       "institution": "University of California, San Francisco School of Medicine",
-      "faculty_pi": "Dr. Michael Chow, MD",
-      "faculty_pi_url": "https://profiles.ucsf.edu/michael.chow",
-      "med_student_lead": "Joshua Zhao",
-      "clinical_problem": "Patients undergoing jaw reconstruction for oral cancer face significant risks of surgical complications and death. Surgeons currently lack reliable tools to quantify that risk before the operation. A predictive model could support better preoperative counseling and patient selection.",
-      "technical_approach": "Apply ensemble machine learning models, including XGBoost, random forest, SVM, KNN, decision trees, MARS, and single layer neural networks, to the National Cancer Database to predict perioperative morbidity and mortality after mandibular reconstruction for oral cavity cancer.",
-      "deliverable": "A validated risk prediction model benchmarked across multiple algorithm classes. Suitable for publication in a surgical oncology journal.",
-      "data_type": "National Cancer Database, fully de identified. No IRB required.",
+      "faculty_pi": "Dr. Stefano Bini, MD",
+      "faculty_pi_url": "https://profiles.ucsf.edu/stefano.bini",
+      "med_student_lead": "Nathan Robbins",
+      "clinical_problem": "Greater trochanteric pain syndrome and gluteus medius tendinopathy are common and debilitating conditions in postmenopausal women, but clinicians have no reliable way to identify which patients are at highest risk before symptoms become severe. The hormonal, metabolic, and reproductive factors that drive risk are poorly characterized and likely interact in ways that simple regression models cannot capture.",
+      "technical_approach": "Apply predictive modeling and interpretable ML to the UCSF Information Commons dataset to identify which combination of hormonal, metabolic, reproductive, and demographic factors best predicts who develops these conditions. Build risk stratification profiles for high risk patient subgroups. If needed, validate findings externally using All of Us, UK Biobank, or NHANES.",
+      "deliverable": "A validated risk stratification model with interpretable feature importance outputs, suitable for publication in a musculoskeletal or women's health journal.",
+      "data_type": "UCSF Information Commons, de identified and IRB approved. Potential supplemental use of All of Us, UK Biobank, and NHANES, all of which are publicly available or accessible through standard data use agreements.",
       "preferred_skills": [
         "Python",
-        "XGBoost and ensemble methods",
-        "MARS",
-        "Model evaluation and interpretation"
+        "Predictive modeling and feature engineering",
+        "Interpretable ML, SHAP or equivalent",
+        "Risk stratification",
+        "Reproducible validation pipelines",
+        "Healthcare data preprocessing"
       ],
       "availability": "open",
       "capacity": 1,
-      "access_note": "Data access is expected to be straightforward and does not require an IRB.",
+      "access_note": "IRB is already in place and the dataset is de identified, putting this project in good administrative shape.",
       "progress_note": null,
-      "mentor_note": "One of the cleanest data access situations in this cohort. No IRB, public dataset, and a well defined prior benchmark to beat. A fellow can move fast on this one."
+      "mentor_note": "The main scoping question before the sprint is which specific hormonal and metabolic variables are available in the Information Commons and whether the outcome, GTPS or gluteus medius tendinopathy diagnosis, can be reliably extracted via ICD code or requires additional phenotyping logic. Resolving that upfront will save significant time during the data preparation phase."
     },
     {
       "project_id": "whole-genome-tokenization-cardiac-risk",
@@ -284,7 +286,7 @@
       "institution": "University of California, San Francisco School of Medicine",
       "faculty_pi": "Dr. Thomas Nelson, MD",
       "faculty_pi_url": "https://profiles.ucsf.edu/thomas.nelson",
-      "med_student_lead": "Esmé Wheeler",
+      "med_student_lead": "Esm\u00e9 Wheeler",
       "clinical_problem": "Brain tumors vary significantly in their biological behavior. Current classification depends on pathology obtained during or after surgery. If electrical activity recorded from the brain surface during tumor resection carries information about tumor type, it could offer a new intraoperative or preoperative signal.",
       "technical_approach": "Analyze brain surface electrode, EEG, recordings collected during surgical tumor resections at UCSF, combined with spatial distance data, MRI imaging, and post processing outputs. The fellow will evaluate the dataset, identify the most appropriate modeling approach, and implement it. Specific architecture, for example time series classification, graph neural networks, or multimodal fusion, is open and will be determined based on data exploration.",
       "deliverable": "A validated model predicting brain tumor type or characteristics from intraoperative EEG and imaging data. Targeted for a neurosurgery or neural engineering journal.",
@@ -326,30 +328,28 @@
       "mentor_note": "The AI component is not yet finalized. Strong fit for fellows who enjoy causal inference methodology."
     },
     {
-      "project_id": "gtps-postmenopausal-risk-profiling",
-      "title": "Hormonal and Metabolic Risk Profiling for Greater Trochanteric Pain Syndrome in Postmenopausal Women",
-      "specialty": "Orthopedic Surgery, Women's Health",
+      "project_id": "mandibular-reconstruction-risk",
+      "title": "Perioperative Risk Prediction in Mandibular Reconstruction",
+      "specialty": "Surgical Oncology, Head and Neck Surgery",
       "institution": "University of California, San Francisco School of Medicine",
-      "faculty_pi": "Dr. Stefano Bini, MD",
-      "faculty_pi_url": "https://profiles.ucsf.edu/stefano.bini",
-      "med_student_lead": "Nathan Robbins",
-      "clinical_problem": "Greater trochanteric pain syndrome and gluteus medius tendinopathy are common and debilitating conditions in postmenopausal women, but clinicians have no reliable way to identify which patients are at highest risk before symptoms become severe. The hormonal, metabolic, and reproductive factors that drive risk are poorly characterized and likely interact in ways that simple regression models cannot capture.",
-      "technical_approach": "Apply predictive modeling and interpretable ML to the UCSF Information Commons dataset to identify which combination of hormonal, metabolic, reproductive, and demographic factors best predicts who develops these conditions. Build risk stratification profiles for high risk patient subgroups. If needed, validate findings externally using All of Us, UK Biobank, or NHANES.",
-      "deliverable": "A validated risk stratification model with interpretable feature importance outputs, suitable for publication in a musculoskeletal or women's health journal.",
-      "data_type": "UCSF Information Commons, de identified and IRB approved. Potential supplemental use of All of Us, UK Biobank, and NHANES, all of which are publicly available or accessible through standard data use agreements.",
+      "faculty_pi": "Dr. Michael Chow, MD",
+      "faculty_pi_url": "https://profiles.ucsf.edu/michael.chow",
+      "med_student_lead": "Joshua Zhao",
+      "clinical_problem": "Patients undergoing jaw reconstruction for oral cancer face significant risks of surgical complications and death. Surgeons currently lack reliable tools to quantify that risk before the operation. A predictive model could support better preoperative counseling and patient selection.",
+      "technical_approach": "Apply ensemble machine learning models, including XGBoost, random forest, SVM, KNN, decision trees, MARS, and single layer neural networks, to the National Cancer Database to predict perioperative morbidity and mortality after mandibular reconstruction for oral cavity cancer.",
+      "deliverable": "A validated risk prediction model benchmarked across multiple algorithm classes. Suitable for publication in a surgical oncology journal.",
+      "data_type": "National Cancer Database, fully de identified. No IRB required.",
       "preferred_skills": [
         "Python",
-        "Predictive modeling and feature engineering",
-        "Interpretable ML, SHAP or equivalent",
-        "Risk stratification",
-        "Reproducible validation pipelines",
-        "Healthcare data preprocessing"
+        "XGBoost and ensemble methods",
+        "MARS",
+        "Model evaluation and interpretation"
       ],
       "availability": "open",
       "capacity": 1,
-      "access_note": "IRB is already in place and the dataset is de identified, putting this project in good administrative shape.",
+      "access_note": "Data access is expected to be straightforward and does not require an IRB.",
       "progress_note": null,
-      "mentor_note": "The main scoping question before the sprint is which specific hormonal and metabolic variables are available in the Information Commons and whether the outcome, GTPS or gluteus medius tendinopathy diagnosis, can be reliably extracted via ICD code or requires additional phenotyping logic. Resolving that upfront will save significant time during the data preparation phase."
+      "mentor_note": "One of the cleanest data access situations in this cohort. No IRB, public dataset, and a well defined prior benchmark to beat. A fellow can move fast on this one."
     }
   ]
 }
