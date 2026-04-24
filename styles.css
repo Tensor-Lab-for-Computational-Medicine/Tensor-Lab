@@ -2638,19 +2638,23 @@ summary::marker {
     padding: 9.5rem 3rem 4rem;
     position: relative;
     overflow: hidden;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .catalog-hero::before {
     content: "";
     position: absolute;
-    top: -50%;
-    left: 40%;
-    width: 120vw;
-    height: 120vw;
-    max-width: 1500px;
-    max-height: 1500px;
-    background: radial-gradient(circle, rgba(220, 38, 38, 0.12) 0%, transparent 60%);
-    filter: blur(60px);
+    top: -30%;
+    left: 10%;
+    width: 150vw;
+    height: 150vw;
+    max-width: 1800px;
+    max-height: 1800px;
+    background: radial-gradient(circle, rgba(220, 38, 38, 0.4) 0%, transparent 60%);
+    filter: blur(80px);
     border-radius: 50%;
     animation: catalogGlowDrift 18s ease-in-out infinite alternate;
     pointer-events: none;
