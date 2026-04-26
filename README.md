@@ -44,16 +44,18 @@ We solve this collaboration problem by creating structured research partnerships
 ```
 Tensor-Lab/
 ├── index.html              # Main HTML structure
-├── styles.css              # All styling and responsive design
-├── script.js               # Interactive features and animations
-├── Logo.png               # Tensor Lab logo
-├── assets/                # UI assets and graphics
-├── NASA Photos/           # Space-themed background images
-├── Portrait Photos/       # Leadership team headshots
-├── Poster Images/         # Research poster thumbnails
-├── Posters/              # Full research poster PDFs
-├── LICENSE               # Project license
-└── README.md             # This file
+├── assets/                # All site assets
+│   ├── css/               # Stylesheets (styles.css)
+│   ├── js/                # Scripts (script.js, projects-2026.js, etc.)
+│   ├── images/            # UI graphics and logos
+│   ├── nasa-photos/       # Space-themed background images
+│   ├── portrait-photos/   # Leadership team headshots
+│   ├── poster-images/     # Research poster thumbnails
+│   └── posters/           # Full research poster PDFs
+├── data/                  # Project JSON data
+├── Documentation/         # PDF guides and documentation
+├── LICENSE                # Project license
+└── README.md              # This file
 ```
 
 ## 🏃 Getting Started
@@ -160,8 +162,8 @@ A "repository" (or "repo") is just a fancy word for a folder that contains all t
 
 3. **You'll see all the website files in the left sidebar:**
    - `index.html` — The main content (text, images, structure)
-   - `styles.css` — Colors, fonts, layouts, and visual design
-   - `script.js` — Interactive features (animations, buttons)
+   - `assets/css/styles.css` — Colors, fonts, layouts, and visual design
+   - `assets/js/script.js` — Interactive features (animations, buttons)
    - Folders with images and documents
 
 ### Step 4: Make Your Edits
@@ -193,7 +195,7 @@ To change any text on the website:
 
 ```html
 <div class="team-member">
-    <img src="Portrait Photos/Aaron Ge.png" alt="Aaron Ge">
+    <img src="assets/portrait-photos/Aaron Ge.png" alt="Aaron Ge">
     <div>
         <strong>Aaron Ge</strong>
         Co-Founder & Technical Director<br>
@@ -211,13 +213,13 @@ To change any text on the website:
    - Update the LinkedIn URL
 
 5. **Add their photo:**
-   - Save their photo in the `Portrait Photos` folder
+   - Save their photo in the `assets/portrait-photos` folder
    - Name it: `FirstName LastName.png` (e.g., `Jane Smith.png`)
    - Make sure it matches the filename in the code
 
 #### Changing Colors or Styles
 
-1. **Open `styles.css`** from the left sidebar
+1. **Open `assets/css/styles.css`** from the left sidebar
 
 2. **Search for what you want to change:**
    - Colors: Search for `color:` or specific color names
@@ -344,14 +346,12 @@ This happens when you and someone else edited the same part of a file.
 
 ### Quick Reference: Common Edits
 
-| What to Change | File | Search For |
-|---------------|------|-----------|
 | Application dates | `index.html` | "Summer 2026" or "Feb 2026" |
 | Team member info | `index.html` | "Leadership Team" |
 | Fellowship stats | `index.html` | "2025 Pilot Results" |
 | Contact email | `index.html` | "@" (search for email addresses) |
 | Social media links | `index.html` | "twitter.com" or "discord.gg" |
-| Button colors | `styles.css` | `.btn` or `.cta-btn` |
+| Button colors | `assets/css/styles.css` | `.btn` or `.cta-btn` |
 | Header text | `index.html` | `<h1>` or `<h2>` |
 | Footer content | `index.html` | `<footer>` |
 
@@ -427,9 +427,9 @@ Leadership calls markProjectFilled(project_id, selected_email)
 - `apps-script/email.gs` prefilled URL builder and email sender.
 - `apps-script/setup.gs` `initialSetup`, `seedControlFromProjects`, `syncFormChoices`, `installTriggers`.
 - `apps-script/appsscript.json` manifest with OAuth scopes and web app settings.
-- `applicantCounter.js` frontend polling module.
+- `assets/js/applicantCounter.js` frontend polling module.
 - `projects-2026.html` project marketplace page with counter badges and form embed.
-- `projects-2026.js` renders cards from the JSON file.
+- `assets/js/projects-2026.js` renders cards from the JSON file.
 - `config.json` public ops references (web app URL, form id, sheet id, JSON URL).
 
 ### Setup steps, new environment
