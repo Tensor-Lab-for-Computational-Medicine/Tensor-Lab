@@ -156,6 +156,65 @@ function mgmtRemoveTestApplications(emailText, resetProjects) {
 }
 
 /**
+ * Create two synthetic applications and run a constrained fill workflow.
+ * Only the two supplied test emails are contacted, so real applicants who
+ * ranked the same project are not notified during testing.
+ */
+function mgmtRunDummyWorkflowTest(projectId, winnerEmail, displacedEmail, fromEmail, keepFilled) {
+  var pid = String(projectId || '').trim();
+  var winner = _normalizeTestEmail(winnerEmail);
+  var displaced = _normalizeTestEmail(displacedEmail);
+  if (!pid) throw new Error('Pick a project to test.');
+  if (!winner || !displaced) throw new Error('Enter both test email addresses.');
+  if (winner === displaced) throw new Error('Winner and displaced test emails must be different.');
+  if (_validProjectIds().indexOf(pid) === -1) throw new Error('Unknown project: ' + pid);
+
+  var emailSet = {};
+  emailSet[winner] = true;
+  emailSet[displaced] = true;
+  var backup = _controlSnapshot(pid);
+  var projectLabel = _lookupProjectLabel(pid);
+  var displacedToken = '';
+  var survivingChoices = [];
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(15000);
+  try {
+    _deleteRowsByEmail(SHEET_APPLICATIONS, emailSet, 'email');
+    _deleteRowsByEmail(SHEET_RESELECTIONS, emailSet, 'email');
+    _deleteRowsByEmail(SHEET_REDIRECT_LOG, emailSet, 'applicant_email');
+    _deleteRowsByEmail(SHEET_INTERVIEW_LOG, emailSet, 'email');
+
+    var filler = _fallbackProjectChoices(pid);
+    _appendSyntheticApplication(winner, 'Test Winner', [pid, filler[0], filler[1]], 'test_selected');
+    displacedToken = _appendSyntheticApplication(displaced, 'Test Displaced', [pid, filler[0], filler[1]], 'test_submitted');
+    survivingChoices = filler;
+    _setProjectFilledForTest(pid, winner);
+  } finally {
+    lock.releaseLock();
+  }
+
+  _refreshProjectSurfaces();
+  _sendCongratulationsEmail(winner, projectLabel, fromEmail);
+  _appendRedirectLog(winner, '', pid);
+  _sendReselectionEmail(displaced, _buildReselectionUrl(displacedToken, survivingChoices), 'reselect', projectLabel, fromEmail);
+  _appendRedirectLog(displaced, pid, '');
+
+  if (!keepFilled) {
+    _restoreControlSnapshot(backup);
+    _refreshProjectSurfaces();
+  }
+
+  return {
+    projectId: pid,
+    projectLabel: projectLabel,
+    winnerEmail: winner,
+    displacedEmail: displaced,
+    keptFilled: !!keepFilled
+  };
+}
+
+/**
  * Send an applicant a scheduling link for a project interview. Logs the
  * invite to the `interview_log` sheet and remembers the reviewer's name and
  * scheduling URL in user-scoped script properties so repeat invites from the
@@ -379,6 +438,71 @@ function _parseEmailList(text) {
     });
 }
 
+function _normalizeTestEmail(email) {
+  var value = String(email || '').trim().toLowerCase();
+  return /.+@.+\..+/.test(value) ? value : '';
+}
+
+function _fallbackProjectChoices(projectId) {
+  var ids = _validProjectIds().filter(function (id) { return id && id !== projectId; });
+  return [ids[0] || projectId, ids[1] || ids[0] || projectId];
+}
+
+function _appendSyntheticApplication(email, name, choices, status) {
+  var sheet = _getSheet(SHEET_APPLICATIONS);
+  if (!sheet) throw new Error('applications sheet missing');
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var row = new Array(headers.length).fill('');
+  var put = function (logical, value) {
+    var idx = _col(headers, logical);
+    if (idx >= 0) row[idx] = value;
+  };
+  var token = Utilities.getUuid();
+  put('timestamp', new Date());
+  put('email', email);
+  put('name', name);
+  put('preferred_name', name);
+  put('choice_1', choices[0] || '');
+  put('choice_2', choices[1] || '');
+  put('choice_3', choices[2] || '');
+  put('redirect_token', token);
+  put('status', status || 'submitted');
+  sheet.appendRow(row);
+  return token;
+}
+
+function _controlSnapshot(projectId) {
+  var sheet = _getSheet(SHEET_CONTROL);
+  if (!sheet || sheet.getLastRow() < 2) throw new Error('control sheet missing');
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var idCol = headers.indexOf('project_id');
+  if (idCol < 0) throw new Error('control sheet missing project_id');
+  var rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+  for (var i = 0; i < rows.length; i++) {
+    if (String(rows[i][idCol] || '').trim() === projectId) {
+      return { row: i + 2, headers: headers, values: rows[i] };
+    }
+  }
+  throw new Error('Project not found in control sheet: ' + projectId);
+}
+
+function _setProjectFilledForTest(projectId, selectedEmail) {
+  var snap = _controlSnapshot(projectId);
+  var statusCol = snap.headers.indexOf('status');
+  var filledAtCol = snap.headers.indexOf('filled_at');
+  var selectedCol = snap.headers.indexOf('selected_applicant');
+  if (statusCol < 0) throw new Error('control sheet missing status');
+  var sheet = _getSheet(SHEET_CONTROL);
+  sheet.getRange(snap.row, statusCol + 1).setValue('filled');
+  if (filledAtCol >= 0) sheet.getRange(snap.row, filledAtCol + 1).setValue(new Date());
+  if (selectedCol >= 0) sheet.getRange(snap.row, selectedCol + 1).setValue(selectedEmail);
+}
+
+function _restoreControlSnapshot(snap) {
+  if (!snap || !snap.row || !snap.values) return;
+  _getSheet(SHEET_CONTROL).getRange(snap.row, 1, 1, snap.values.length).setValues([snap.values]);
+}
+
 function _deleteRowsByEmail(sheetName, emailSet, logicalOrHeader) {
   var sheet = _getSheet(sheetName);
   if (!sheet || sheet.getLastRow() < 2) return 0;
@@ -475,7 +599,7 @@ function _readApplicationRows() {
 
 function _isTerminalStatus(status) {
   var s = String(status || '').trim().toLowerCase();
-  return s === 'selected' || s === 'rejected' || s.indexOf('rejected_') === 0;
+  return s === 'selected' || s === 'rejected' || s.indexOf('rejected_') === 0 || s.indexOf('test_') === 0;
 }
 
 /** Pull counts from the shared cache if present, else compute. */
@@ -528,6 +652,7 @@ function _managementDialogHtml() {
     '  <div class="tab active" data-panel="fill">Fill project</div>',
     '  <div class="tab" data-panel="interview">Invite to interview</div>',
     '  <div class="tab" data-panel="reject">Reject applicant</div>',
+    '  <div class="tab" data-panel="test">Test workflow</div>',
     '  <div class="tab" data-panel="cleanup">Remove test data</div>',
     '  <div class="tab" data-panel="bulk">Close cohort</div>',
     '</div>',
@@ -568,6 +693,20 @@ function _managementDialogHtml() {
     '  <button id="rejectBtn" class="danger" disabled>Reject and send decline email</button>',
     '  <p class="meta">Applicants who have already been selected or rejected are hidden from this list.</p>',
     '  <div id="rejectStatus"></div>',
+    '</div>',
+
+    '<div id="test" class="panel">',
+    '  <p class="hint">Create two minimal dummy applications and test the fill workflow without emailing real applicants. Only these two addresses receive email.</p>',
+    '  <label for="testProjectSelect">Project to test</label>',
+    '  <select id="testProjectSelect"><option value="">Loading…</option></select>',
+    '  <label for="testWinnerEmail">Winner test email (gets congratulations)</label>',
+    '  <input id="testWinnerEmail" type="text" value="aaronge2016@gmail.com" />',
+    '  <label for="testDisplacedEmail">Displaced test email (gets reselection)</label>',
+    '  <input id="testDisplacedEmail" type="text" value="aaronge2020@gmail.com" />',
+    '  <label><input id="testKeepFilled" type="checkbox" checked style="width:auto;margin-right:6px">Leave project filled after the test so I can inspect the website and form</label>',
+    '  <button id="testRunBtn" class="primary" disabled>Run dummy fill test</button>',
+    '  <p class="meta">This deletes prior rows for those two test emails, creates fresh synthetic applications, sends the two test emails from the selected sender above, and refreshes the form/site state. Use Remove test data afterward to delete the rows and reopen the project.</p>',
+    '  <div id="testStatus"></div>',
     '</div>',
 
     '<div id="cleanup" class="panel">',
@@ -728,6 +867,39 @@ function _managementDialogHtml() {
     '}',
     'loadPending();',
 
+    'function loadTestProjects(){',
+    '  const sel=$("#testProjectSelect");sel.innerHTML="<option value=\\"\\">Loading…</option>";',
+    '  google.script.run.withSuccessHandler(projects=>{',
+    '    sel.innerHTML="";',
+    '    if(!projects.length){sel.innerHTML="<option value=\\"\\">No open projects</option>";testRefreshBtn();return}',
+    '    sel.insertAdjacentHTML("beforeend","<option value=\\"\\">Choose a project…</option>");',
+    '    projects.forEach(p=>sel.insertAdjacentHTML("beforeend","<option value=\\""+esc(p.id)+"\\">"+esc(p.label)+" ("+p.count+" applicants)</option>"));',
+    '    testRefreshBtn();',
+    '  }).withFailureHandler(e=>setStatus($("#testStatus"),"Could not load projects: "+e.message,"err"))',
+    '  .mgmtListOpenProjects();',
+    '}',
+    'function testRefreshBtn(){',
+    '  const ok=$("#testProjectSelect").value&&$("#testWinnerEmail").value.trim()&&$("#testDisplacedEmail").value.trim();',
+    '  $("#testRunBtn").disabled=!ok;',
+    '}',
+    'loadTestProjects();',
+    '["#testProjectSelect","#testWinnerEmail","#testDisplacedEmail"].forEach(q=>$(q).addEventListener("input",testRefreshBtn));',
+    '$("#testProjectSelect").addEventListener("change",testRefreshBtn);',
+    '$("#testRunBtn").addEventListener("click",()=>{',
+    '  const pid=$("#testProjectSelect").value;const win=$("#testWinnerEmail").value.trim();const lose=$("#testDisplacedEmail").value.trim();',
+    '  const keep=$("#testKeepFilled").checked;const st=$("#testStatus");const label=$("#testProjectSelect").selectedOptions[0].text;',
+    '  if(!pid||!win||!lose)return;',
+    '  if(!confirm("Run dummy fill test for "+label+"?\\n\\n"+win+" gets the congratulations email. "+lose+" gets the reselection email. No real applicants will be emailed.\\n\\nEmails send from "+sender()+"."))return;',
+    '  $("#testRunBtn").disabled=true;setStatus(st,"Creating synthetic applications and sending test emails…","warn");',
+    '  google.script.run',
+    '    .withSuccessHandler(r=>{',
+    '      setStatus(st,"Test complete for "+r.projectLabel+". Sent congrats to "+r.winnerEmail+" and reselection to "+r.displacedEmail+"."+(r.keptFilled?" Project left filled for inspection. Use Remove test data to reset it.":" Project control state restored."),"ok");',
+    '      loadPending();loadInterviewProjects();loadTestProjects();refreshBulkGate();',
+    '    })',
+    '    .withFailureHandler(e=>{setStatus(st,"Error: "+e.message,"err");testRefreshBtn();})',
+    '    .mgmtRunDummyWorkflowTest(pid,win,lose,sender(),keep);',
+    '});',
+
     '$("#rejectSelect").addEventListener("change",()=>{$("#rejectBtn").disabled=!$("#rejectSelect").value});',
 
     '$("#rejectBtn").addEventListener("click",()=>{',
@@ -762,6 +934,7 @@ function _managementDialogHtml() {
     '        projects.forEach(p=>sel.insertAdjacentHTML("beforeend","<option value=\\""+esc(p.id)+"\\">"+esc(p.label)+" ("+p.count+" applicants)</option>"));',
     '      }).mgmtListOpenProjects();',
     '      loadInterviewProjects();loadPending();refreshBulkGate();',
+    '      loadTestProjects();',
     '    })',
     '    .withFailureHandler(e=>{setStatus(st,"Error: "+e.message,"err");cleanupRefreshBtn();})',
     '    .mgmtRemoveTestApplications(emails,reset);',

@@ -133,6 +133,7 @@ function getProjectCounts() {
   var columnIndexes = CHOICE_COLUMNS
     .map(function (name) { return _col(headers, name); })
     .filter(function (idx) { return idx !== -1; });
+  var statusCol = _col(headers, 'status');
 
   if (columnIndexes.length === 0) {
     cache.put(COUNTS_CACHE_KEY, JSON.stringify(counts), COUNTS_CACHE_TTL_SECONDS);
@@ -142,6 +143,7 @@ function getProjectCounts() {
   var data = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
   for (var i = 0; i < data.length; i++) {
     var row = data[i];
+    if (statusCol >= 0 && String(row[statusCol] || '').trim().toLowerCase().indexOf('test_') === 0) continue;
     for (var j = 0; j < columnIndexes.length; j++) {
       var raw = row[columnIndexes[j]];
       if (!raw) continue;

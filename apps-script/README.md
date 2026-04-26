@@ -170,6 +170,12 @@ executing account as verified Gmail send-as aliases, or the script/triggers must
 be authorized from the matching Gmail account. Otherwise Google rejects the send
 instead of silently sending from a personal account.
 
+The dialog also has a **Test workflow** tab. It creates two synthetic
+applications from entered test emails, sends only those two emails through the
+selected sender, and marks synthetic rows with `test_` statuses so normal
+applicant lists and public counts ignore them. Use **Remove test data** afterward
+to delete the rows and reopen the tested project if you left it filled.
+
 ### 7. Run setup functions, in this order
 
 From the Apps Script editor, pick each function from the dropdown and click
