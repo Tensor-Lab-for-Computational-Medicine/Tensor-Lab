@@ -506,19 +506,24 @@ function _restoreControlSnapshot(snap) {
 function _deleteRowsByEmail(sheetName, emailSet, logicalOrHeader) {
   var sheet = _getSheet(sheetName);
   if (!sheet || sheet.getLastRow() < 2) return 0;
-  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  var col = logicalOrHeader === 'applicant_email'
-    ? headers.indexOf('applicant_email')
-    : _col(headers, logicalOrHeader);
-  if (col < 0) return 0;
-  var values = sheet.getRange(2, col + 1, sheet.getLastRow() - 1, 1).getValues();
+  var values = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
   var deleted = 0;
   for (var i = values.length - 1; i >= 0; i--) {
-    if (!emailSet[String(values[i][0] || '').trim().toLowerCase()]) continue;
+    if (!_rowContainsEmail(values[i], emailSet)) continue;
     sheet.deleteRow(i + 2);
     deleted++;
   }
   return deleted;
+}
+
+function _rowContainsEmail(row, emailSet) {
+  for (var i = 0; i < row.length; i++) {
+    var value = String(row[i] || '').toLowerCase();
+    for (var email in emailSet) {
+      if (value.indexOf(email) !== -1) return true;
+    }
+  }
+  return false;
 }
 
 function _resetProjectsSelectedBy(emailSet) {
@@ -534,7 +539,7 @@ function _resetProjectsSelectedBy(emailSet) {
   var reset = [];
   for (var i = 0; i < rows.length; i++) {
     var selected = String(rows[i][selectedCol] || '').trim().toLowerCase();
-    if (!emailSet[selected]) continue;
+    if (!_rowContainsEmail([selected], emailSet)) continue;
     var row = i + 2;
     sheet.getRange(row, statusCol + 1).setValue('open');
     sheet.getRange(row, selectedCol + 1).clearContent();
@@ -712,10 +717,10 @@ function _managementDialogHtml() {
     '<div id="cleanup" class="panel">',
     '  <p class="hint">Remove test applications without touching real applicants. Enter one or more test email addresses. If a test email was selected for a project, this can reopen that project and put it back on the form.</p>',
     '  <label for="cleanupEmails">Test email addresses</label>',
-    '  <textarea id="cleanupEmails" placeholder="test@example.com\\nother-test@example.com"></textarea>',
+    '  <textarea id="cleanupEmails" placeholder="One email per line, for example:\\naaronge2016@gmail.com\\naaronge2020@gmail.com"></textarea>',
     '  <label><input id="cleanupResetProjects" type="checkbox" checked style="width:auto;margin-right:6px">Reopen projects selected by these test emails</label>',
     '  <button id="cleanupBtn" class="danger" disabled>Remove test applications and resync</button>',
-    '  <p class="meta">Deletes matching rows from applications, reselections, redirect_log, and interview_log. It also refreshes the form choices and public site cache.</p>',
+    '  <p class="meta">Separate emails with new lines, commas, semicolons, or spaces. Do not use slashes. Deletes matching rows from applications, reselections, redirect_log, and interview_log, then refreshes the form choices and public site cache.</p>',
     '  <div id="cleanupStatus"></div>',
     '</div>',
 
@@ -927,8 +932,9 @@ function _managementDialogHtml() {
     '  $("#cleanupBtn").disabled=true;setStatus(st,"Removing test data and resyncing…","warn");',
     '  google.script.run',
     '    .withSuccessHandler(r=>{',
-    '      const msg="Removed "+r.applicationsDeleted+" application rows, "+r.reselectionsDeleted+" reselection rows, "+r.redirectLogsDeleted+" redirect log rows, and "+r.interviewLogsDeleted+" interview log rows."+(r.projectsReset.length?" Reopened: "+r.projectsReset.join(", ")+".":"");',
-    '      setStatus(st,msg,"ok");$("#cleanupEmails").value="";cleanupRefreshBtn();',
+    '      const total=r.applicationsDeleted+r.reselectionsDeleted+r.redirectLogsDeleted+r.interviewLogsDeleted+r.projectsReset.length;',
+    '      const msg=total?("Removed "+r.applicationsDeleted+" application rows, "+r.reselectionsDeleted+" reselection rows, "+r.redirectLogsDeleted+" redirect log rows, and "+r.interviewLogsDeleted+" interview log rows."+(r.projectsReset.length?" Reopened: "+r.projectsReset.join(", ")+".":"")):"No matching rows or selected projects found for those emails. Check spelling or run the dummy workflow first."; ',
+    '      setStatus(st,msg,total?"ok":"warn");if(total)$("#cleanupEmails").value="";cleanupRefreshBtn();',
     '      google.script.run.withSuccessHandler(projects=>{',
     '        const sel=$("#projectSelect");sel.innerHTML="<option value=\\"\\">Choose a project…</option>";',
     '        projects.forEach(p=>sel.insertAdjacentHTML("beforeend","<option value=\\""+esc(p.id)+"\\">"+esc(p.label)+" ("+p.count+" applicants)</option>"));',
