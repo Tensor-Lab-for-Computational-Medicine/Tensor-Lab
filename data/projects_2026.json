@@ -246,11 +246,11 @@
       "deliverable": "A working interactive educational platform with extensible disease modules. Evaluated for its effect on trainee diagnostic accuracy compared to standard teaching.",
       "data_type": "UCSF neurology dataset, de identified, IRB approved.",
       "preferred_skills": [
-        "Frontend engineering, React or equivalent",
-        "Interactive data visualization, D3.js or similar",
-        "State management for complex UIs",
-        "Motion and animation design",
-        "Extensible content architecture"
+        "RAG Systems",
+        "Model Context Protocol",
+        "Context and intent engineering",
+        "UX and UI design",
+        "AI generated diagrams and video"
       ],
       "availability": "open",
       "capacity": 1,
