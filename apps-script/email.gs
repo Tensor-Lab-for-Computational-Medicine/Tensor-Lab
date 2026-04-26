@@ -241,11 +241,24 @@ function _sendTensorLabEmail(message, fromEmail) {
   if (TENSOR_LAB_SENDERS.indexOf(from) === -1) {
     throw new Error('Unsupported sender: ' + from + '. Pick tensorlabucsf@gmail.com or tensorlabumsom@gmail.com.');
   }
-  GmailApp.sendEmail(message.to, message.subject, message.body, {
-    from: from,
-    name: 'Tensor Lab Team',
-    replyTo: from
-  });
+  try {
+    GmailApp.sendEmail(message.to, message.subject, message.body, {
+      from: from,
+      name: 'Tensor Lab Team',
+      replyTo: from
+    });
+  } catch (e) {
+    var errText = (e && e.message) ? String(e.message) : String(e);
+    if (/invalid argument/i.test(errText)) {
+      throw new Error(
+        'Gmail will not send as ' + from + ' from the account that runs this script. ' +
+        'In Gmail for the same Google account that authorizes this script, go to Settings, Accounts, ' +
+        'and add "Send mail as" for ' + from + ' (verify the address). ' +
+        'Or deploy/authorize the Apps Script while signed in as that mailbox.'
+      );
+    }
+    throw e;
+  }
 }
 
 function _normalizeSenderEmail(fromEmail) {

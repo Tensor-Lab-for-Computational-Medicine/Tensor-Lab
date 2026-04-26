@@ -168,7 +168,11 @@ The spreadsheet management dialog lets leadership choose
 sent with Gmail's `from` option, so both accounts must be available to the
 executing account as verified Gmail send-as aliases, or the script/triggers must
 be authorized from the matching Gmail account. Otherwise Google rejects the send
-instead of silently sending from a personal account.
+instead of silently sending from a personal account. If you see
+`Exception: Invalid argument: name@gmail.com`, that address is not yet a verified
+**Send mail as** alias for the Google account that runs and authorizes the
+script, add it in Gmail settings on that same account, or reauthorize while
+signed into that mailbox.
 
 The dialog also has a **Test workflow** tab. It creates two synthetic
 applications from entered test emails, sends only those two emails through the
