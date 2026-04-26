@@ -29,7 +29,8 @@
     institution: 'all',
     availability: 'all',
     activeProjectId: null,
-    lastFocused: null
+    lastFocused: null,
+    pendingStatuses: null
   };
 
   // ------------------------------ utilities ---------------------------------
@@ -101,6 +102,7 @@
   function renderAvailability(node, availability) {
     var chip = node.querySelector('.pc2-availability');
     if (!chip) return;
+    node.classList.remove('card-filled');
     if (availability === 'filled') {
       chip.textContent = 'Filled';
       chip.setAttribute('data-availability', 'filled');
@@ -109,6 +111,34 @@
       chip.textContent = 'Open';
       chip.setAttribute('data-availability', 'open');
     }
+  }
+
+  function applyLiveStatuses(statuses) {
+    if (!statuses) return;
+    if (!state.projects.length) {
+      state.pendingStatuses = statuses;
+      return;
+    }
+    state.projects.forEach(function (p) {
+      if (statuses[p.project_id]) p.availability = statuses[p.project_id];
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.project-card-2026'), function (card) {
+      var p = findProject(card.dataset.projectId);
+      if (!p) return;
+      card.dataset.availability = p.availability || 'open';
+      renderAvailability(card, p.availability || 'open');
+    });
+    if (state.activeProjectId) {
+      var modal = document.getElementById('project-modal');
+      var active = findProject(state.activeProjectId);
+      var chip = modal && modal.querySelector('.pm-availability');
+      if (chip && active) {
+        var a = active.availability || 'open';
+        chip.textContent = a === 'filled' ? 'Filled' : 'Open';
+        chip.setAttribute('data-availability', a);
+      }
+    }
+    applyFilters();
   }
 
   function renderCard(project, template) {
@@ -462,6 +492,10 @@
         wireFilterToggle();
         wireModal();
         applyFilters();
+        if (state.pendingStatuses) {
+          applyLiveStatuses(state.pendingStatuses);
+          state.pendingStatuses = null;
+        }
 
         openFromHash();
       })
@@ -469,6 +503,10 @@
         grid.innerHTML = '<p style="color:var(--ink-light);">Project list is temporarily unavailable. Please refresh.</p>';
       });
   }
+
+  document.addEventListener('tensorlab:project-statuses', function (ev) {
+    applyLiveStatuses(ev.detail);
+  });
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);

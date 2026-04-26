@@ -79,19 +79,30 @@ var FIELD_ALIASES = {
   confirmation:         ['confirmation', 'Do you confirm the following?'],
   redirect_token:       ['redirect_token'],
   resume_upload:        ['resume_upload', 'Resume or CV'],
-  status:               ['status', 'Application status']
+  status:               ['status', 'Application status'],
+  new_choice:           ['new_choice', 'New choice project', 'New choice'],
+  surviving_choice_1:   ['surviving_choice_1'],
+  surviving_choice_2:   ['surviving_choice_2']
 };
 
 /**
  * Web app router. Inputs: e (Apps Script event). Outputs: JSON ContentService.
- * Supported actions: counts. Everything else returns a 400 style JSON body.
+ * Supported actions: counts, statuses. Everything else returns a 400 style JSON body.
  */
 function doGet(e) {
   try {
     var action = (e && e.parameter && e.parameter.action) || '';
-    if (action === 'counts') {
-      return _jsonResponse({ ok: true, counts: getProjectCounts(), generated_at: new Date().toISOString() });
-    }
+    if (action === 'counts') return _jsonResponse({
+      ok: true,
+      counts: getProjectCounts(),
+      statuses: getProjectStatuses(),
+      generated_at: new Date().toISOString()
+    });
+    if (action === 'statuses') return _jsonResponse({
+      ok: true,
+      statuses: getProjectStatuses(),
+      generated_at: new Date().toISOString()
+    });
     return _jsonResponse({ ok: false, error: 'unknown_action' });
   } catch (err) {
     _logError('doGet', err);
@@ -142,6 +153,29 @@ function getProjectCounts() {
 
   cache.put(COUNTS_CACHE_KEY, JSON.stringify(counts), COUNTS_CACHE_TTL_SECONDS);
   return counts;
+}
+
+/**
+ * Return { project_id: "open"|"filled" } from the control sheet so the
+ * static site can reflect filled projects without waiting for a JSON deploy.
+ */
+function getProjectStatuses() {
+  var sheet = _getSheet(SHEET_CONTROL);
+  var statuses = {};
+  if (!sheet || sheet.getLastRow() < 2) return statuses;
+
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var idCol = headers.indexOf('project_id');
+  var statusCol = headers.indexOf('status');
+  if (idCol < 0 || statusCol < 0) return statuses;
+
+  var rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+  rows.forEach(function (r) {
+    var id = String(r[idCol] || '').trim();
+    if (!id) return;
+    statuses[id] = String(r[statusCol] || '').trim().toLowerCase() === 'filled' ? 'filled' : 'open';
+  });
+  return statuses;
 }
 
 /**

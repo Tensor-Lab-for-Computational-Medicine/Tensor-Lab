@@ -17,7 +17,7 @@
  * This function must only be invoked by leadership from the Apps Script editor
  * or from a leadership-only menu. It is not exposed through doGet.
  */
-function markProjectFilled(projectId, selectedApplicantEmail) {
+function markProjectFilled(projectId, selectedApplicantEmail, fromEmail) {
   if (!projectId || !selectedApplicantEmail) {
     throw new Error('markProjectFilled requires projectId and selectedApplicantEmail.');
   }
@@ -61,8 +61,8 @@ function markProjectFilled(projectId, selectedApplicantEmail) {
     lock.releaseLock();
   }
 
-  var notified = notifyDisplacedApplicants(projectId, selectedApplicantEmail);
-  CacheService.getScriptCache().remove(COUNTS_CACHE_KEY);
+  var notified = notifyDisplacedApplicants(projectId, selectedApplicantEmail, fromEmail);
+  _refreshProjectSurfaces();
   return { ok: true, notified: notified };
 }
 
@@ -72,7 +72,7 @@ function markProjectFilled(projectId, selectedApplicantEmail) {
  * Output: number of emails sent this run.
  * Skips applicants already logged for this project in redirect_log.
  */
-function notifyDisplacedApplicants(projectId, selectedApplicantEmail) {
+function notifyDisplacedApplicants(projectId, selectedApplicantEmail, fromEmail) {
   var apps = _getSheet(SHEET_APPLICATIONS);
   if (!apps || apps.getLastRow() < 2) return 0;
 
@@ -90,9 +90,10 @@ function notifyDisplacedApplicants(projectId, selectedApplicantEmail) {
   var BATCH_LIMIT = 100;
 
   var selectedEmail = String(selectedApplicantEmail || '').trim().toLowerCase();
+  var projectLabel = _lookupProjectLabel(projectId);
   if (selectedEmail && !_alreadyCongratulated(selectedEmail, projectId)) {
     try {
-      _sendCongratulationsEmail(selectedEmail, _lookupProjectLabel(projectId));
+      _sendCongratulationsEmail(selectedEmail, projectLabel, fromEmail);
       _appendRedirectLog(selectedEmail, '', projectId);
     } catch (err) {
       _logError('notifyDisplacedApplicants.congrats', err);
@@ -116,7 +117,7 @@ function notifyDisplacedApplicants(projectId, selectedApplicantEmail) {
 
     var editUrl = _buildEditApplicationUrl(email);
     var linkUrl = editUrl || _buildReselectionUrl(token, survivingChoices);
-    _sendReselectionEmail(email, linkUrl, editUrl ? 'edit' : 'reselect');
+    _sendReselectionEmail(email, linkUrl, editUrl ? 'edit' : 'reselect', projectLabel, fromEmail);
     _appendRedirectLog(email, projectId, '');
     alreadyNotified[email] = true;
     sent++;
@@ -157,6 +158,11 @@ function onApplicationSubmit(e) {
       if (choices[i] && validIds.length > 0 && validIds.indexOf(choices[i]) === -1) {
         setLogical('status', 'rejected_invalid_project');
         _logError('onApplicationSubmit', new Error('Invalid project_id: ' + choices[i] + ' row ' + row));
+        return;
+      }
+      if (choices[i] && _controlStatus(choices[i]) === 'filled') {
+        setLogical('status', 'rejected_filled_project');
+        _logError('onApplicationSubmit', new Error('Filled project selected: ' + choices[i] + ' row ' + row));
         return;
       }
     }
@@ -207,6 +213,10 @@ function handleReselectionSubmit(e) {
     var validIds = _validProjectIds();
     if (validIds.length > 0 && validIds.indexOf(newChoice) === -1) {
       _logError('handleReselectionSubmit', new Error('Invalid new_choice: ' + newChoice));
+      return;
+    }
+    if (_controlStatus(newChoice) === 'filled') {
+      _logError('handleReselectionSubmit', new Error('Filled new_choice: ' + newChoice));
       return;
     }
 
@@ -423,7 +433,7 @@ function onControlEdit(e) {
       sheet.getRange(row, filledAtCol + 1).setValue(new Date());
     }
     notifyDisplacedApplicants(projectId, selectedEmail);
-    CacheService.getScriptCache().remove(COUNTS_CACHE_KEY);
+    _refreshProjectSurfaces();
   } catch (err) {
     _logError('onControlEdit', err);
   }
@@ -448,4 +458,11 @@ function onOpenSpreadsheet() {
 function clearCountsCache() {
   CacheService.getScriptCache().remove(COUNTS_CACHE_KEY);
   SpreadsheetApp.getActiveSpreadsheet().toast('Counts cache cleared.', 'Tensor Lab', 3);
+}
+
+/** Refresh all public surfaces that depend on control.status. Never throws. */
+function _refreshProjectSurfaces() {
+  try { syncFormChoices(); } catch (err) { _logError('_refreshProjectSurfaces.syncFormChoices', err); }
+  CacheService.getScriptCache().remove(COUNTS_CACHE_KEY);
+  CacheService.getScriptCache().remove('project_id_lookup_v1');
 }

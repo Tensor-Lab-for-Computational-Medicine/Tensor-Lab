@@ -179,17 +179,16 @@ function captureFormLabels() {
   var lastRow = control.getLastRow();
   if (lastRow < 2) throw new Error('control sheet has no project rows. Run seedControlFromProjects first.');
 
-  var projectCount = lastRow - 1;
-  if (labels.length !== projectCount) {
-    throw new Error(
-      'Form has ' + labels.length + ' dropdown options but control sheet has ' + projectCount + ' projects. ' +
-      'Ensure the two are one to one before rerunning captureFormLabels.'
-    );
-  }
-
-  var range = control.getRange(2, labelCol + 1, projectCount, 1);
-  var values = labels.map(function (l) { return [l]; });
-  range.setValues(values);
+  var rows = control.getRange(2, 1, lastRow - 1, control.getLastColumn()).getValues();
+  var rowById = {};
+  rows.forEach(function (r, idx) {
+    var id = String(r[idCol] || '').trim();
+    if (id) rowById[id] = idx + 2;
+  });
+  labels.forEach(function (label) {
+    var id = _extractProjectId(label);
+    if (id && rowById[id]) control.getRange(rowById[id], labelCol + 1).setValue(label);
+  });
 
   CacheService.getScriptCache().remove('project_id_lookup_v1');
   CacheService.getScriptCache().remove(COUNTS_CACHE_KEY);
@@ -207,7 +206,15 @@ function syncFormChoices() {
   if (!formId) throw new Error('Set APPLICATION_FORM_ID script property first.');
 
   var projects = _fetchProjects();
-  var choiceValues = projects.map(function (p) { return p.project_id + ' :: ' + p.title; });
+  _syncControlLabelsFromProjects(projects);
+  var statuses = getProjectStatuses();
+  var choiceValues = projects
+    .filter(function (p) {
+      var id = String(p.project_id || '').trim();
+      return !statuses[id] || statuses[id] !== 'filled';
+    })
+    .map(function (p) { return p.project_id + ' :: ' + p.title; });
+  if (choiceValues.length === 0) choiceValues = ['Applications closed'];
   var form = FormApp.openById(formId);
   var items = form.getItems();
 
@@ -227,6 +234,45 @@ function syncFormChoices() {
       break;
     }
   });
+
+  var reselectionFormId = props.getProperty('RESELECTION_FORM_ID');
+  if (reselectionFormId) _setChoiceValuesOnForm(reselectionFormId, 'new_choice', choiceValues);
+}
+
+function _setChoiceValuesOnForm(formId, logical, choiceValues) {
+  var form = FormApp.openById(formId);
+  var aliases = FIELD_ALIASES[logical] || [logical];
+  var items = form.getItems();
+  for (var i = 0; i < items.length; i++) {
+    if (aliases.indexOf(items[i].getTitle()) === -1) continue;
+    var type = items[i].getType();
+    if (type === FormApp.ItemType.LIST) items[i].asListItem().setChoiceValues(choiceValues);
+    else if (type === FormApp.ItemType.MULTIPLE_CHOICE) items[i].asMultipleChoiceItem().setChoiceValues(choiceValues);
+    else throw new Error('Question "' + items[i].getTitle() + '" must be a Dropdown or Multiple choice item.');
+    return;
+  }
+}
+
+/** Keep control.label readable even when the form only lists currently open projects. */
+function _syncControlLabelsFromProjects(projects) {
+  var control = _getSheet(SHEET_CONTROL);
+  if (!control || control.getLastRow() < 2) return;
+  var headers = control.getRange(1, 1, 1, control.getLastColumn()).getValues()[0];
+  var idCol = headers.indexOf('project_id');
+  var labelCol = headers.indexOf('label');
+  if (idCol < 0 || labelCol < 0) return;
+  var labels = {};
+  projects.forEach(function (p) {
+    var id = String(p.project_id || '').trim();
+    if (id) labels[id] = id + ' :: ' + p.title;
+  });
+  var rows = control.getRange(2, 1, control.getLastRow() - 1, control.getLastColumn()).getValues();
+  var out = rows.map(function (r) {
+    var id = String(r[idCol] || '').trim();
+    return [labels[id] || r[labelCol] || id];
+  });
+  control.getRange(2, labelCol + 1, out.length, 1).setValues(out);
+  CacheService.getScriptCache().remove('project_id_lookup_v1');
 }
 
 /**

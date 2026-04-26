@@ -83,6 +83,8 @@ function _buildReselectionUrl(token, survivingChoices) {
  * Send the reselection email. Inputs: toEmail string, prefilledUrl string.
  * Output: void. Throws on invalid email.
  */
+var TENSOR_LAB_SENDERS = ['tensorlabucsf@gmail.com', 'tensorlabumsom@gmail.com'];
+
 /**
  * Send the selected applicant a warm, useful congratulations email. Copy is
  * intentionally warm but grounded so it reads as human, not corporate. No
@@ -90,7 +92,7 @@ function _buildReselectionUrl(token, survivingChoices) {
  * Inputs: toEmail string, projectLabel string (human readable project title).
  * Output: void. Throws on invalid email.
  */
-function _sendCongratulationsEmail(toEmail, projectLabel) {
+function _sendCongratulationsEmail(toEmail, projectLabel, fromEmail) {
   if (!toEmail) throw new Error('toEmail required');
   var label = projectLabel || 'your Tensor Lab project';
   var subject = 'Welcome to Tensor Lab. You have been selected.';
@@ -116,7 +118,7 @@ function _sendCongratulationsEmail(toEmail, projectLabel) {
     'Warmly,',
     'Tensor Lab Team'
   ].join('\n');
-  MailApp.sendEmail({ to: toEmail, subject: subject, body: body });
+  _sendTensorLabEmail({ to: toEmail, subject: subject, body: body }, fromEmail);
 }
 
 /**
@@ -128,7 +130,7 @@ function _sendCongratulationsEmail(toEmail, projectLabel) {
  * optional personalNote string to insert as reviewer feedback.
  * Output: void. Throws on invalid email.
  */
-function _sendRejectionEmail(toEmail, firstName, personalNote) {
+function _sendRejectionEmail(toEmail, firstName, personalNote, fromEmail) {
   if (!toEmail) throw new Error('toEmail required');
   var greeting = firstName
     ? 'Hi ' + String(firstName).trim() + ','
@@ -156,7 +158,7 @@ function _sendRejectionEmail(toEmail, firstName, personalNote) {
   bodyLines.push('');
   bodyLines.push('Warmly,');
   bodyLines.push('Tensor Lab Team');
-  MailApp.sendEmail({ to: toEmail, subject: subject, body: bodyLines.join('\n') });
+  _sendTensorLabEmail({ to: toEmail, subject: subject, body: bodyLines.join('\n') }, fromEmail);
 }
 
 /**
@@ -173,7 +175,7 @@ function _sendRejectionEmail(toEmail, firstName, personalNote) {
  *   personalNote    string, optional (shown as a reviewer note paragraph)
  * Output: void. Throws on invalid email.
  */
-function _sendInterviewInviteEmail(toEmail, firstName, reviewerName, projectLabel, schedulingUrl, personalNote) {
+function _sendInterviewInviteEmail(toEmail, firstName, reviewerName, projectLabel, schedulingUrl, personalNote, fromEmail) {
   if (!toEmail) throw new Error('toEmail required');
   if (!reviewerName) throw new Error('reviewerName required');
   if (!schedulingUrl) throw new Error('schedulingUrl required');
@@ -206,16 +208,17 @@ function _sendInterviewInviteEmail(toEmail, firstName, reviewerName, projectLabe
   lines.push('Looking forward to talking with you,');
   lines.push(reviewer);
   lines.push('Tensor Lab');
-  MailApp.sendEmail({ to: toEmail, subject: subject, body: lines.join('\n') });
+  _sendTensorLabEmail({ to: toEmail, subject: subject, body: lines.join('\n') }, fromEmail);
 }
 
-function _sendReselectionEmail(toEmail, linkUrl, mode) {
+function _sendReselectionEmail(toEmail, linkUrl, mode, projectLabel, fromEmail) {
   if (!toEmail) throw new Error('toEmail required');
   var isEdit = mode === 'edit';
+  var label = projectLabel || 'one of your top three project choices';
   var subject = 'Update your Tensor Lab project choices.';
   var intro = isEdit
-    ? 'One of your top three project choices has been filled. The link below reopens your original application with every answer you already gave. Swap the filled choice for a new one and resubmit. You do not need to retype anything else.'
-    : 'One of your top three project choices has been filled. You can swap in a replacement so your list stays at three. Your other two choices are already filled in on the link below.';
+    ? 'The following project has been filled: ' + label + '. The link below reopens your original application with every answer you already gave. Swap that filled project for a new one and resubmit. You do not need to retype anything else.'
+    : 'The following project has been filled: ' + label + '. You can swap in a replacement so your list stays at three. Your other two choices are already filled in on the link below.';
   var body = [
     'Hi,',
     '',
@@ -226,5 +229,26 @@ function _sendReselectionEmail(toEmail, linkUrl, mode) {
     'Thanks,',
     'Tensor Lab Team'
   ].join('\n');
-  MailApp.sendEmail({ to: toEmail, subject: subject, body: body });
+  _sendTensorLabEmail({ to: toEmail, subject: subject, body: body }, fromEmail);
+}
+
+/**
+ * Central mail sender. The dialog can pass either approved Tensor Lab Gmail
+ * account; non-dialog sends fall back to SEND_FROM_EMAIL.
+ */
+function _sendTensorLabEmail(message, fromEmail) {
+  var from = _normalizeSenderEmail(fromEmail);
+  if (TENSOR_LAB_SENDERS.indexOf(from) === -1) {
+    throw new Error('Unsupported sender: ' + from + '. Pick tensorlabucsf@gmail.com or tensorlabumsom@gmail.com.');
+  }
+  GmailApp.sendEmail(message.to, message.subject, message.body, {
+    from: from,
+    name: 'Tensor Lab Team',
+    replyTo: from
+  });
+}
+
+function _normalizeSenderEmail(fromEmail) {
+  var props = PropertiesService.getScriptProperties();
+  return String(fromEmail || props.getProperty('SEND_FROM_EMAIL') || TENSOR_LAB_SENDERS[0]).trim().toLowerCase();
 }

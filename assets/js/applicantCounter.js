@@ -48,6 +48,11 @@
     });
   }
 
+  function applyStatuses(statuses) {
+    if (!statuses) return;
+    document.dispatchEvent(new CustomEvent('tensorlab:project-statuses', { detail: statuses }));
+  }
+
   function hideAll() {
     var badges = document.querySelectorAll('[data-applicant-counter]');
     badges.forEach(function (el) { el.classList.add('counter-hidden'); });
@@ -65,6 +70,7 @@
       .then(function (payload) {
         if (!payload || !payload.ok || !payload.counts) throw new Error('bad_payload');
         applyCounts(payload.counts);
+        applyStatuses(payload.statuses);
       })
       .catch(function () { hideAll(); })
       .then(function () { state.inFlight = false; });

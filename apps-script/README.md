@@ -45,7 +45,7 @@ writes stay consistent.
  | (static HTML)   |   | tabs    |   |  triggers + api   |
  +-----------------+   +---------+   +-------------------+
         ^                   ^                 |
-        | HTTP GET          |                 | MailApp
+       | HTTP GET          |                 | GmailApp
         | (counts)          |                 v
         +-------------------+         applicant emails
 ```
@@ -161,6 +161,14 @@ Under **Project Settings > Script properties**, add:
 | `RESELECTION_FORM_ID` | Reselection form id from step 4. |
 | `PROJECTS_JSON_URL` | `https://thetensorlab.org/data/projects_YYYY.json` |
 | `PUBLIC_SITE_ORIGIN` | `https://thetensorlab.org` |
+| `SEND_FROM_EMAIL` | Default sender for non-dialog sends: `tensorlabucsf@gmail.com` or `tensorlabumsom@gmail.com` |
+
+The spreadsheet management dialog lets leadership choose
+`tensorlabucsf@gmail.com` or `tensorlabumsom@gmail.com` for each send. Email is
+sent with Gmail's `from` option, so both accounts must be available to the
+executing account as verified Gmail send-as aliases, or the script/triggers must
+be authorized from the matching Gmail account. Otherwise Google rejects the send
+instead of silently sending from a personal account.
 
 ### 7. Run setup functions, in this order
 

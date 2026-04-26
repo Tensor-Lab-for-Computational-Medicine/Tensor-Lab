@@ -24,7 +24,7 @@
 function openManagementDialog() {
   var html = HtmlService.createHtmlOutput(_managementDialogHtml())
     .setWidth(560)
-    .setHeight(640)
+    .setHeight(680)
     .setTitle('Tensor Lab Management');
   SpreadsheetApp.getUi().showModalDialog(html, 'Tensor Lab Management');
 }
@@ -115,15 +115,44 @@ function mgmtListPendingApplicants() {
 }
 
 /** Dialog-facing wrapper for markProjectFilled that returns a friendly payload. */
-function mgmtFillProject(projectId, email) {
+function mgmtFillProject(projectId, email, fromEmail) {
   if (!projectId || !email) throw new Error('Pick both a project and an applicant.');
-  var result = markProjectFilled(projectId, email);
+  var result = markProjectFilled(projectId, email, fromEmail);
   return { projectId: projectId, email: email, notified: result.notified };
 }
 
 /** Dialog-facing wrapper for rejectApplicant. */
-function mgmtRejectApplicant(email, personalNote) {
-  return rejectApplicant(email, personalNote || '');
+function mgmtRejectApplicant(email, personalNote, fromEmail) {
+  return rejectApplicant(email, personalNote || '', fromEmail);
+}
+
+/**
+ * Remove test applications by email, reset any projects selected by those
+ * emails, clear related logs, resync form choices, and clear public caches.
+ */
+function mgmtRemoveTestApplications(emailText, resetProjects) {
+  var emails = _parseEmailList(emailText);
+  if (emails.length === 0) throw new Error('Enter at least one email address.');
+  var emailSet = {};
+  emails.forEach(function (e) { emailSet[e] = true; });
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(15000);
+  try {
+    var result = {
+      emails: emails,
+      applicationsDeleted: _deleteRowsByEmail(SHEET_APPLICATIONS, emailSet, 'email'),
+      reselectionsDeleted: _deleteRowsByEmail(SHEET_RESELECTIONS, emailSet, 'email'),
+      redirectLogsDeleted: _deleteRowsByEmail(SHEET_REDIRECT_LOG, emailSet, 'applicant_email'),
+      interviewLogsDeleted: _deleteRowsByEmail(SHEET_INTERVIEW_LOG, emailSet, 'email'),
+      projectsReset: resetProjects ? _resetProjectsSelectedBy(emailSet) : []
+    };
+  } finally {
+    lock.releaseLock();
+  }
+
+  _refreshProjectSurfaces();
+  return result;
 }
 
 /**
@@ -143,7 +172,7 @@ function mgmtRejectApplicant(email, personalNote) {
  * failure or send failure. Not idempotent, sending twice will deliver two
  * emails, so the dialog confirms before calling.
  */
-function mgmtSendInterviewInvite(projectId, email, reviewerName, schedulingUrl, personalNote) {
+function mgmtSendInterviewInvite(projectId, email, reviewerName, schedulingUrl, personalNote, fromEmail) {
   var target = String(email || '').trim().toLowerCase();
   var pid = String(projectId || '').trim();
   var reviewer = String(reviewerName || '').trim();
@@ -166,7 +195,7 @@ function mgmtSendInterviewInvite(projectId, email, reviewerName, schedulingUrl, 
   }
   var label = _lookupProjectLabel(pid) || pid;
 
-  _sendInterviewInviteEmail(email, firstName, reviewer, label, url, note);
+  _sendInterviewInviteEmail(email, firstName, reviewer, label, url, note, fromEmail);
   _logInterviewInvite(email, pid, reviewer, url, note);
 
   PropertiesService.getUserProperties().setProperties({
@@ -217,7 +246,7 @@ function _logInterviewInvite(email, projectId, reviewer, url, note) {
  *
  * Idempotent at the per-applicant level via rejectApplicant's own dedup.
  */
-function mgmtRejectAllRemaining() {
+function mgmtRejectAllRemaining(fromEmail) {
   var progress = mgmtProjectFillProgress();
   if (progress.openProjectCount > 0) {
     throw new Error(
@@ -232,7 +261,7 @@ function mgmtRejectAllRemaining() {
   var errors = 0;
   for (var i = 0; i < pending.length; i++) {
     try {
-      var result = rejectApplicant(pending[i].email, '');
+      var result = rejectApplicant(pending[i].email, '', fromEmail);
       if (result && result.rejected) rejected++;
     } catch (err) {
       errors++;
@@ -288,7 +317,7 @@ function mgmtProjectFillProgress() {
  * Inputs: email string, personalNote string (may be empty).
  * Output: { email, rejected: bool, skipped: bool, reason?: string }.
  */
-function rejectApplicant(email, personalNote) {
+function rejectApplicant(email, personalNote, fromEmail) {
   var target = String(email || '').trim().toLowerCase();
   if (!target) throw new Error('email required');
 
@@ -329,13 +358,66 @@ function rejectApplicant(email, personalNote) {
   }
 
   try {
-    _sendRejectionEmail(email, firstName, personalNote);
+    _sendRejectionEmail(email, firstName, personalNote, fromEmail);
   } catch (err) {
     _logError('rejectApplicant.sendEmail', err);
     throw err;
   }
   CacheService.getScriptCache().remove(COUNTS_CACHE_KEY);
   return { email: email, rejected: true, skipped: false };
+}
+
+function _parseEmailList(text) {
+  var seen = {};
+  return String(text || '')
+    .split(/[\s,;]+/)
+    .map(function (e) { return e.trim().toLowerCase(); })
+    .filter(function (e) {
+      if (!e || !/@/.test(e) || seen[e]) return false;
+      seen[e] = true;
+      return true;
+    });
+}
+
+function _deleteRowsByEmail(sheetName, emailSet, logicalOrHeader) {
+  var sheet = _getSheet(sheetName);
+  if (!sheet || sheet.getLastRow() < 2) return 0;
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var col = logicalOrHeader === 'applicant_email'
+    ? headers.indexOf('applicant_email')
+    : _col(headers, logicalOrHeader);
+  if (col < 0) return 0;
+  var values = sheet.getRange(2, col + 1, sheet.getLastRow() - 1, 1).getValues();
+  var deleted = 0;
+  for (var i = values.length - 1; i >= 0; i--) {
+    if (!emailSet[String(values[i][0] || '').trim().toLowerCase()]) continue;
+    sheet.deleteRow(i + 2);
+    deleted++;
+  }
+  return deleted;
+}
+
+function _resetProjectsSelectedBy(emailSet) {
+  var sheet = _getSheet(SHEET_CONTROL);
+  if (!sheet || sheet.getLastRow() < 2) return [];
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var idCol = headers.indexOf('project_id');
+  var statusCol = headers.indexOf('status');
+  var filledAtCol = headers.indexOf('filled_at');
+  var selectedCol = headers.indexOf('selected_applicant');
+  if (idCol < 0 || statusCol < 0 || selectedCol < 0) return [];
+  var rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+  var reset = [];
+  for (var i = 0; i < rows.length; i++) {
+    var selected = String(rows[i][selectedCol] || '').trim().toLowerCase();
+    if (!emailSet[selected]) continue;
+    var row = i + 2;
+    sheet.getRange(row, statusCol + 1).setValue('open');
+    sheet.getRange(row, selectedCol + 1).clearContent();
+    if (filledAtCol >= 0) sheet.getRange(row, filledAtCol + 1).clearContent();
+    reset.push(String(rows[i][idCol] || '').trim());
+  }
+  return reset.filter(Boolean);
 }
 
 /**
@@ -436,10 +518,17 @@ function _managementDialogHtml() {
     '.hint{font-size:13px;color:#444;line-height:1.5;margin:0 0 8px}',
     '</style></head><body>',
     '<h1>Tensor Lab applicant management</h1>',
+    '<label for="senderSelect">Send emails from</label>',
+    '<select id="senderSelect">',
+    '  <option value="tensorlabucsf@gmail.com">tensorlabucsf@gmail.com</option>',
+    '  <option value="tensorlabumsom@gmail.com">tensorlabumsom@gmail.com</option>',
+    '</select>',
+    '<p class="meta">This sender applies to emails sent from this dialog. Direct control sheet edits use the SEND_FROM_EMAIL script property.</p>',
     '<div class="tabs">',
     '  <div class="tab active" data-panel="fill">Fill project</div>',
     '  <div class="tab" data-panel="interview">Invite to interview</div>',
     '  <div class="tab" data-panel="reject">Reject applicant</div>',
+    '  <div class="tab" data-panel="cleanup">Remove test data</div>',
     '  <div class="tab" data-panel="bulk">Close cohort</div>',
     '</div>',
 
@@ -481,6 +570,16 @@ function _managementDialogHtml() {
     '  <div id="rejectStatus"></div>',
     '</div>',
 
+    '<div id="cleanup" class="panel">',
+    '  <p class="hint">Remove test applications without touching real applicants. Enter one or more test email addresses. If a test email was selected for a project, this can reopen that project and put it back on the form.</p>',
+    '  <label for="cleanupEmails">Test email addresses</label>',
+    '  <textarea id="cleanupEmails" placeholder="test@example.com\\nother-test@example.com"></textarea>',
+    '  <label><input id="cleanupResetProjects" type="checkbox" checked style="width:auto;margin-right:6px">Reopen projects selected by these test emails</label>',
+    '  <button id="cleanupBtn" class="danger" disabled>Remove test applications and resync</button>',
+    '  <p class="meta">Deletes matching rows from applications, reselections, redirect_log, and interview_log. It also refreshes the form choices and public site cache.</p>',
+    '  <div id="cleanupStatus"></div>',
+    '</div>',
+
     '<div id="bulk" class="panel">',
     '  <p class="hint">Use this only at the end of the cohort, after every project has been filled. Losing a single choice does not count as a rejection, applicants stay pending on their other choices until selection closes.</p>',
     '  <div id="bulkProgress" class="status warn">Checking selection progress…</div>',
@@ -493,6 +592,7 @@ function _managementDialogHtml() {
     'const $=q=>document.querySelector(q);',
     'const $$=q=>document.querySelectorAll(q);',
     'const esc=s=>String(s==null?"":s).replace(/[&<>"\']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\\"":"&quot;","\'":"&#39;"}[c]));',
+    'const sender=()=>$("#senderSelect").value;',
     'const setStatus=(el,msg,kind)=>{el.className="status "+(kind||"ok");el.textContent=msg};',
     'const clearStatus=el=>{el.className="";el.textContent=""};',
 
@@ -536,7 +636,7 @@ function _managementDialogHtml() {
     '  const pid=$("#projectSelect").value;const email=$("#applicantSelect").value;',
     '  const projectLabel=$("#projectSelect").selectedOptions[0].text;',
     '  const st=$("#fillStatus");if(!pid||!email)return;',
-    '  if(!confirm("Fill "+projectLabel+" with "+email+"?\\n\\nThe winner gets a congrats email. Every other applicant who ranked this project gets a reselection email."))return;',
+    '  if(!confirm("Fill "+projectLabel+" with "+email+"?\\n\\nEmails will send from "+sender()+"."))return;',
     '  $("#fillBtn").disabled=true;setStatus(st,"Sending…","warn");',
     '  google.script.run',
     '    .withSuccessHandler(r=>{setStatus(st,"Filled. Congrats email sent to "+r.email+". "+r.notified+" reselection emails sent.","ok");',
@@ -550,7 +650,7 @@ function _managementDialogHtml() {
     '      refreshBulkGate();',
     '    })',
     '    .withFailureHandler(e=>{setStatus(st,"Error: "+e.message,"err");$("#fillBtn").disabled=false})',
-    '    .mgmtFillProject(pid,email);',
+    '    .mgmtFillProject(pid,email,sender());',
     '});',
 
     'function loadInterviewProjects(){',
@@ -602,7 +702,7 @@ function _managementDialogHtml() {
     '  const reviewer=$("#ivReviewerName").value.trim();const url=$("#ivSchedulingUrl").value.trim();',
     '  const note=$("#ivNote").value.trim();const st=$("#ivStatus");',
     '  const projectLabel=$("#ivProjectSelect").selectedOptions[0].text;',
-    '  if(!confirm("Send "+email+" an interview invite for "+projectLabel+"?\\n\\nThey will receive an email with your scheduling link."))return;',
+    '  if(!confirm("Send "+email+" an interview invite for "+projectLabel+"?\\n\\nEmail will send from "+sender()+"."))return;',
     '  $("#ivSendBtn").disabled=true;setStatus(st,"Sending invite…","warn");',
     '  google.script.run',
     '    .withSuccessHandler(r=>{',
@@ -610,7 +710,7 @@ function _managementDialogHtml() {
     '      $("#ivNote").value="";ivRefreshBtn();',
     '    })',
     '    .withFailureHandler(e=>{setStatus(st,"Error: "+e.message,"err");ivRefreshBtn();})',
-    '    .mgmtSendInterviewInvite(pid,email,reviewer,url,note);',
+    '    .mgmtSendInterviewInvite(pid,email,reviewer,url,note,sender());',
     '});',
 
     'function loadPending(){',
@@ -632,7 +732,7 @@ function _managementDialogHtml() {
 
     '$("#rejectBtn").addEventListener("click",()=>{',
     '  const email=$("#rejectSelect").value;const note=$("#rejectNote").value.trim();const st=$("#rejectStatus");',
-    '  if(!confirm("Reject "+email+" and send a decline email?"+(note?"\\n\\nIncluded reviewer note will appear in the email.":"")))return;',
+    '  if(!confirm("Reject "+email+" and send a decline email from "+sender()+"?"+(note?"\\n\\nIncluded reviewer note will appear in the email.":"")))return;',
     '  $("#rejectBtn").disabled=true;setStatus(st,"Sending…","warn");',
     '  google.script.run',
     '    .withSuccessHandler(r=>{',
@@ -641,7 +741,30 @@ function _managementDialogHtml() {
     '      $("#rejectNote").value="";loadPending();',
     '    })',
     '    .withFailureHandler(e=>{setStatus(st,"Error: "+e.message,"err");$("#rejectBtn").disabled=false})',
-    '    .mgmtRejectApplicant(email,note);',
+    '    .mgmtRejectApplicant(email,note,sender());',
+    '});',
+
+    'function cleanupRefreshBtn(){',
+    '  $("#cleanupBtn").disabled=!$("#cleanupEmails").value.trim();',
+    '}',
+    '$("#cleanupEmails").addEventListener("input",cleanupRefreshBtn);',
+    '$("#cleanupBtn").addEventListener("click",()=>{',
+    '  const emails=$("#cleanupEmails").value.trim();const reset=$("#cleanupResetProjects").checked;const st=$("#cleanupStatus");',
+    '  if(!emails)return;',
+    '  if(!confirm("Remove these test applications and related logs?"+(reset?"\\n\\nProjects selected by these emails will be reopened.":"")))return;',
+    '  $("#cleanupBtn").disabled=true;setStatus(st,"Removing test data and resyncing…","warn");',
+    '  google.script.run',
+    '    .withSuccessHandler(r=>{',
+    '      const msg="Removed "+r.applicationsDeleted+" application rows, "+r.reselectionsDeleted+" reselection rows, "+r.redirectLogsDeleted+" redirect log rows, and "+r.interviewLogsDeleted+" interview log rows."+(r.projectsReset.length?" Reopened: "+r.projectsReset.join(", ")+".":"");',
+    '      setStatus(st,msg,"ok");$("#cleanupEmails").value="";cleanupRefreshBtn();',
+    '      google.script.run.withSuccessHandler(projects=>{',
+    '        const sel=$("#projectSelect");sel.innerHTML="<option value=\\"\\">Choose a project…</option>";',
+    '        projects.forEach(p=>sel.insertAdjacentHTML("beforeend","<option value=\\""+esc(p.id)+"\\">"+esc(p.label)+" ("+p.count+" applicants)</option>"));',
+    '      }).mgmtListOpenProjects();',
+    '      loadInterviewProjects();loadPending();refreshBulkGate();',
+    '    })',
+    '    .withFailureHandler(e=>{setStatus(st,"Error: "+e.message,"err");cleanupRefreshBtn();})',
+    '    .mgmtRemoveTestApplications(emails,reset);',
     '});',
 
     'function refreshBulkGate(){',
@@ -664,7 +787,7 @@ function _managementDialogHtml() {
     '  const st=$("#bulkStatus");$("#bulkBtn").disabled=true;setStatus(st,"Counting pending applicants…","warn");',
     '  google.script.run.withSuccessHandler(list=>{',
     '    if(!list.length){setStatus(st,"Nothing to do. No pending applicants.","ok");$("#bulkBtn").disabled=false;return}',
-    '    if(!confirm("Reject "+list.length+" pending applicants and send decline emails to each?\\n\\nThis cannot be undone from this dialog.")){',
+    '    if(!confirm("Reject "+list.length+" pending applicants and send decline emails from "+sender()+" to each?\\n\\nThis cannot be undone from this dialog.")){',
     '      $("#bulkBtn").disabled=false;clearStatus(st);return;',
     '    }',
     '    setStatus(st,"Processing "+list.length+" rejections. This can take a moment…","warn");',
@@ -674,7 +797,7 @@ function _managementDialogHtml() {
     '        setStatus(st,msg,r.errors?"warn":"ok");loadPending();',
     '      })',
     '      .withFailureHandler(e=>{setStatus(st,"Error: "+e.message,"err");$("#bulkBtn").disabled=false})',
-    '      .mgmtRejectAllRemaining();',
+    '      .mgmtRejectAllRemaining(sender());',
     '  }).withFailureHandler(e=>{setStatus(st,"Could not count applicants: "+e.message,"err");$("#bulkBtn").disabled=false})',
     '  .mgmtListPendingApplicants();',
     '});',
