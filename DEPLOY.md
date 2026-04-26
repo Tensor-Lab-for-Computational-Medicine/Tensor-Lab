@@ -38,16 +38,18 @@ Open `projects-2026.html`, find the iframe inside `#application-embed`, and repl
 
 The backend is a single Apps Script project deployed as a web app. Code lives under `apps-script/` in this repo for version control.
 
+- **Required for all leadership who send email from the spreadsheet:** every operator must set up **Gmail → Send mail as** for `**tensorlabucsf@gmail.com`** and/or `**tensorlabumsom@gmail.com**` on **their own** Google account (see `**apps-script/README.md`**, **Who may send email (every operator must do this)**). **Sharing the sheet is not enough.**
+
 ### Initial deploy
 
 1. Create a new Apps Script project at `script.google.com`.
 2. Copy the contents of `apps-script/api.gs`, `triggers.gs`, `email.gs`, and `setup.gs` into matching files in the project.
 3. Replace the manifest with `apps-script/appsscript.json` via Project Settings, Show appsscript.json.
 4. Set Script properties under Project Settings:
-   - `SPREADSHEET_ID`
-   - `APPLICATION_FORM_ID`
-   - `RESELECTION_FORM_ID`
-   - `PROJECTS_JSON_URL` (for example `https://thetensorlab.org/data/projects_2026.json`)
+  - `SPREADSHEET_ID`
+  - `APPLICATION_FORM_ID`
+  - `RESELECTION_FORM_ID`
+  - `PROJECTS_JSON_URL` (for example `https://thetensorlab.org/data/projects_2026.json`)
 5. From the editor, run `initialSetup` once. Authorize the scopes.
 6. Run `syncFormChoices` to populate the three dropdown questions.
 7. Run `installTriggers` once.

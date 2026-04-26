@@ -163,16 +163,14 @@ Under **Project Settings > Script properties**, add:
 | `PUBLIC_SITE_ORIGIN` | `https://thetensorlab.org` |
 | `SEND_FROM_EMAIL` | Default sender for non-dialog sends: `tensorlabucsf@gmail.com` or `tensorlabumsom@gmail.com` |
 
-The spreadsheet management dialog lets leadership choose
-`tensorlabucsf@gmail.com` or `tensorlabumsom@gmail.com` for each send. Email is
-sent with Gmail's `from` option, so both accounts must be available to the
-executing account as verified Gmail send-as aliases, or the script/triggers must
-be authorized from the matching Gmail account. Otherwise Google rejects the send
-instead of silently sending from a personal account. If you see
-`Exception: Invalid argument: name@gmail.com`, that address is not yet a verified
-**Send mail as** alias for the Google account that runs and authorizes the
-script, add it in Gmail settings on that same account, or reauthorize while
-signed into that mailbox.
+### **Who may send email (every operator must do this)**
+
+When leadership uses **Tensor Lab → Manage applicants** in the spreadsheet, Apps Script sends mail with Gmail’s **From** set to the address selected in the dialog (`tensorlabucsf@gmail.com` or `tensorlabumsom@gmail.com`). **Gmail only allows that if the Google account that is actually running the script is allowed to send as that address.**
+
+- **Each person** who will send applicant email must use **their own Google account** (the one they use to open Google Sheets) and, in **Gmail** for **that account only**: **Settings → See all settings → Accounts and Import → Send mail as → Add another email address**, then add **`tensorlabucsf@gmail.com`** and/or **`tensorlabumsom@gmail.com`** as needed and **complete every verification** (link or code Google sends to those inboxes). Until that is done for **their** account, sends with that **From** will fail with an invalid-argument style error.
+- **Sharing the spreadsheet** or **reauthorizing the Apps Script project** does **not** replace **Send mail as**. Those steps do not grant **From** rights by themselves.
+- The **spreadsheet / Apps Script owner** is not a substitute for the steps above: **any other user** who uses the management dialog still needs **Send mail as** on **their** Gmail, unless your org handles this through **Google Workspace** (e.g. admin-configured **Send as** or delegation—ask your **Workspace admin**).
+- Triggers and non-dialog code paths use **`SEND_FROM_EMAIL`**; set that to one allowed address and ensure the **account that runs automated sends** can send as that address the same way.
 
 The dialog also has a **Test workflow** tab. It creates two synthetic
 applications from entered test emails, sends only those two emails through the

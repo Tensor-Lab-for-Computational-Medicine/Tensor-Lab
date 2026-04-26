@@ -271,12 +271,15 @@ function _sendTensorLabEmail(message, fromEmail) {
   }
 }
 
-function _throwGmailFromHelp(from) {
+function _throwGmailFromHelp(requestedFrom) {
+  var runner = _effectiveUserEmail() || 'the account that owns this Apps Script project';
   throw new Error(
-    'Gmail will not send as ' + from + ' from the account that runs this script. ' +
-    'If you are signed in as a different user than the sender, add "Send mail as" in Gmail (Settings, Accounts) ' +
-    'on the Google account that actually runs this code, or create a new Apps Script deploy with Execute as: Me ' +
-    'while logged into ' + from + ', then redeploy the web app and reinstall sheet triggers if needed.'
+    'Gmail will not use From: ' + requestedFrom + ' because the script always runs as ' + runner +
+    ' (the Google account that owns the spreadsheet and Apps Script project, not the browser you use to open the sheet). ' +
+    'Sign in to Gmail as ' + runner + ' only, then Settings → See all settings → Accounts and Import → Send mail as → ' +
+    'add ' + requestedFrom + ' and complete the verification message Google sends. ' +
+    'Until that works, pick the sender that matches ' + runner + ' in the dialog, or transfer this spreadsheet and ' +
+    'script to ' + requestedFrom + ' and authorize there instead.'
   );
 }
 
