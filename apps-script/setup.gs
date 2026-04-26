@@ -97,30 +97,44 @@ function _ensureReselectionsTab(ss) {
 }
 
 /**
- * Seed the control tab with one row per project_id from projects_2026.json.
- * Preserves existing status and label values. Inputs: none. Output: void.
+ * Reconcile the control tab to projects_2026.json (add, keep, remove).
+ * Preserves existing status and label values for retained project_ids.
+ * Inputs: none. Output: void.
  */
 function seedControlFromProjects() {
   var projects = _fetchProjects();
   var control = _getSheet(SHEET_CONTROL);
   var headers = control.getRange(1, 1, 1, control.getLastColumn()).getValues()[0];
   var idCol = headers.indexOf('project_id');
-  var existing = {};
-  if (control.getLastRow() >= 2) {
-    var rows = control.getRange(2, 1, control.getLastRow() - 1, control.getLastColumn()).getValues();
-    rows.forEach(function (r) { existing[String(r[idCol]).trim()] = true; });
+  if (idCol < 0) throw new Error('control sheet missing project_id column');
+
+  var existingById = {};
+  var existingRowCount = Math.max(control.getLastRow() - 1, 0);
+  if (existingRowCount > 0) {
+    var existingRows = control.getRange(2, 1, existingRowCount, control.getLastColumn()).getValues();
+    existingRows.forEach(function (row) {
+      var id = String(row[idCol] || '').trim();
+      if (id) existingById[id] = row;
+    });
   }
-  projects.forEach(function (p) {
-    if (!existing[p.project_id]) {
-      control.appendRow(_rowForHeaders(headers, {
-        project_id: p.project_id,
-        label: '',
-        status: 'open',
-        filled_at: '',
-        selected_applicant: ''
-      }));
-    }
+
+  var nextRows = projects.map(function (p) {
+    var id = String(p.project_id || '').trim();
+    return existingById[id] || _rowForHeaders(headers, {
+      project_id: id,
+      label: '',
+      status: 'open',
+      filled_at: '',
+      selected_applicant: ''
+    });
   });
+
+  if (existingRowCount > 0) {
+    control.getRange(2, 1, existingRowCount, control.getLastColumn()).clearContent();
+  }
+  if (nextRows.length > 0) {
+    control.getRange(2, 1, nextRows.length, control.getLastColumn()).setValues(nextRows);
+  }
 }
 
 /**
