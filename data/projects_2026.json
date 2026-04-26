@@ -350,6 +350,32 @@
       "access_note": "Data access is expected to be straightforward and does not require an IRB.",
       "progress_note": null,
       "mentor_note": "One of the cleanest data access situations in this cohort. No IRB, public dataset, and a well defined prior benchmark to beat. A fellow can move fast on this one."
+    },
+    {
+      "project_id": "pad-risk-geospatial-ml-california",
+      "title": "Geospatial Machine Learning for Peripheral Arterial Disease Risk Mapping in California",
+      "specialty": "Vascular Surgery, Population Health",
+      "institution": "University of California, San Francisco School of Medicine",
+      "faculty_pi": "Dr. Leigh O\"Banion",
+      "faculty_pi_url": null,
+      "med_student_lead": "Destin Hahuynh",
+      "clinical_problem": "Peripheral arterial disease, PAD, remains under detected until late stages in many communities. Clinicians and health systems need better geographic risk stratification to identify regions where screening and prevention efforts should be prioritized.",
+      "technical_approach": "Build a proof of concept machine learning pipeline on the CHAMPIONS health screening dataset, approximately 1,200 patients spanning San Francisco to Los Angeles with concentration in the San Joaquin Valley, to predict PAD risk and generate regional risk estimates across California. Use tabular ML methods and model interpretability to identify which population level variables contribute most strongly to predicted risk.",
+      "deliverable": "A validated proof of concept PAD risk model with a California risk heat map and feature importance analysis, establishing a foundation for future expansion to a nationwide U.S. map.",
+      "data_type": "CHAMPIONS health screening dataset with identifiable patient data. Existing IRB approval is already in place for access and analysis.",
+      "preferred_skills": [
+        "Python for clinical tabular data workflows",
+        "Tree based machine learning, XGBoost or LightGBM",
+        "Hyperparameter tuning, Optuna or grid search",
+        "Model evaluation, AUC and cross validation",
+        "Basic geospatial analysis and risk mapping",
+        "Clinical data handling with statistical rigor"
+      ],
+      "availability": "open",
+      "capacity": 1,
+      "access_note": "IRB approval is already in place, and the PI has confirmed project approval.",
+      "progress_note": "This phase is scoped as a proof of concept focused on California, with an end goal of expanding to a U.S. wide PAD risk heat map.",
+      "mentor_note": "Strong fit for fellows who can bridge clinical context with interpretable tabular ML and geospatial visualization."
     }
   ]
 }
