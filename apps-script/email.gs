@@ -241,24 +241,56 @@ function _sendTensorLabEmail(message, fromEmail) {
   if (TENSOR_LAB_SENDERS.indexOf(from) === -1) {
     throw new Error('Unsupported sender: ' + from + '. Pick tensorlabucsf@gmail.com or tensorlabumsom@gmail.com.');
   }
+  var opts = { name: 'Tensor Lab Team' };
+  var identity = _gmailAccountEmail();
+  if (identity && from === identity) {
+    // Same mailbox as the one running the script: omit `from` or Gmail can throw
+    // Invalid argument even when the address matches, unless every alias is set up.
+    opts.replyTo = from;
+  } else {
+    opts.from = from;
+    opts.replyTo = from;
+  }
   try {
-    GmailApp.sendEmail(message.to, message.subject, message.body, {
-      from: from,
-      name: 'Tensor Lab Team',
-      replyTo: from
-    });
+    GmailApp.sendEmail(message.to, message.subject, message.body, opts);
   } catch (e) {
     var errText = (e && e.message) ? String(e.message) : String(e);
-    if (/invalid argument/i.test(errText)) {
-      throw new Error(
-        'Gmail will not send as ' + from + ' from the account that runs this script. ' +
-        'In Gmail for the same Google account that authorizes this script, go to Settings, Accounts, ' +
-        'and add "Send mail as" for ' + from + ' (verify the address). ' +
-        'Or deploy/authorize the Apps Script while signed in as that mailbox.'
-      );
+    if (!/invalid argument/i.test(errText)) throw e;
+    if (opts.from) {
+      var eff = _effectiveUserEmail();
+      if (eff && eff === from) {
+        try {
+          GmailApp.sendEmail(message.to, message.subject, message.body, { name: 'Tensor Lab Team', replyTo: from });
+        } catch (e2) {
+          _throwGmailFromHelp(from);
+        }
+        return;
+      }
     }
-    throw e;
+    _throwGmailFromHelp(from);
   }
+}
+
+function _throwGmailFromHelp(from) {
+  throw new Error(
+    'Gmail will not send as ' + from + ' from the account that runs this script. ' +
+    'If you are signed in as a different user than the sender, add "Send mail as" in Gmail (Settings, Accounts) ' +
+    'on the Google account that actually runs this code, or create a new Apps Script deploy with Execute as: Me ' +
+    'while logged into ' + from + ', then redeploy the web app and reinstall sheet triggers if needed.'
+  );
+}
+
+function _effectiveUserEmail() {
+  try { return String(Session.getEffectiveUser().getEmail() || '').toLowerCase(); } catch (_e) { return ''; }
+}
+
+/** Primary mailbox for the current execution (no permission needed for this read in most contexts). */
+function _gmailAccountEmail() {
+  var a = '';
+  var b = '';
+  try { a = String(Session.getActiveUser().getEmail() || '').toLowerCase(); } catch (_e) {}
+  try { b = String(Session.getEffectiveUser().getEmail() || '').toLowerCase(); } catch (_e) {}
+  return a || b || '';
 }
 
 function _normalizeSenderEmail(fromEmail) {
