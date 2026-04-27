@@ -388,7 +388,7 @@ Leadership calls markProjectFilled(project_id, selected_email)
 
 ### **Leadership email sending (Gmail: required for every operator)**
 
-- **Each person** who uses **Tensor Lab → Manage applicants** must add **Send mail as** in **their own Gmail** for `**tensorlabucsf@gmail.com`** and/or `**tensorlabumsom@gmail.com**` (whichever “From” addresses they will select), and **complete Google’s verification** for each, under **Settings → See all settings → Accounts and Import → Send mail as**.
+- **Each person** who uses **Tensor Lab → Manage applicants** must add **Send mail as** in **their own Gmail** for `**tensorlabucsf@gmail.com`** and/or `**tensorlabumsom@gmail.com`** (whichever “From” addresses they will select), and **complete Google’s verification** for each, under **Settings → See all settings → Accounts and Import → Send mail as**.
 - **Sharing the sheet** or **reauthorizing** Apps Script does **not** grant **From** permission by itself; **only** a verified **Send mail as** on the **same Google account** that runs the menu does.
 - **Full details:** see `**apps-script/README.md`** (section **Who may send email (every operator must do this)**) and **Google Workspace** options if your org uses managed mailboxes.
 
