@@ -376,6 +376,30 @@
       "access_note": "IRB approval is already in place, and the PI has confirmed project approval.",
       "progress_note": "This phase is scoped as a proof of concept focused on California, with an end goal of expanding to a U.S. wide PAD risk heat map.",
       "mentor_note": "Strong fit for fellows who can bridge clinical context with interpretable tabular ML and geospatial visualization."
+    },
+    {
+      "project_id": "glioma-subtype-multimodal-bias",
+      "title": "Multimodal MRI Based Pipeline for Glioma Subtype Characterization and Demographic Bias Assessment",
+      "specialty": "Neuro oncology, Radiology, Health Equity",
+      "institution": "University of California, San Francisco School of Medicine",
+      "faculty_pi": "Dr. Madhumita Sushil, PhD",
+      "faculty_pi_url": "https://profiles.ucsf.edu/madhumita.sushil",
+      "med_student_lead": null,
+      "clinical_problem": "Molecular subtype of glioma informs both prognosis and treatment, yet definitive classification currently requires biopsy and molecular sequencing via invasive neurosurgery. MRI based algorithms have shown promise as a non invasive alternative, but limited generalizability has constrained their clinical utility. This challenge is compounded by significant underrepresentation of demographic subgroups in existing research, raising concern for inequities in diagnostic accuracy and downstream care. To date, no studies have systematically evaluated model performance across demographic subgroups or identified modeling approaches that are more resistant to inherited demographic bias.",
+      "technical_approach": "Run 3 different MR based or multimodal models on the dataset to characterize baseline performance differences. Then test and validate variations of training data and model architectures.",
+      "deliverable": "A validated multimodal MRI based classification pipeline for glioma subtype characterization. Suitable for publication in a radiology informatics, neuroradiology, or digital medicine journal.",
+      "data_type": "UCSF PDGM data. Possible expansion to private institutional data under IRB.",
+      "preferred_skills": [
+        "Python",
+        "Deployment, comparison, training, and evaluation of multimodal models (based on radiomics, CNN, and text encoding)",
+        "Clinical text preprocessing",
+        "MRI imaging preprocessing"
+      ],
+      "availability": "open",
+      "capacity": 1,
+      "access_note": "UCSF PDGM data is publicly available. Expansion to private institutional data requires IRB.",
+      "progress_note": null,
+      "mentor_note": null
     }
   ]
 }
