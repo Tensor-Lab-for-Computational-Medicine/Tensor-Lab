@@ -384,7 +384,7 @@
       "institution": "University of California, San Francisco School of Medicine",
       "faculty_pi": "Dr. Madhumita Sushil, PhD",
       "faculty_pi_url": "https://profiles.ucsf.edu/madhumita.sushil",
-      "med_student_lead": null,
+      "med_student_lead": "Elisa Danthinne",
       "clinical_problem": "Molecular subtype of glioma informs both prognosis and treatment, yet definitive classification currently requires biopsy and molecular sequencing via invasive neurosurgery. MRI based algorithms have shown promise as a non invasive alternative, but limited generalizability has constrained their clinical utility. This challenge is compounded by significant underrepresentation of demographic subgroups in existing research, raising concern for inequities in diagnostic accuracy and downstream care. To date, no studies have systematically evaluated model performance across demographic subgroups or identified modeling approaches that are more resistant to inherited demographic bias.",
       "technical_approach": "Run 3 different MR based or multimodal models on the dataset to characterize baseline performance differences. Then test and validate variations of training data and model architectures.",
       "deliverable": "A validated multimodal MRI based classification pipeline for glioma subtype characterization. Suitable for publication in a radiology informatics, neuroradiology, or digital medicine journal.",
