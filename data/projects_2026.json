@@ -267,17 +267,20 @@
       "faculty_pi_url": "https://www.medschool.umaryland.edu/profiles/Williams-Brittney/",
       "med_student_lead": "Makenzie Higgins",
       "clinical_problem": "Vasoplegia, a state of severe low blood pressure with preserved cardiac function, affects up to one in five patients after cardiac surgery on bypass. It is associated with acute kidney injury, prolonged ICU stays, and death. Despite decades of literature, there is no agreed upon definition, no reliable way to predict who will develop it, and no clear evidence on whether targeted therapies like methylene blue actually reduce vasopressor requirements.",
-      "technical_approach": "To be determined. The AI component for this project has not yet been scoped. The fellow will help shape the modeling approach alongside the PI during the onramp.",
-      "deliverable": "A retrospective cohort analysis of 480 to 500 adult cardiac surgery patients at UMMC, characterizing institutional vasoplegia incidence, risk factors, and the impact of targeted therapies on 24 hour vasopressor requirements. Suitable for poster presentation and journal submission.",
+      "technical_approach": "Retrospective cohort work on 480 to 500 adult cardiac surgery patients at UMMC, plus an AI component scoped with the PI and med student lead: develop a real-time predictive model using intraoperative signals such as blood pressure trends and related perioperative data to estimate vasoplegia risk. The fellow will implement and validate the modeling approach in collaboration with the clinical team.",
+      "deliverable": "A retrospective cohort analysis characterizing institutional vasoplegia incidence, risk factors, and the impact of targeted therapies on 24 hour vasopressor requirements, together with a predictive model leveraging intraoperative data streams for vasoplegia risk estimation. Suitable for poster presentation and journal submission.",
       "data_type": "Institutional EHR and Perioperative Data Warehouse data under Protocol HP 00060609 at UMMC. Identifiable clinical data.",
       "preferred_skills": [
-        "To be determined pending AI component scoping"
+        "Python",
+        "Time series or streaming clinical signal modeling",
+        "ML model development, validation, and calibration",
+        "Comfort working with perioperative or hemodynamic data"
       ],
       "availability": "open",
       "capacity": 1,
       "access_note": "IRB submission is already in progress, which puts this project ahead of most on the administrative timeline.",
       "progress_note": null,
-      "mentor_note": "The AI component is still being scoped. A strong fit for fellows who want early input into how the problem is framed."
+      "mentor_note": "The AI direction is set toward real-time risk prediction from intraoperative data (e.g., BP trends); fellows should expect both epidemiologic cohort work and hands-on predictive modeling."
     },
     {
       "project_id": "eeg-brain-tumor-classification",
