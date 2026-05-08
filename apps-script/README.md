@@ -359,6 +359,12 @@ Simple `onEdit` triggers do not fire, only installable ones do. Rerun
 `installTriggers`. If the trigger is installed but still silent, check the
 **Executions** tab in the Apps Script editor for permission errors.
 
+**`PERMISSION_DENIED` for a new user.**
+Each person who opens the shared spreadsheet with a different Google account
+must authorize the bound Apps Script once. Have them open **Extensions → Apps
+Script**, run any function, and accept the OAuth prompt. This is separate from
+sheet sharing and from the Gmail `Send mail as` setup.
+
 **Counts endpoint returns `{"ok":false,"error":"unknown_action"}`.**
 That is the default response to a GET with no `?action=` param. Hit
 `<web-app-url>?action=getProjectCounts` to verify.
