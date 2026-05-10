@@ -447,11 +447,50 @@ function onControlEdit(e) {
 function onOpenSpreadsheet() {
   var ui = SpreadsheetApp.getUi();
   ui.createMenu('Tensor Lab')
+    .addItem('Authorize this account', 'authorizeManagementUi')
+    .addSeparator()
     .addItem('Manage applicants…', 'openManagementDialog')
     .addSeparator()
     .addItem('Sync project catalog from JSON', 'refreshCatalogFromJson')
     .addItem('Refresh applicant counts cache', 'clearCountsCache')
     .addToUi();
+}
+
+/**
+ * Harmless first-run helper for spreadsheet operators. Running this once from
+ * the Tensor Lab menu or Apps Script editor forces the OAuth consent screen for
+ * the storage, sheet, form, and Gmail scopes used by the management dialog.
+ */
+function authorizeManagementUi() {
+  var props = PropertiesService.getScriptProperties();
+  var spreadsheetId = props.getProperty('SPREADSHEET_ID');
+  if (!spreadsheetId) throw new Error('SPREADSHEET_ID script property is not set.');
+
+  var ss = SpreadsheetApp.openById(spreadsheetId);
+  ss.getSheetByName(SHEET_CONTROL);
+  CacheService.getScriptCache().get(COUNTS_CACHE_KEY);
+
+  var appFormId = props.getProperty('APPLICATION_FORM_ID');
+  if (appFormId) FormApp.openById(appFormId).getTitle();
+
+  var reselectionFormId = props.getProperty('RESELECTION_FORM_ID');
+  if (reselectionFormId) FormApp.openById(reselectionFormId).getTitle();
+
+  try {
+    GmailApp.getAliases();
+  } catch (err) {
+    _logError('authorizeManagementUi.gmail', err);
+  }
+
+  try {
+    SpreadsheetApp.getActiveSpreadsheet().toast(
+      'This Google account is authorized for Tensor Lab tools.',
+      'Tensor Lab',
+      5
+    );
+  } catch (_noUi) { /* running from editor, no active spreadsheet UI */ }
+
+  return { ok: true };
 }
 
 /** Menu helper. Manually clear the 60 second counts cache. */

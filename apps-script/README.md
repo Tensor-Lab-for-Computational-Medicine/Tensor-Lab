@@ -199,7 +199,8 @@ From the Apps Script editor, pick each function from the dropdown and click
    - `onApplicationSubmit` on the sheet (F3 validation).
    - `handleReselectionSubmit` on the sheet (F2 fallback path).
    - `onControlEdit` on the sheet (F2 auto-fires when leadership edits `control`).
-   - `onOpenSpreadsheet` on the sheet (adds the **Tensor Lab** menu).
+   - `onOpenSpreadsheet` on the sheet (adds the **Tensor Lab** menu,
+     including a safe **Authorize this account** first-run helper).
 
 ### 8. Deploy the web app
 
@@ -255,6 +256,11 @@ original application in edit mode.
 Open the spreadsheet and click **Tensor Lab > Manage applicants…**. A modal
 dialog opens with four tabs: **Fill project**, **Invite to interview**,
 **Reject applicant**, and **Close cohort**.
+
+First time on a Google account, run **Tensor Lab > Authorize this account**
+and accept the OAuth prompt before opening the management dialog. This is per
+Google account, not per spreadsheet share, and it is separate from Gmail
+`Send mail as`.
 
 **Fill project.** Pick a project from the dropdown (only unfilled projects
 appear, with their live applicant counts). The applicant dropdown then
@@ -361,9 +367,12 @@ Simple `onEdit` triggers do not fire, only installable ones do. Rerun
 
 **`PERMISSION_DENIED` for a new user.**
 Each person who opens the shared spreadsheet with a different Google account
-must authorize the bound Apps Script once. Have them open **Extensions → Apps
-Script**, run any function, and accept the OAuth prompt. This is separate from
-sheet sharing and from the Gmail `Send mail as` setup.
+must authorize the bound Apps Script once. First try **Tensor Lab > Authorize
+this account** from the spreadsheet menu, then accept the OAuth prompt and
+reopen **Tensor Lab > Manage applicants…**. If the menu item is not available
+yet, open **Extensions → Apps Script**, run `authorizeManagementUi`, and accept
+the prompt. This is separate from sheet sharing and from the Gmail `Send mail
+as` setup.
 
 **Counts endpoint returns `{"ok":false,"error":"unknown_action"}`.**
 That is the default response to a GET with no `?action=` param. Hit
