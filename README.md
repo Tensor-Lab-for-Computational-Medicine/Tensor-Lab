@@ -103,10 +103,10 @@ Open the applications spreadsheet and choose **Tensor Lab > Manage
 applicants**.
 
 - **Setup:** account, sheet, form, sender, and trigger readiness checks.
-- **Match projects:** choose a winner, edit the winner and reselection emails,
-  test them, preview recipients, then send.
 - **Invite to interview:** generate an editable email, send a test, then send
   the real invite.
+- **Match projects:** choose a winner, edit the winner and reselection emails,
+  test them, preview recipients, then send.
 - **Closeout and tools:** edit individual or bulk decline emails, preview
   recipients, run dummy tests, remove test data, and reopen projects.
 

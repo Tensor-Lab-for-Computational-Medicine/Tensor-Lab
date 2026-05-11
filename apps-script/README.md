@@ -322,8 +322,8 @@ original application in edit mode.
 ### Filling a project and rejecting applicants
 
 Open the spreadsheet and click **Tensor Lab > Manage applicants…**. A modal
-dialog opens with four top-level tabs: **Setup**, **Match projects**,
-**Interviews**, and **Closeout and tools**. The less common dummy testing,
+dialog opens with four top-level tabs: **Setup**, **Interviews**,
+**Match projects**, and **Closeout and tools**. The less common dummy testing,
 cleanup, and project reset tools live inside collapsible sections under
 **Closeout and tools** so the daily workflows stay easier to scan.
 
@@ -388,7 +388,9 @@ word before clicking **Send interview invite**. Enter a test recipient and use
 receives the subject and body shown in the dialog inside a formatted Tensor Lab
 email wrapper with the logo, a readable project card, and a scheduling button.
 Scheduling links are normalized automatically, so pasted links such as
-`https://https://calendly.com/...` are cleaned before sending. Every invite is appended to an
+`https://https://calendly.com/...` are cleaned before sending. Links that still
+are not valid `http://` or `https://` URLs are rejected before an email can be
+sent. Every invite is appended to an
 `interview_log` tab (auto-created on first use) with timestamp, email, project,
 reviewer, URL, subject, and body, and every email attempt is also appended to
 `email_log`. Your name, link, and test recipient are remembered per Google

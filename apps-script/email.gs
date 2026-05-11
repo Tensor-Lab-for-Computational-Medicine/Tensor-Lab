@@ -87,10 +87,49 @@ function _normalizeSchedulingUrl(url) {
   var value = String(url || '').trim();
   if (!value) return '';
   value = value.replace(/\s+/g, '');
-  value = value.replace(/^(?:https?:\/\/)+/i, 'https://');
-  if (!/^https?:\/\//i.test(value) && /^[^\s\/]+\.[^\s]+/.test(value)) {
+  value = value.replace(/^(?:(?:https?:)?\/\/)+/i, 'https://');
+  if (!/^https?:\/\//i.test(value) && !/^[a-z][a-z0-9+.-]*:/i.test(value) && /^[^\s\/]+\.[^\s]+/.test(value)) {
     value = 'https://' + value;
   }
+  return value;
+}
+
+function _validateSchedulingUrl(url) {
+  var value = _normalizeSchedulingUrl(url);
+  if (!value) return 'Enter a scheduling link.';
+  if (!/^https?:\/\//i.test(value)) {
+    return 'Scheduling link must start with http:// or https://, or be a full domain such as calendly.com/your-name.';
+  }
+  if (/^https?:\/\/https?:\/\//i.test(value)) {
+    return 'Scheduling link has more than one protocol. Remove the extra http:// or https://.';
+  }
+
+  var match = value.match(/^https?:\/\/([^\/?#]+)(?:[\/?#]|$)/i);
+  if (!match || !match[1]) return 'Scheduling link must include a valid domain.';
+
+  var host = String(match[1] || '').toLowerCase();
+  if (host.indexOf('@') !== -1) return 'Scheduling link should not include a username or password.';
+  if (host.indexOf('..') !== -1) return 'Scheduling link domain is not valid.';
+
+  var hostNoPort = host.replace(/:\d+$/, '');
+  if (!hostNoPort) return 'Scheduling link must include a valid domain.';
+  if (!/^[a-z0-9.-]+$/i.test(hostNoPort)) return 'Scheduling link domain contains unsupported characters.';
+  var labels = hostNoPort.split('.');
+  for (var i = 0; i < labels.length; i++) {
+    if (!labels[i] || /^-/.test(labels[i]) || /-$/.test(labels[i])) {
+      return 'Scheduling link domain is not valid.';
+    }
+  }
+  if (hostNoPort !== 'localhost' && hostNoPort.indexOf('.') === -1) {
+    return 'Scheduling link must include a full domain, for example https://calendly.com/your-name.';
+  }
+  return '';
+}
+
+function _assertValidSchedulingUrl(url) {
+  var value = _normalizeSchedulingUrl(url);
+  var error = _validateSchedulingUrl(value);
+  if (error) throw new Error(error);
   return value;
 }
 
@@ -290,29 +329,31 @@ function _sendRejectionEmail(toEmail, firstName, personalNote, fromEmail) {
 function _buildInterviewInviteDraft(firstName, reviewerName, projectLabel, schedulingUrl) {
   if (!reviewerName) throw new Error('reviewerName required');
   if (!schedulingUrl) throw new Error('schedulingUrl required');
-  var greeting = firstName ? 'Hi ' + String(firstName).trim() + ',' : 'Hi,';
+  var applicantName = firstName ? String(firstName).trim() : 'Applicant';
+  var greeting = 'Dear ' + applicantName + ',';
   var label = _displayProjectLabel(projectLabel) || 'one of your Tensor Lab project choices';
   var reviewer = String(reviewerName).trim();
-  var url = _normalizeSchedulingUrl(schedulingUrl);
+  var url = _assertValidSchedulingUrl(schedulingUrl);
   var subject = 'Tensor Lab interview invitation';
   var lines = [
     greeting,
     '',
-    'Thank you for applying to Tensor Lab. We enjoyed reading your application and would like to invite you to a short interview for this project:',
+    'Congratulations!! After reviewing a highly competitive pool of applicants, we’re excited to invite you to interview for the Tensor Lab for Computational Medicine Summer Fellowship. You were selected based on the strength of your past work and your potential to lead meaningful research at the intersection of machine learning and medicine.',
     '',
-    'Project: ' + label,
+    'You have been selected to interview for this project:',
     '',
-    'I am ' + reviewer + ', and I will be leading the conversation. The interview should take about 30 minutes. We will talk about your background, what drew you to the project, and a few practical technical questions related to the work.',
+    label,
     '',
-    'Please choose any time that works for you:',
+    'To schedule your interview, please use the following link: ' + url + '. If none of the listed times fit your schedule, just reply to this email and we will coordinate a time manually.',
     '',
-    url,
+    'The interview is conversational in format. We’re interested in learning more about your background, how you approach technical problems, and why you’re interested in applying machine learning to clinical challenges. There are no live coding tasks or technical quizzes. However, please be prepared to briefly discuss recent projects you have worked on.',
     '',
-    'If none of the listed times fit your schedule, just reply to this email and we will coordinate a time manually.',
+    'For more information about the fellowship, project structure, and mentorship model, you can explore our website: https://thetensorlab.org/',
     '',
-    'Looking forward to meeting you,',
-    reviewer,
-    'Tensor Lab'
+    'We’re looking forward to speaking with you.',
+    '',
+    'Sincerely,',
+    reviewer
   ];
   return { subject: subject, body: lines.join('\n') };
 }
@@ -495,7 +536,12 @@ function _emailButtonHtml(url, message) {
 
 function _linkifyEmailText(text) {
   return _escapeHtml(text).replace(/(https?:\/\/[^\s<]+)/g, function (url) {
-    return '<a href="' + url + '" style="color:#0f766e;text-decoration:underline;word-break:break-word;">' + url + '</a>';
+    var trailing = '';
+    while (/[.,;:!?)]$/.test(url)) {
+      trailing = url.slice(-1) + trailing;
+      url = url.slice(0, -1);
+    }
+    return '<a href="' + url + '" style="color:#0f766e;text-decoration:underline;word-break:break-word;">' + url + '</a>' + trailing;
   });
 }
 

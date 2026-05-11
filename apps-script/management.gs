@@ -4,8 +4,8 @@
  * Leadership-facing UI for closing a cohort from inside the spreadsheet.
  * Exposes a single modal dialog with workflow tabs:
  *   - Setup: first-time readiness checklist and account authorization.
- *   - Match projects: pick a winner, edit winner and reselection emails, fill.
  *   - Interviews: send an applicant your scheduling link.
+ *   - Match projects: pick a winner, edit winner and reselection emails, fill.
  *   - Closeout and tools: edit decline emails, test, clean up, and close out.
  *
  * All user-facing text avoids dashes per the house style. All mutations run
@@ -373,9 +373,8 @@ function mgmtRunDummyWorkflowTest(projectId, winnerEmail, displacedEmail, fromEm
 function mgmtBuildInterviewInviteDraft(projectId, email, reviewerName, schedulingUrl) {
   var ctx = _interviewInviteContext(projectId, email);
   var reviewer = String(reviewerName || '').trim();
-  var url = _normalizeSchedulingUrl(schedulingUrl);
+  var url = _assertValidSchedulingUrl(schedulingUrl);
   if (!reviewer) throw new Error('Enter your name so the applicant knows who is interviewing them.');
-  if (!/^https?:\/\//i.test(url)) throw new Error('Scheduling link must start with http:// or https://');
 
   var draft = _buildInterviewInviteDraft(ctx.firstName, reviewer, ctx.projectLabel, url);
   return {
@@ -447,9 +446,8 @@ function mgmtSendDraftTestEmail(subject, body, fromEmail, testToEmail, action, p
 function mgmtSendInterviewInvite(projectId, email, reviewerName, schedulingUrl, subjectOrPersonalNote, bodyOrFromEmail, maybeFromEmail) {
   var ctx = _interviewInviteContext(projectId, email);
   var reviewer = String(reviewerName || '').trim();
-  var url = _normalizeSchedulingUrl(schedulingUrl);
+  var url = _assertValidSchedulingUrl(schedulingUrl);
   if (!reviewer) throw new Error('Enter your name so the applicant knows who is interviewing them.');
-  if (!/^https?:\/\//i.test(url)) throw new Error('Scheduling link must start with http:// or https://');
 
   var subject = '';
   var body = '';
@@ -497,18 +495,18 @@ function _interviewInviteContext(projectId, email) {
   if (!pid) throw new Error('Pick a project.');
   if (!target) throw new Error('Pick an applicant.');
 
-  var firstName = '';
+  var applicantName = '';
   var rows = _readApplicationRows();
   if (rows && rows.items) {
     for (var i = 0; i < rows.items.length; i++) {
       if (rows.items[i].email.toLowerCase() === target) {
-        firstName = String(rows.items[i].name || '').split(/\s+/)[0];
+        applicantName = String(rows.items[i].name || '').trim();
         break;
       }
     }
   }
   var label = _displayProjectLabel(_lookupProjectLabel(pid) || pid);
-  return { email: target, projectId: pid, firstName: firstName, projectLabel: label };
+  return { email: target, projectId: pid, firstName: applicantName, projectLabel: label };
 }
 
 /** Return user-scoped properties for prefilling the interview form. */
@@ -517,7 +515,7 @@ function mgmtRecallReviewerDefaults() {
     var p = PropertiesService.getUserProperties();
     return {
       name: p.getProperty('tl_reviewer_name') || '',
-      url: p.getProperty('tl_reviewer_url') || '',
+      url: _normalizeSchedulingUrl(p.getProperty('tl_reviewer_url') || ''),
       testEmail: p.getProperty('tl_test_email') || ''
     };
   } catch (err) {
@@ -1322,8 +1320,8 @@ function _managementDialogHtml() {
     '<div id="senderStatus" class="status warn">Checking sender access…</div>',
     '<div class="tabs">',
     '  <div class="tab active" data-panel="setup">Setup</div>',
-    '  <div class="tab" data-panel="fill">Match projects</div>',
     '  <div class="tab" data-panel="interview">Interviews</div>',
+    '  <div class="tab" data-panel="fill">Match projects</div>',
     '  <div class="tab" data-panel="closeout">Closeout and tools</div>',
     '</div>',
 
@@ -1713,7 +1711,7 @@ function _managementDialogHtml() {
 
     'google.script.run.withSuccessHandler(d=>{',
     '  if(d.name)$("#ivReviewerName").value=d.name;',
-    '  if(d.url)$("#ivSchedulingUrl").value=d.url;',
+    '  if(d.url)$("#ivSchedulingUrl").value=cleanUrlValue(d.url);',
     '  if(d.testEmail)$("#ivTestEmail").value=d.testEmail;',
     '  ivRefreshBtn();',
     '  scheduleIvDraft(false);',
@@ -1738,7 +1736,22 @@ function _managementDialogHtml() {
     '  .mgmtListApplicantsForProject(pid);',
     '});',
 
-    'function cleanUrlValue(v){v=String(v||"").trim().replace(/\\s+/g,"");v=v.replace(/^(?:https?:\\/\\/)+/i,"https://");if(v&&!/^https?:\\/\\//i.test(v)&&/^[^\\s\\/]+\\.[^\\s]+/.test(v))v="https://"+v;return v}',
+    'function cleanUrlValue(v){v=String(v||"").trim().replace(/\\s+/g,"");v=v.replace(/^(?:(?:https?:)?\\/\\/)+/i,"https://");if(v&&!/^https?:\\/\\//i.test(v)&&!/^[a-z][a-z0-9+.-]*:/i.test(v)&&/^[^\\s\\/]+\\.[^\\s]+/.test(v))v="https://"+v;return v}',
+    'function schedulingUrlProblem(v){',
+    '  const value=cleanUrlValue(v);',
+    '  if(!value)return "enter a scheduling link";',
+    '  if(!/^https?:\\/\\//i.test(value))return "enter a link that starts with http:// or https://";',
+    '  if(/^https?:\\/\\/https?:\\/\\//i.test(value))return "remove the extra http:// or https://";',
+    '  try{',
+    '    const u=new URL(value);',
+    '    if(u.protocol!=="http:"&&u.protocol!=="https:")return "use an http:// or https:// link";',
+    '    if(!u.hostname)return "enter a valid scheduling link";',
+    '    if(u.username||u.password)return "remove the username or password from the link";',
+    '    if(u.hostname.split(".").some(p=>!p||p.startsWith("-")||p.endsWith("-")))return "enter a valid scheduling link domain";',
+    '    if(u.hostname!=="localhost"&&!u.hostname.includes("."))return "enter a full domain, for example https://calendly.com/your-name";',
+    '    return "";',
+    '  }catch(e){return "enter a valid scheduling link"}',
+    '}',
     'function ivDraftReady(){',
     '  return !ivDraftMissingReason();',
     '}',
@@ -1746,7 +1759,8 @@ function _managementDialogHtml() {
     '  if(!$("#ivProjectSelect").value)return "pick a project";',
     '  if(!$("#ivApplicantSelect").value)return "pick an applicant";',
     '  if(!$("#ivReviewerName").value.trim())return "enter your name";',
-    '  if(!/^https?:\\/\\//i.test(cleanUrlValue($("#ivSchedulingUrl").value)))return "enter a scheduling link";',
+    '  const urlIssue=schedulingUrlProblem($("#ivSchedulingUrl").value);',
+    '  if(urlIssue)return urlIssue;',
     '  return "";',
     '}',
     'function scheduleIvDraft(force){',
@@ -1781,7 +1795,8 @@ function _managementDialogHtml() {
     '  if(!$("#ivProjectSelect").value)return "Pick a project first";',
     '  if(!$("#ivApplicantSelect").value)return "Pick an applicant";',
     '  if(!$("#ivReviewerName").value.trim())return "Enter your name";',
-    '  if(!/^https?:\\/\\//i.test(cleanUrlValue($("#ivSchedulingUrl").value)))return "Enter a scheduling link";',
+    '  const urlIssue=schedulingUrlProblem($("#ivSchedulingUrl").value);',
+    '  if(urlIssue)return urlIssue.charAt(0).toUpperCase()+urlIssue.slice(1);',
     '  if(!$("#ivSubject").value.trim())return "Enter or generate an email subject";',
     '  if(!$("#ivBody").value.trim())return "Enter or generate an email body";',
     '  return "";',
@@ -1809,6 +1824,8 @@ function _managementDialogHtml() {
     '// Draft button uses inline onclick so the visible status still works if later listeners fail.',
     '$("#ivSchedulingUrl").addEventListener("blur",()=>{',
     '  const el=$("#ivSchedulingUrl");el.value=cleanUrlValue(el.value);',
+    '  const issue=schedulingUrlProblem(el.value);',
+    '  if(issue&&el.value)setStatus(draftStatusEl(),issue.charAt(0).toUpperCase()+issue.slice(1)+".","warn");',
     '  ivRefreshBtn();scheduleIvDraft(false);',
     '});',
 
