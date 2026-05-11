@@ -338,7 +338,7 @@ function _optionalScriptProperty(name) {
   try {
     return PropertiesService.getScriptProperties().getProperty(name) || FALLBACK_CONFIG[name] || '';
   } catch (err) {
-    _logError('_optionalScriptProperty.' + name, err);
+    if (!_isStoragePermissionError(err)) _logError('_optionalScriptProperty.' + name, err);
     return FALLBACK_CONFIG[name] || '';
   }
 }
@@ -348,7 +348,7 @@ function _cacheGet(key) {
   try {
     return CacheService.getScriptCache().get(key);
   } catch (err) {
-    _logError('_cacheGet.' + key, err);
+    if (!_isStoragePermissionError(err)) _logError('_cacheGet.' + key, err);
     return '';
   }
 }
@@ -357,7 +357,7 @@ function _cachePut(key, value, ttlSeconds) {
   try {
     CacheService.getScriptCache().put(key, value, ttlSeconds);
   } catch (err) {
-    _logError('_cachePut.' + key, err);
+    if (!_isStoragePermissionError(err)) _logError('_cachePut.' + key, err);
   }
 }
 
@@ -365,8 +365,13 @@ function _cacheRemove(key) {
   try {
     CacheService.getScriptCache().remove(key);
   } catch (err) {
-    _logError('_cacheRemove.' + key, err);
+    if (!_isStoragePermissionError(err)) _logError('_cacheRemove.' + key, err);
   }
+}
+
+function _isStoragePermissionError(err) {
+  var msg = (err && err.message) ? String(err.message) : String(err || '');
+  return /PERMISSION_DENIED|reading from storage|storage/i.test(msg);
 }
 
 /** Wrap a JS object as a JSON ContentService response. */

@@ -388,7 +388,7 @@ function mgmtSendInterviewInvite(projectId, email, reviewerName, schedulingUrl, 
       tl_reviewer_url: url
     });
   } catch (err) {
-    _logError('mgmtSendInterviewInvite.rememberDefaults', err);
+    if (!_isStoragePermissionError(err)) _logError('mgmtSendInterviewInvite.rememberDefaults', err);
   }
 
   return { email: ctx.email, projectId: ctx.projectId, projectLabel: ctx.projectLabel };
@@ -424,7 +424,7 @@ function mgmtRecallReviewerDefaults() {
       testEmail: p.getProperty('tl_test_email') || ''
     };
   } catch (err) {
-    _logError('mgmtRecallReviewerDefaults', err);
+    if (!_isStoragePermissionError(err)) _logError('mgmtRecallReviewerDefaults', err);
     return { name: '', url: '', testEmail: '' };
   }
 }
@@ -639,7 +639,9 @@ function mgmtSetupStatus() {
   }
 
   try {
-    var progress = mgmtProjectFillProgress();
+    var progress = ss
+      ? _projectFillProgressFromSheet(ss.getSheetByName(SHEET_CONTROL))
+      : { filled: 0, total: 0, openProjectCount: 0, openProjectIds: [] };
     add(
       progress.total > 0 ? 'ok' : 'warn',
       'Project control rows',
@@ -657,7 +659,7 @@ function mgmtSetupStatus() {
     );
   }
 
-  var appFormId = _optionalScriptProperty('APPLICATION_FORM_ID');
+  var appFormId = (FALLBACK_CONFIG && FALLBACK_CONFIG.APPLICATION_FORM_ID) || '';
   if (appFormId) {
     try {
       add(
@@ -731,28 +733,52 @@ function mgmtSetupStatus() {
     );
   }
 
-  try {
-    PropertiesService.getUserProperties().getProperty('tl_reviewer_name');
-    add(
-      'ok',
-      'Personal defaults storage',
-      'Reviewer name, scheduling link, and test recipient can be remembered.',
-      'No action needed. The interview tab saves these after you send an invite or test email.'
-    );
-  } catch (errUserProps) {
-    add(
-      'warn',
-      'Personal defaults storage',
-      'Not readable. The dialog will still work, but reviewer defaults may not persist.',
-      'Click Run authorization check. If it still warns, manually enter your reviewer name, scheduling link, and test recipient each time.'
-    );
-  }
+  add(
+    'ok',
+    'Personal defaults storage',
+    'Optional. This setup check does not read user storage because Google can block it for shared-script operators.',
+    'The interview tab will try to remember your reviewer name, scheduling link, and test recipient. If those fields do not persist, enter them manually each time.'
+  );
 
   return {
     activeUser: active,
     effectiveUser: effective,
     checks: checks,
     sender: sender
+  };
+}
+
+function _projectFillProgressFromSheet(sheet) {
+  if (!sheet || sheet.getLastRow() < 2) {
+    return { filled: 0, total: 0, openProjectCount: 0, openProjectIds: [] };
+  }
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var idCol = headers.indexOf('project_id');
+  var statusCol = headers.indexOf('status');
+  var labelCol = headers.indexOf('label');
+  if (idCol < 0 || statusCol < 0) {
+    return { filled: 0, total: 0, openProjectCount: 0, openProjectIds: [] };
+  }
+  var rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+  var filled = 0;
+  var total = 0;
+  var openIds = [];
+  for (var i = 0; i < rows.length; i++) {
+    var id = String(rows[i][idCol] || '').trim();
+    if (!id) continue;
+    total++;
+    if (String(rows[i][statusCol] || '').trim().toLowerCase() === 'filled') {
+      filled++;
+    } else {
+      var label = labelCol >= 0 ? String(rows[i][labelCol] || '').trim() : '';
+      openIds.push(_displayProjectLabel(label || id));
+    }
+  }
+  return {
+    filled: filled,
+    total: total,
+    openProjectCount: total - filled,
+    openProjectIds: openIds
   };
 }
 
@@ -779,7 +805,7 @@ function mgmtSendInterviewTestEmail(subject, body, fromEmail, testToEmail) {
   try {
     PropertiesService.getUserProperties().setProperty('tl_test_email', to);
   } catch (err) {
-    _logError('mgmtSendInterviewTestEmail.rememberDefault', err);
+    if (!_isStoragePermissionError(err)) _logError('mgmtSendInterviewTestEmail.rememberDefault', err);
   }
   return { email: to };
 }
