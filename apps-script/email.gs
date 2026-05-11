@@ -116,7 +116,13 @@ function _sendCongratulationsEmail(toEmail, projectLabel, fromEmail) {
     'Warmly,',
     'Tensor Lab Team'
   ].join('\n');
-  _sendTensorLabEmail({ to: toEmail, subject: subject, body: body }, fromEmail);
+  _sendTensorLabEmail({
+    to: toEmail,
+    subject: subject,
+    body: body,
+    action: 'congratulations',
+    project_label: label
+  }, fromEmail);
 }
 
 /**
@@ -156,25 +162,26 @@ function _sendRejectionEmail(toEmail, firstName, personalNote, fromEmail) {
   bodyLines.push('');
   bodyLines.push('Warmly,');
   bodyLines.push('Tensor Lab Team');
-  _sendTensorLabEmail({ to: toEmail, subject: subject, body: bodyLines.join('\n') }, fromEmail);
+  _sendTensorLabEmail({
+    to: toEmail,
+    subject: subject,
+    body: bodyLines.join('\n'),
+    action: 'rejection'
+  }, fromEmail);
 }
 
 /**
- * Send an interview invite with the reviewer's scheduling link. Copy is warm
- * and direct: explains why we are reaching out, who the reviewer is, what the
- * interview covers, and how to pick a slot. No dashes per the house style.
+ * Build the default interview invite draft shown in the management dialog.
+ * Operators can edit the returned subject and body before sending.
  *
  * Inputs:
- *   toEmail         string, required
  *   firstName       string, optional (for the greeting)
  *   reviewerName    string, required (full name, e.g. "Aaron Ge")
  *   projectLabel    string, required (human-readable project title)
  *   schedulingUrl   string, required (Calendly, Cal.com, SavvyCal, etc.)
- *   personalNote    string, optional (shown as a reviewer note paragraph)
- * Output: void. Throws on invalid email.
+ * Output: { subject, body }
  */
-function _sendInterviewInviteEmail(toEmail, firstName, reviewerName, projectLabel, schedulingUrl, personalNote, fromEmail) {
-  if (!toEmail) throw new Error('toEmail required');
+function _buildInterviewInviteDraft(firstName, reviewerName, projectLabel, schedulingUrl) {
   if (!reviewerName) throw new Error('reviewerName required');
   if (!schedulingUrl) throw new Error('schedulingUrl required');
   var greeting = firstName ? 'Hi ' + String(firstName).trim() + ',' : 'Hi,';
@@ -193,20 +200,39 @@ function _sendInterviewInviteEmail(toEmail, firstName, reviewerName, projectLabe
     'Please pick a time that works for you here:',
     '',
     '    ' + String(schedulingUrl).trim(),
-    ''
+    '',
+    'If none of the available slots work, reply to this email and we will find another time.',
+    '',
+    'Looking forward to talking with you,',
+    reviewer,
+    'Tensor Lab'
   ];
+  return { subject: subject, body: lines.join('\n') };
+}
+
+/**
+ * Send an interview invite with the reviewer's scheduling link. Used by older
+ * callers and tests. The management dialog now sends an edited draft directly.
+ */
+function _sendInterviewInviteEmail(toEmail, firstName, reviewerName, projectLabel, schedulingUrl, personalNote, fromEmail) {
+  if (!toEmail) throw new Error('toEmail required');
+  var draft = _buildInterviewInviteDraft(firstName, reviewerName, projectLabel, schedulingUrl);
   if (personalNote) {
-    lines.push('A note from me:');
-    lines.push('');
-    lines.push('    ' + String(personalNote).trim());
-    lines.push('');
+    draft.body += [
+      '',
+      '',
+      'A note from me:',
+      '',
+      '    ' + String(personalNote).trim()
+    ].join('\n');
   }
-  lines.push('If none of the available slots work, reply to this email and we will find another time.');
-  lines.push('');
-  lines.push('Looking forward to talking with you,');
-  lines.push(reviewer);
-  lines.push('Tensor Lab');
-  _sendTensorLabEmail({ to: toEmail, subject: subject, body: lines.join('\n') }, fromEmail);
+  _sendTensorLabEmail({
+    to: toEmail,
+    subject: draft.subject,
+    body: draft.body,
+    action: 'interview',
+    project_label: projectLabel || ''
+  }, fromEmail);
 }
 
 function _sendReselectionEmail(toEmail, linkUrl, mode, projectLabel, fromEmail) {
@@ -227,7 +253,13 @@ function _sendReselectionEmail(toEmail, linkUrl, mode, projectLabel, fromEmail) 
     'Thanks,',
     'Tensor Lab Team'
   ].join('\n');
-  _sendTensorLabEmail({ to: toEmail, subject: subject, body: body }, fromEmail);
+  _sendTensorLabEmail({
+    to: toEmail,
+    subject: subject,
+    body: body,
+    action: 'reselection',
+    project_label: label
+  }, fromEmail);
 }
 
 /**
@@ -251,21 +283,69 @@ function _sendTensorLabEmail(message, fromEmail) {
   }
   try {
     GmailApp.sendEmail(message.to, message.subject, message.body, opts);
+    _appendEmailLog(message, from, 'sent', '');
   } catch (e) {
     var errText = (e && e.message) ? String(e.message) : String(e);
-    if (!/invalid argument/i.test(errText)) throw e;
+    if (!/invalid argument/i.test(errText)) {
+      _appendEmailLog(message, from, 'error', errText);
+      throw e;
+    }
     if (opts.from) {
       var eff = _effectiveUserEmail();
       if (eff && eff === from) {
         try {
           GmailApp.sendEmail(message.to, message.subject, message.body, { name: 'Tensor Lab Team', replyTo: from });
+          _appendEmailLog(message, from, 'sent', 'sent without from option after Gmail rejected alias argument');
         } catch (e2) {
+          var errText2 = (e2 && e2.message) ? String(e2.message) : String(e2);
+          _appendEmailLog(message, from, 'error', errText2);
           _throwGmailFromHelp(from);
         }
         return;
       }
     }
+    _appendEmailLog(message, from, 'error', errText);
     _throwGmailFromHelp(from);
+  }
+}
+
+function _appendEmailLog(message, fromEmail, status, errorText) {
+  try {
+    var ss = _activeSpreadsheet();
+    if (!ss) {
+      var spreadsheetId = _optionalScriptProperty('SPREADSHEET_ID');
+      if (spreadsheetId) ss = SpreadsheetApp.openById(spreadsheetId);
+    }
+    if (!ss) return;
+    var sheet = ss.getSheetByName(SHEET_EMAIL_LOG) || ss.insertSheet(SHEET_EMAIL_LOG);
+    var desired = ['timestamp', 'action', 'to', 'from', 'subject', 'status', 'project_id', 'project_label', 'run_id', 'error', 'body'];
+    var existing = sheet.getLastColumn() > 0
+      ? sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0]
+      : [];
+    if (existing.join('|') !== desired.join('|')) {
+      desired.forEach(function (h) {
+        if (existing.indexOf(h) !== -1) return;
+        sheet.getRange(1, existing.length + 1).setValue(h).setFontWeight('bold');
+        existing.push(h);
+      });
+      if (sheet.getFrozenRows() < 1) sheet.setFrozenRows(1);
+    }
+    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    sheet.appendRow(_rowForHeaders(headers, {
+      timestamp: new Date(),
+      action: message.action || '',
+      to: message.to || '',
+      from: fromEmail || '',
+      subject: message.subject || '',
+      status: status || '',
+      project_id: message.project_id || '',
+      project_label: message.project_label || '',
+      run_id: message.run_id || '',
+      error: errorText || '',
+      body: message.body || ''
+    }));
+  } catch (err) {
+    _logError('_appendEmailLog', err);
   }
 }
 

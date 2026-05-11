@@ -23,6 +23,7 @@
 var OWNED_TABS = {
   control: ['project_id', 'label', 'status', 'filled_at', 'selected_applicant'],
   redirect_log: ['timestamp', 'applicant_email', 'project_removed', 'project_added'],
+  email_log: ['timestamp', 'action', 'to', 'from', 'subject', 'status', 'project_id', 'project_label', 'run_id', 'error', 'body'],
   error_log: ['timestamp', 'function_name', 'message', 'stack']
 };
 

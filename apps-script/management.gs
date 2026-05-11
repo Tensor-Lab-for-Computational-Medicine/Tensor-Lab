@@ -2,10 +2,13 @@
  * management.gs
  *
  * Leadership-facing UI for closing a cohort from inside the spreadsheet.
- * Exposes a single modal dialog with four tabs:
+ * Exposes a single modal dialog with workflow tabs:
+ *   - Setup: first-time readiness checklist and account authorization.
  *   - Fill project: pick a project and an applicant from dropdowns, fill it.
  *   - Invite to interview: send an applicant your scheduling link.
  *   - Reject applicant: pick a single pending applicant and send a decline.
+ *   - Test workflow: send controlled dummy emails to test addresses.
+ *   - Remove test data: clean up synthetic application rows.
  *   - Close cohort: reject every remaining pending applicant in one pass.
  *
  * All user-facing text avoids dashes per the house style. All mutations run
@@ -24,7 +27,7 @@
 function openManagementDialog() {
   var html = HtmlService.createHtmlOutput(_managementDialogHtml())
     .setWidth(560)
-    .setHeight(680)
+    .setHeight(780)
     .setTitle('Tensor Lab Management');
   SpreadsheetApp.getUi().showModalDialog(html, 'Tensor Lab Management');
 }
@@ -115,10 +118,100 @@ function mgmtListPendingApplicants() {
 }
 
 /** Dialog-facing wrapper for markProjectFilled that returns a friendly payload. */
-function mgmtFillProject(projectId, email, fromEmail) {
+function mgmtFillProject(projectId, email, fromEmail, expectedRecipients) {
   if (!projectId || !email) throw new Error('Pick both a project and an applicant.');
+  if (expectedRecipients && expectedRecipients.length !== undefined) {
+    var preview = mgmtPreviewFillProject(projectId, email);
+    _assertPreviewEmailsUnchanged(preview.recipients, expectedRecipients);
+  }
   var result = markProjectFilled(projectId, email, fromEmail);
   return { projectId: projectId, email: email, notified: result.notified };
+}
+
+/** Dry run for Fill project. Returns exactly who would receive email. */
+function mgmtPreviewFillProject(projectId, selectedApplicantEmail) {
+  var pid = String(projectId || '').trim();
+  var selected = String(selectedApplicantEmail || '').trim().toLowerCase();
+  if (!pid || !selected) throw new Error('Pick both a project and an applicant.');
+
+  var projectLabel = _lookupProjectLabel(pid) || pid;
+  var alreadyNotified = _alreadyNotifiedSet(pid);
+  var recipients = [];
+  var skipped = [];
+  var seen = {};
+  var winnerName = _applicantNameForEmail(selected) || selected;
+
+  if (_alreadyCongratulated(selected, pid)) {
+    skipped.push({
+      action: 'Congratulations',
+      email: selected,
+      name: winnerName,
+      reason: 'already congratulated for this project',
+      subject: 'Welcome to Tensor Lab. You have been selected.'
+    });
+  } else {
+    recipients.push({
+      action: 'Congratulations',
+      email: selected,
+      name: winnerName,
+      rank: 'selected',
+      project: projectLabel,
+      subject: 'Welcome to Tensor Lab. You have been selected.'
+    });
+  }
+
+  var rows = _readApplicationRows();
+  if (rows && rows.items) {
+    for (var i = 0; i < rows.items.length; i++) {
+      var r = rows.items[i];
+      var email = String(r.email || '').trim().toLowerCase();
+      if (!email || email === selected) continue;
+      var rank = r.choices.indexOf(pid);
+      if (rank === -1) continue;
+      if (_isTerminalStatus(r.status)) {
+        skipped.push({
+          action: 'Reselection',
+          email: email,
+          name: r.name || email,
+          rank: rank + 1,
+          project: projectLabel,
+          reason: 'already selected, rejected, or test-only',
+          subject: 'Update your Tensor Lab project choices.'
+        });
+        continue;
+      }
+      if (alreadyNotified[email] || seen[email]) {
+        skipped.push({
+          action: 'Reselection',
+          email: email,
+          name: r.name || email,
+          rank: rank + 1,
+          project: projectLabel,
+          reason: alreadyNotified[email] ? 'already sent reselection for this project' : 'duplicate application row',
+          subject: 'Update your Tensor Lab project choices.'
+        });
+        continue;
+      }
+      recipients.push({
+        action: 'Reselection',
+        email: email,
+        name: r.name || email,
+        rank: rank + 1,
+        project: projectLabel,
+        subject: 'Update your Tensor Lab project choices.'
+      });
+      seen[email] = true;
+    }
+  }
+
+  return {
+    projectId: pid,
+    projectLabel: projectLabel,
+    selectedEmail: selected,
+    recipients: recipients,
+    skipped: skipped,
+    totalToEmail: recipients.length
+  };
 }
 
 /** Dialog-facing wrapper for rejectApplicant. */
@@ -215,32 +308,97 @@ function mgmtRunDummyWorkflowTest(projectId, winnerEmail, displacedEmail, fromEm
 }
 
 /**
- * Send an applicant a scheduling link for a project interview. Logs the
- * invite to the `interview_log` sheet and remembers the reviewer's name and
- * scheduling URL in user-scoped script properties so repeat invites from the
- * same mentor prefill automatically.
+ * Build the editable interview invite draft shown in the dialog. This keeps
+ * the default copy centralized while letting the sender edit the final subject
+ * and body before any email goes out.
+ */
+function mgmtBuildInterviewInviteDraft(projectId, email, reviewerName, schedulingUrl) {
+  var ctx = _interviewInviteContext(projectId, email);
+  var reviewer = String(reviewerName || '').trim();
+  var url = String(schedulingUrl || '').trim();
+  if (!reviewer) throw new Error('Enter your name so the applicant knows who is interviewing them.');
+  if (!/^https?:\/\//i.test(url)) throw new Error('Scheduling link must start with http:// or https://');
+
+  var draft = _buildInterviewInviteDraft(ctx.firstName, reviewer, ctx.projectLabel, url);
+  return {
+    email: ctx.email,
+    projectId: ctx.projectId,
+    projectLabel: ctx.projectLabel,
+    subject: draft.subject,
+    body: draft.body
+  };
+}
+
+/**
+ * Send an applicant an editable interview invite. Logs the invite to the
+ * `interview_log` sheet and remembers the reviewer's name and scheduling URL
+ * in user-scoped script properties so repeat invites from the same mentor
+ * prefill automatically.
  *
  * Inputs:
  *   projectId      string, required, one of the slugs in control.project_id
  *   email          string, required, an applicant email already in applications
  *   reviewerName   string, required, full name of the mentor running the interview
  *   schedulingUrl  string, required, must start with http:// or https://
- *   personalNote   string, optional, surfaced as a reviewer note paragraph
+ *   subject        string, required, editable final subject
+ *   body           string, required, editable final plain text body
  *
  * Output: { email, projectId, projectLabel } on success. Throws on validation
  * failure or send failure. Not idempotent, sending twice will deliver two
  * emails, so the dialog confirms before calling.
  */
-function mgmtSendInterviewInvite(projectId, email, reviewerName, schedulingUrl, personalNote, fromEmail) {
-  var target = String(email || '').trim().toLowerCase();
-  var pid = String(projectId || '').trim();
+function mgmtSendInterviewInvite(projectId, email, reviewerName, schedulingUrl, subjectOrPersonalNote, bodyOrFromEmail, maybeFromEmail) {
+  var ctx = _interviewInviteContext(projectId, email);
   var reviewer = String(reviewerName || '').trim();
   var url = String(schedulingUrl || '').trim();
-  var note = String(personalNote || '').trim();
-  if (!pid) throw new Error('Pick a project.');
-  if (!target) throw new Error('Pick an applicant.');
   if (!reviewer) throw new Error('Enter your name so the applicant knows who is interviewing them.');
   if (!/^https?:\/\//i.test(url)) throw new Error('Scheduling link must start with http:// or https://');
+
+  var subject = '';
+  var body = '';
+  var fromEmail = '';
+  if (arguments.length >= 7) {
+    subject = String(subjectOrPersonalNote || '').trim();
+    body = String(bodyOrFromEmail || '').trim();
+    fromEmail = maybeFromEmail;
+  } else {
+    var draft = _buildInterviewInviteDraft(ctx.firstName, reviewer, ctx.projectLabel, url);
+    subject = draft.subject;
+    body = draft.body;
+    var note = String(subjectOrPersonalNote || '').trim();
+    if (note) body += '\n\nA note from me:\n\n    ' + note;
+    fromEmail = bodyOrFromEmail;
+  }
+  if (!subject) throw new Error('Enter an email subject.');
+  if (!body) throw new Error('Enter an email body.');
+
+  _sendTensorLabEmail({
+    to: ctx.email,
+    subject: subject,
+    body: body,
+    action: 'interview',
+    project_id: ctx.projectId,
+    project_label: ctx.projectLabel
+  }, fromEmail);
+  _logInterviewInvite(ctx.email, ctx.projectId, reviewer, url, subject, body);
+
+  try {
+    PropertiesService.getUserProperties().setProperties({
+      tl_reviewer_name: reviewer,
+      tl_reviewer_url: url
+    });
+  } catch (err) {
+    _logError('mgmtSendInterviewInvite.rememberDefaults', err);
+  }
+
+  return { email: ctx.email, projectId: ctx.projectId, projectLabel: ctx.projectLabel };
+}
+
+function _interviewInviteContext(projectId, email) {
+  var target = String(email || '').trim().toLowerCase();
+  var pid = String(projectId || '').trim();
+  if (!pid) throw new Error('Pick a project.');
+  if (!target) throw new Error('Pick an applicant.');
 
   var firstName = '';
   var rows = _readApplicationRows();
@@ -253,20 +411,7 @@ function mgmtSendInterviewInvite(projectId, email, reviewerName, schedulingUrl, 
     }
   }
   var label = _lookupProjectLabel(pid) || pid;
-
-  _sendInterviewInviteEmail(email, firstName, reviewer, label, url, note, fromEmail);
-  _logInterviewInvite(email, pid, reviewer, url, note);
-
-  try {
-    PropertiesService.getUserProperties().setProperties({
-      tl_reviewer_name: reviewer,
-      tl_reviewer_url: url
-    });
-  } catch (err) {
-    _logError('mgmtSendInterviewInvite.rememberDefaults', err);
-  }
-
-  return { email: email, projectId: pid, projectLabel: label };
+  return { email: target, projectId: pid, firstName: firstName, projectLabel: label };
 }
 
 /** Return { name, url } from user-scoped properties for prefilling the form. */
@@ -288,18 +433,37 @@ function mgmtRecallReviewerDefaults() {
  * time it is used. Never throws, logs errors to the error_log instead, so a
  * logging failure does not hide a successful email from the caller.
  */
-function _logInterviewInvite(email, projectId, reviewer, url, note) {
+function _logInterviewInvite(email, projectId, reviewer, url, subject, body) {
   try {
     var ss = SpreadsheetApp.getActive();
     var sheet = ss.getSheetByName(SHEET_INTERVIEW_LOG);
+    var desired = ['timestamp', 'email', 'project_id', 'reviewer', 'scheduling_url', 'email_subject', 'email_body'];
     if (!sheet) {
       sheet = ss.insertSheet(SHEET_INTERVIEW_LOG);
-      sheet.appendRow(['timestamp', 'email', 'project_id', 'reviewer', 'scheduling_url', 'note']);
-      sheet.getRange(1, 1, 1, 6).setFontWeight('bold');
+      sheet.appendRow(desired);
+      sheet.getRange(1, 1, 1, desired.length).setFontWeight('bold');
       sheet.setFrozenRows(1);
-      sheet.setColumnWidths(1, 6, 160);
+      sheet.setColumnWidths(1, desired.length, 160);
+    } else {
+      var existing = sheet.getLastColumn() > 0
+        ? sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0]
+        : [];
+      desired.forEach(function (h) {
+        if (existing.indexOf(h) !== -1) return;
+        sheet.getRange(1, existing.length + 1).setValue(h).setFontWeight('bold');
+        existing.push(h);
+      });
     }
-    sheet.appendRow([new Date(), email, projectId, reviewer, url, note]);
+    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    sheet.appendRow(_rowForHeaders(headers, {
+      timestamp: new Date(),
+      email: email,
+      project_id: projectId,
+      reviewer: reviewer,
+      scheduling_url: url,
+      email_subject: subject,
+      email_body: body
+    }));
   } catch (err) {
     _logError('_logInterviewInvite', err);
   }
@@ -314,7 +478,7 @@ function _logInterviewInvite(email, projectId, reviewer, url, note) {
  *
  * Idempotent at the per-applicant level via rejectApplicant's own dedup.
  */
-function mgmtRejectAllRemaining(fromEmail) {
+function mgmtRejectAllRemaining(fromEmail, expectedRecipients) {
   var progress = mgmtProjectFillProgress();
   if (progress.openProjectCount > 0) {
     throw new Error(
@@ -325,6 +489,9 @@ function mgmtRejectAllRemaining(fromEmail) {
   }
 
   var pending = mgmtListPendingApplicants();
+  if (expectedRecipients && expectedRecipients.length !== undefined) {
+    _assertPreviewEmailsUnchanged(pending, expectedRecipients);
+  }
   var rejected = 0;
   var errors = 0;
   for (var i = 0; i < pending.length; i++) {
@@ -337,6 +504,181 @@ function mgmtRejectAllRemaining(fromEmail) {
     }
   }
   return { rejected: rejected, errors: errors };
+}
+
+/** Dry run for Close cohort. Refuses while any project is still open. */
+function mgmtPreviewRejectAllRemaining() {
+  var progress = mgmtProjectFillProgress();
+  if (progress.openProjectCount > 0) {
+    return {
+      ok: false,
+      reason: 'projects_open',
+      message: progress.openProjectCount + ' project(s) are still open.',
+      progress: progress,
+      recipients: []
+    };
+  }
+  var pending = mgmtListPendingApplicants();
+  var recipients = pending.map(function (p) {
+    return {
+      action: 'Rejection',
+      email: p.email,
+      name: p.name || p.email,
+      project: p.topChoice || '',
+      subject: 'An update on your Tensor Lab application'
+    };
+  });
+  return {
+    ok: true,
+    progress: progress,
+    recipients: recipients,
+    totalToEmail: recipients.length
+  };
+}
+
+/** Report sender aliases so the dialog can warn before send time. */
+function mgmtSenderStatus() {
+  var active = '';
+  var effective = '';
+  try { active = String(Session.getActiveUser().getEmail() || '').toLowerCase(); } catch (_a) {}
+  try { effective = String(Session.getEffectiveUser().getEmail() || '').toLowerCase(); } catch (_e) {}
+
+  var aliases = [];
+  var aliasError = '';
+  try {
+    aliases = GmailApp.getAliases().map(function (a) { return String(a || '').toLowerCase(); });
+  } catch (err) {
+    aliasError = (err && err.message) ? String(err.message) : String(err);
+  }
+
+  var identity = active || effective;
+  var canKnow = !aliasError;
+  var senders = TENSOR_LAB_SENDERS.map(function (s) {
+    var email = String(s).toLowerCase();
+    var available = email === identity || aliases.indexOf(email) !== -1;
+    return {
+      email: email,
+      available: canKnow ? available : true,
+      known: canKnow,
+      reason: canKnow
+        ? (available ? 'available' : 'not returned by Gmail aliases for this account')
+        : 'could not read Gmail aliases: ' + aliasError
+    };
+  });
+
+  return {
+    activeUser: active,
+    effectiveUser: effective,
+    aliases: aliases,
+    aliasError: aliasError,
+    senders: senders
+  };
+}
+
+/** Setup checklist for spreadsheet operators opening the dialog for the first time. */
+function mgmtSetupStatus() {
+  var checks = [];
+  var add = function (status, label, detail) {
+    checks.push({ status: status, label: label, detail: detail || '' });
+  };
+
+  var active = '';
+  var effective = '';
+  try { active = String(Session.getActiveUser().getEmail() || '').toLowerCase(); } catch (_a) {}
+  try { effective = String(Session.getEffectiveUser().getEmail() || '').toLowerCase(); } catch (_e) {}
+  add(active || effective ? 'ok' : 'warn', 'Google account detected', active || effective || 'Could not read the active account email.');
+
+  var ss = null;
+  try { ss = _activeSpreadsheet(); } catch (_ss) {}
+  if (ss) {
+    add('ok', 'Spreadsheet is accessible', ss.getName());
+    [SHEET_APPLICATIONS, SHEET_CONTROL, SHEET_REDIRECT_LOG, SHEET_ERROR_LOG].forEach(function (name) {
+      var sheet = ss.getSheetByName(name);
+      add(sheet ? 'ok' : 'err', 'Sheet tab: ' + name, sheet ? 'Found' : 'Missing. Ask the owner to run initialSetup.');
+    });
+    var emailLog = ss.getSheetByName(SHEET_EMAIL_LOG);
+    add(emailLog ? 'ok' : 'warn', 'Sheet tab: ' + SHEET_EMAIL_LOG, emailLog ? 'Found' : 'Will be created automatically on the first email attempt, or by initialSetup.');
+  } else {
+    add('err', 'Spreadsheet is accessible', 'Open this dialog from the bound applications spreadsheet.');
+  }
+
+  try {
+    var progress = mgmtProjectFillProgress();
+    add(progress.total > 0 ? 'ok' : 'warn', 'Project control rows', progress.total + ' projects, ' + progress.openProjectCount + ' open.');
+  } catch (errProgress) {
+    add('err', 'Project control rows', (errProgress && errProgress.message) ? errProgress.message : String(errProgress));
+  }
+
+  var appFormId = _optionalScriptProperty('APPLICATION_FORM_ID');
+  if (appFormId) {
+    try {
+      add('ok', 'Application form is accessible', FormApp.openById(appFormId).getTitle());
+    } catch (errAppForm) {
+      add('err', 'Application form is accessible', (errAppForm && errAppForm.message) ? errAppForm.message : String(errAppForm));
+    }
+  } else {
+    add('warn', 'Application form is configured', 'No APPLICATION_FORM_ID found. Ask the owner to check Script Properties or FALLBACK_CONFIG.');
+  }
+
+  var sender = mgmtSenderStatus();
+  var unavailable = sender.senders.filter(function (s) { return s.known && !s.available; }).map(function (s) { return s.email; });
+  if (sender.aliasError) {
+    add('warn', 'Gmail senders can be checked', sender.aliasError);
+  } else if (unavailable.length) {
+    add('warn', 'Gmail senders are available', 'Unavailable for this account: ' + unavailable.join(', ') + '. Add them in Gmail Send mail as.');
+  } else {
+    add('ok', 'Gmail senders are available', 'Both Tensor Lab senders appear usable for this account.');
+  }
+
+  try {
+    var triggers = ScriptApp.getProjectTriggers().map(function (t) { return t.getHandlerFunction(); });
+    var required = ['onApplicationSubmit', 'handleReselectionSubmit', 'onControlEdit', 'onOpenSpreadsheet'];
+    var missing = required.filter(function (fn) { return triggers.indexOf(fn) === -1; });
+    add(
+      missing.length ? 'warn' : 'ok',
+      'Installable triggers visible to this account',
+      missing.length
+        ? 'Not visible here: ' + missing.join(', ') + '. This can be okay if the owner installed them. Ask the owner to run installTriggers if automations are not working.'
+        : 'Required triggers found.'
+    );
+  } catch (errTriggers) {
+    add('warn', 'Installable triggers can be checked', (errTriggers && errTriggers.message) ? errTriggers.message : String(errTriggers));
+  }
+
+  try {
+    PropertiesService.getUserProperties().getProperty('tl_reviewer_name');
+    add('ok', 'Personal defaults storage', 'Reviewer name and scheduling link can be remembered.');
+  } catch (errUserProps) {
+    add('warn', 'Personal defaults storage', 'Not readable. The dialog will still work, but reviewer defaults may not persist.');
+  }
+
+  return {
+    activeUser: active,
+    effectiveUser: effective,
+    checks: checks,
+    sender: sender
+  };
+}
+
+/** Send the current editable interview draft to the operator as a test. */
+function mgmtSendInterviewTestEmail(subject, body, fromEmail) {
+  var to = '';
+  try { to = String(Session.getActiveUser().getEmail() || '').toLowerCase(); } catch (_a) {}
+  if (!to) {
+    try { to = String(Session.getEffectiveUser().getEmail() || '').toLowerCase(); } catch (_e) {}
+  }
+  if (!to) throw new Error('Could not determine your email address for a test send.');
+  var subj = String(subject || '').trim();
+  var text = String(body || '').trim();
+  if (!subj) throw new Error('Enter an email subject before sending a test.');
+  if (!text) throw new Error('Enter an email body before sending a test.');
+  _sendTensorLabEmail({
+    to: to,
+    subject: '[Test] ' + subj,
+    body: text,
+    action: 'interview_test'
+  }, fromEmail);
+  return { email: to };
 }
 
 /**
@@ -611,6 +953,30 @@ function _readApplicationRows() {
   return { items: items };
 }
 
+function _applicantNameForEmail(email) {
+  var target = String(email || '').trim().toLowerCase();
+  if (!target) return '';
+  var rows = _readApplicationRows();
+  if (!rows || !rows.items) return '';
+  for (var i = 0; i < rows.items.length; i++) {
+    if (String(rows.items[i].email || '').trim().toLowerCase() === target) {
+      return rows.items[i].name || '';
+    }
+  }
+  return '';
+}
+
+function _assertPreviewEmailsUnchanged(currentRows, expectedRows) {
+  var normalize = function (rows) {
+    return (rows || []).map(function (r) {
+      return String((r && r.email) || r || '').trim().toLowerCase();
+    }).filter(Boolean).sort().join('|');
+  };
+  if (normalize(currentRows) !== normalize(expectedRows)) {
+    throw new Error('The recipient list changed after preview. Preview recipients again before sending.');
+  }
+}
+
 function _isTerminalStatus(status) {
   var s = String(status || '').trim().toLowerCase();
   return s === 'selected' || s === 'rejected' || s.indexOf('rejected_') === 0 || s.indexOf('test_') === 0;
@@ -642,9 +1008,12 @@ function _managementDialogHtml() {
     'label{display:block;font-size:13px;color:#333;margin:12px 0 4px;font-weight:500}',
     'select,textarea,input[type="text"],input[type="url"]{width:100%;padding:8px;border:1px solid #c4c9d1;border-radius:4px;font-size:13px;box-sizing:border-box;font-family:inherit}',
     'textarea{resize:vertical;min-height:72px}',
+    '#ivBody{min-height:260px}',
     'button{margin-top:16px;padding:9px 16px;font-size:13px;border:none;border-radius:4px;cursor:pointer;font-weight:500}',
     'button.primary{background:#0b6bcb;color:#fff}',
     'button.primary:hover:not(:disabled){background:#0957a8}',
+    'button.secondary{background:#eef2f7;color:#1a1a1a;border:1px solid #c4c9d1}',
+    'button.secondary:hover:not(:disabled){background:#e1e7f0}',
     'button.danger{background:#c0392b;color:#fff}',
     'button.danger:hover:not(:disabled){background:#a5321f}',
     'button:disabled{opacity:.5;cursor:not-allowed}',
@@ -654,6 +1023,19 @@ function _managementDialogHtml() {
     '.status.err{background:#fdecea;color:#721c24}',
     '.status.warn{background:#fff4de;color:#7a5200}',
     '.hint{font-size:13px;color:#444;line-height:1.5;margin:0 0 8px}',
+    '.setup-grid{display:grid;gap:8px;margin-top:10px}',
+    '.check{display:flex;gap:8px;align-items:flex-start;border:1px solid #d8dee6;border-radius:4px;padding:8px;background:#fff}',
+    '.check strong{min-width:42px;text-align:center;border-radius:12px;padding:2px 6px;font-size:11px;box-sizing:border-box}',
+    '.check span{line-height:1.35}',
+    '.check.ok strong{background:#e6f4ea;color:#155724}',
+    '.check.warn strong{background:#fff4de;color:#7a5200}',
+    '.check.err strong{background:#fdecea;color:#721c24}',
+    '.setup-steps{padding-left:20px;margin:10px 0 0;color:#444;line-height:1.5;font-size:13px}',
+    '.preview{margin-top:12px;border:1px solid #d8dee6;border-radius:4px;max-height:190px;overflow:auto;background:#fff}',
+    '.preview table{width:100%;border-collapse:collapse;font-size:12px}',
+    '.preview th,.preview td{padding:6px 8px;border-bottom:1px solid #edf0f3;text-align:left;vertical-align:top}',
+    '.preview th{position:sticky;top:0;background:#f7f9fb;color:#333;font-weight:600}',
+    '.preview .muted{color:#777}',
     '</style></head><body>',
     '<h1>Tensor Lab applicant management</h1>',
     '<label for="senderSelect">Send emails from</label>',
@@ -662,8 +1044,10 @@ function _managementDialogHtml() {
     '  <option value="tensorlabumsom@gmail.com">tensorlabumsom@gmail.com</option>',
     '</select>',
     '<p class="meta">This sender applies to emails sent from this dialog. Direct control sheet edits use the SEND_FROM_EMAIL script property.</p>',
+    '<div id="senderStatus" class="status warn">Checking sender access…</div>',
     '<div class="tabs">',
-    '  <div class="tab active" data-panel="fill">Fill project</div>',
+    '  <div class="tab active" data-panel="setup">Setup</div>',
+    '  <div class="tab" data-panel="fill">Fill project</div>',
     '  <div class="tab" data-panel="interview">Invite to interview</div>',
     '  <div class="tab" data-panel="reject">Reject applicant</div>',
     '  <div class="tab" data-panel="test">Test workflow</div>',
@@ -671,11 +1055,28 @@ function _managementDialogHtml() {
     '  <div class="tab" data-panel="bulk">Close cohort</div>',
     '</div>',
 
-    '<div id="fill" class="panel active">',
+    '<div id="setup" class="panel active">',
+    '  <p class="hint">New operator setup. Work through this once before sending applicant email from this account.</p>',
+    '  <button id="setupAuthBtn" class="secondary">Run authorization check</button>',
+    '  <button id="setupRefreshBtn" class="secondary">Refresh setup status</button>',
+    '  <div id="setupStatus"></div>',
+    '  <div id="setupChecklist" class="setup-grid"><div class="status warn">Checking setup…</div></div>',
+    '  <ol class="setup-steps">',
+    '    <li>Confirm this dialog shows the Google account you intend to use.</li>',
+    '    <li>Confirm the sender you need is available. If not, add it in Gmail under Settings &gt; Accounts and Import &gt; Send mail as.</li>',
+    '    <li>For interview invites, generate the draft, edit it, then send a test to yourself.</li>',
+    '    <li>For Fill project and Close cohort, preview recipients before sending. The real send is blocked if the list changes after preview.</li>',
+    '    <li>After sending, check email_log for sent or error rows if anything looks off.</li>',
+    '  </ol>',
+    '</div>',
+
+    '<div id="fill" class="panel">',
     '  <label for="projectSelect">Project to fill</label>',
     '  <select id="projectSelect"><option value="">Loading…</option></select>',
     '  <label for="applicantSelect">Selected applicant</label>',
     '  <select id="applicantSelect" disabled><option value="">Pick a project first</option></select>',
+    '  <button id="fillPreviewBtn" class="secondary" disabled>Preview recipients</button>',
+    '  <div id="fillPreview"></div>',
     '  <button id="fillBtn" class="primary" disabled>Fill project and send emails</button>',
     '  <p class="meta">Winner receives a congratulations email. Every other applicant who ranked this project receives a reselection email so they can swap in a new choice. Non-winners are not rejected, they remain pending on their other two choices. Safe to rerun, congrats emails are deduped.</p>',
     '  <div id="fillStatus"></div>',
@@ -691,10 +1092,14 @@ function _managementDialogHtml() {
     '  <input id="ivReviewerName" type="text" placeholder="e.g. Aaron Ge" />',
     '  <label for="ivSchedulingUrl">Scheduling link</label>',
     '  <input id="ivSchedulingUrl" type="url" placeholder="https://calendly.com/your-handle/tensor-lab-interview" />',
-    '  <label for="ivNote">Optional personal note (appears as a short paragraph in the email)</label>',
-    '  <textarea id="ivNote" placeholder="Leave blank for the standard invite copy."></textarea>',
+    '  <button id="ivDraftBtn" class="secondary" disabled>Regenerate email draft</button>',
+    '  <label for="ivSubject">Email subject</label>',
+    '  <input id="ivSubject" type="text" placeholder="Subject loads after project, applicant, name, and link are set" />',
+    '  <label for="ivBody">Email body</label>',
+    '  <textarea id="ivBody" placeholder="Body loads after project, applicant, name, and link are set. You can edit every word before sending."></textarea>',
+    '  <button id="ivTestBtn" class="secondary" disabled>Send test to me</button>',
     '  <button id="ivSendBtn" class="primary" disabled>Send interview invite</button>',
-    '  <p class="meta">The applicant gets an email introducing you, the project, and the scheduling link. The invite is logged to the interview_log tab. Your name and link are remembered for next time.</p>',
+    '  <p class="meta">The generated draft is only a starting point. The subject and body above are sent exactly as shown and logged to the interview_log tab. Your name and link are remembered for next time.</p>',
     '  <div id="ivStatus"></div>',
     '</div>',
 
@@ -739,6 +1144,8 @@ function _managementDialogHtml() {
     '<div id="bulk" class="panel">',
     '  <p class="hint">Use this only at the end of the cohort, after every project has been filled. Losing a single choice does not count as a rejection, applicants stay pending on their other choices until selection closes.</p>',
     '  <div id="bulkProgress" class="status warn">Checking selection progress…</div>',
+    '  <button id="bulkPreviewBtn" class="secondary" disabled>Preview rejection recipients</button>',
+    '  <div id="bulkPreview"></div>',
     '  <button id="bulkBtn" class="danger" disabled>Reject all remaining pending applicants</button>',
     '  <p class="meta">Sends the standard decline email to every applicant still pending. You will be shown the exact count and asked to confirm before any email is sent.</p>',
     '  <div id="bulkStatus"></div>',
@@ -752,6 +1159,26 @@ function _managementDialogHtml() {
     'const setStatus=(el,msg,kind)=>{el.className="status "+(kind||"ok");el.textContent=msg};',
     'const clearStatus=el=>{el.className="";el.textContent=""};',
     'const errMsg=e=>{const m=e&&e.message?e.message:String(e||"");return /PERMISSION_DENIED|reading from storage|permission/i.test(m)?m+" Run Tensor Lab > Authorize this account, then reopen this dialog. If this persists, ask the script owner to publish the latest Apps Script files so storage fallbacks are available.":m};',
+    'let ivDraftDirty=false;',
+    'let ivDraftTimer=null;',
+    'let fillPreviewOk=false;',
+    'let bulkPreviewOk=false;',
+    'let fillPreviewRows=[];',
+    'let bulkPreviewRows=[];',
+    'const renderPreview=(el,rows,skipped)=>{',
+    '  const parts=[];',
+    '  if(rows&&rows.length){',
+    '    parts.push("<div class=\\"preview\\"><table><thead><tr><th>Action</th><th>Recipient</th><th>Project</th><th>Subject</th></tr></thead><tbody>");',
+    '    rows.forEach(r=>parts.push("<tr><td>"+esc(r.action||"")+"</td><td>"+esc(r.name||"")+"<br><span class=\\"muted\\">"+esc(r.email||"")+"</span></td><td>"+esc(r.project||"")+(r.rank?"<br><span class=\\"muted\\">rank "+esc(r.rank)+"</span>":"")+"</td><td>"+esc(r.subject||"")+"</td></tr>"));',
+    '    parts.push("</tbody></table></div>");',
+    '  }else parts.push("<p class=\\"meta\\">No emails would be sent.</p>");',
+    '  if(skipped&&skipped.length){',
+    '    parts.push("<p class=\\"meta\\">Skipped: "+skipped.length+"</p><div class=\\"preview\\"><table><thead><tr><th>Action</th><th>Recipient</th><th>Reason</th></tr></thead><tbody>");',
+    '    skipped.forEach(r=>parts.push("<tr><td>"+esc(r.action||"")+"</td><td>"+esc(r.name||"")+"<br><span class=\\"muted\\">"+esc(r.email||"")+"</span></td><td>"+esc(r.reason||"")+"</td></tr>"));',
+    '    parts.push("</tbody></table></div>");',
+    '  }',
+    '  el.innerHTML=parts.join("");',
+    '};',
 
     '$$(".tab").forEach(t=>t.addEventListener("click",()=>{',
     '  $$(".tab").forEach(x=>x.classList.remove("active"));',
@@ -760,8 +1187,43 @@ function _managementDialogHtml() {
     '  $("#"+t.dataset.panel).classList.add("active");',
     '}));',
 
+    'function loadSenderStatus(){',
+    '  const st=$("#senderStatus");',
+    '  google.script.run.withSuccessHandler(s=>{',
+    '    const active=s.activeUser||s.effectiveUser||"unknown account";',
+    '    const unavailable=(s.senders||[]).filter(x=>x.known&&!x.available).map(x=>x.email);',
+    '    (s.senders||[]).forEach(x=>{const opt=[...$("#senderSelect").options].find(o=>o.value===x.email);if(opt&&x.known)opt.disabled=!x.available});',
+    '    if(s.aliasError)setStatus(st,"Running as "+active+". Could not verify Gmail aliases, so sender choices are not disabled: "+s.aliasError,"warn");',
+    '    else if(unavailable.length)setStatus(st,"Running as "+active+". Unavailable sender(s): "+unavailable.join(", ")+". Add them in Gmail Send mail as before sending.","warn");',
+    '    else setStatus(st,"Running as "+active+". Sender choices look available.","ok");',
+    '    if($("#senderSelect").selectedOptions[0]&&$("#senderSelect").selectedOptions[0].disabled){const first=[...$("#senderSelect").options].find(o=>!o.disabled);if(first)$("#senderSelect").value=first.value}',
+    '  }).withFailureHandler(e=>setStatus(st,"Could not check sender access: "+errMsg(e),"warn"))',
+    '  .mgmtSenderStatus();',
+    '}',
+    'const setupBadge=s=>s==="ok"?"OK":s==="err"?"Fix":"Check";',
+    'function renderSetupStatus(s){',
+    '  const rows=(s.checks||[]).map(c=>{const kind=["ok","warn","err"].includes(c.status)?c.status:"warn";return "<div class=\\"check "+kind+"\\"><strong>"+setupBadge(kind)+"</strong><span><b>"+esc(c.label||"")+"</b><br>"+esc(c.detail||"")+"</span></div>"}).join("");',
+    '  $("#setupChecklist").innerHTML=rows||"<div class=\\"status warn\\">No setup checks returned.</div>";',
+    '}',
+    'function loadSetupStatus(){',
+    '  const box=$("#setupChecklist");box.innerHTML="<div class=\\"status warn\\">Checking setup…</div>";clearStatus($("#setupStatus"));',
+    '  google.script.run.withSuccessHandler(s=>{renderSetupStatus(s);loadSenderStatus();})',
+    '    .withFailureHandler(e=>{box.innerHTML="";setStatus($("#setupStatus"),"Could not check setup: "+errMsg(e),"err")})',
+    '    .mgmtSetupStatus();',
+    '}',
+    '$("#setupRefreshBtn").addEventListener("click",loadSetupStatus);',
+    '$("#setupAuthBtn").addEventListener("click",()=>{',
+    '  const st=$("#setupStatus");setStatus(st,"Running authorization check…","warn");$("#setupAuthBtn").disabled=true;',
+    '  google.script.run.withSuccessHandler(r=>{setStatus(st,"Authorization check complete for "+((r&&r.user)||"this account")+".","ok");$("#setupAuthBtn").disabled=false;loadSetupStatus();})',
+    '    .withFailureHandler(e=>{setStatus(st,"Authorization check failed: "+errMsg(e),"err");$("#setupAuthBtn").disabled=false})',
+    '    .authorizeManagementUi();',
+    '});',
+    'loadSenderStatus();',
+    'loadSetupStatus();',
+
     'function loadFillProjects(){',
     '  const sel=$("#projectSelect");sel.innerHTML="<option value=\\"\\">Loading…</option>";',
+    '  fillPreviewOk=false;fillPreviewRows=[];$("#fillPreview").innerHTML="";$("#fillPreviewBtn").disabled=true;',
     '  $("#applicantSelect").innerHTML="<option value=\\"\\">Pick a project first</option>";$("#applicantSelect").disabled=true;$("#fillBtn").disabled=true;',
     '  google.script.run.withSuccessHandler(projects=>{',
     '    sel.innerHTML="";',
@@ -777,6 +1239,7 @@ function _managementDialogHtml() {
 
     '$("#projectSelect").addEventListener("change",()=>{',
     '  const pid=$("#projectSelect").value;const as=$("#applicantSelect");const btn=$("#fillBtn");',
+    '  fillPreviewOk=false;fillPreviewRows=[];$("#fillPreview").innerHTML="";$("#fillPreviewBtn").disabled=true;',
     '  clearStatus($("#fillStatus"));',
     '  if(!pid){as.innerHTML="<option value=\\"\\">Pick a project first</option>";as.disabled=true;btn.disabled=true;return}',
     '  as.innerHTML="<option value=\\"\\">Loading…</option>";as.disabled=true;btn.disabled=true;',
@@ -793,12 +1256,33 @@ function _managementDialogHtml() {
     '  .mgmtListApplicantsForProject(pid);',
     '});',
 
-    '$("#applicantSelect").addEventListener("change",()=>{$("#fillBtn").disabled=!$("#applicantSelect").value});',
+    '$("#applicantSelect").addEventListener("change",()=>{',
+    '  fillPreviewOk=false;fillPreviewRows=[];$("#fillPreview").innerHTML="";',
+    '  $("#fillPreviewBtn").disabled=!$("#applicantSelect").value;',
+    '  $("#fillBtn").disabled=true;',
+    '});',
+
+    '$("#fillPreviewBtn").addEventListener("click",()=>{',
+    '  const pid=$("#projectSelect").value;const email=$("#applicantSelect").value;const st=$("#fillStatus");',
+    '  if(!pid||!email)return;',
+    '  $("#fillPreviewBtn").disabled=true;$("#fillBtn").disabled=true;setStatus(st,"Previewing recipients…","warn");',
+    '  google.script.run',
+    '    .withSuccessHandler(p=>{',
+    '      fillPreviewOk=true;',
+    '      fillPreviewRows=p.recipients||[];',
+    '      renderPreview($("#fillPreview"),p.recipients,p.skipped);',
+    '      setStatus(st,"Preview ready: "+p.totalToEmail+" email(s) would be sent.","ok");',
+    '      $("#fillPreviewBtn").disabled=false;$("#fillBtn").disabled=false;',
+    '    })',
+    '    .withFailureHandler(e=>{fillPreviewOk=false;setStatus(st,"Preview error: "+errMsg(e),"err");$("#fillPreviewBtn").disabled=false})',
+    '    .mgmtPreviewFillProject(pid,email);',
+    '});',
 
     '$("#fillBtn").addEventListener("click",()=>{',
     '  const pid=$("#projectSelect").value;const email=$("#applicantSelect").value;',
     '  const projectLabel=$("#projectSelect").selectedOptions[0].text;',
     '  const st=$("#fillStatus");if(!pid||!email)return;',
+    '  if(!fillPreviewOk){setStatus(st,"Preview recipients before sending.","warn");return}',
     '  if(!confirm("Fill "+projectLabel+" with "+email+"?\\n\\nEmails will send from "+sender()+"."))return;',
     '  $("#fillBtn").disabled=true;setStatus(st,"Sending…","warn");',
     '  google.script.run',
@@ -809,7 +1293,7 @@ function _managementDialogHtml() {
     '      refreshBulkGate();',
     '    })',
     '    .withFailureHandler(e=>{setStatus(st,"Error: "+errMsg(e),"err");$("#fillBtn").disabled=false})',
-    '    .mgmtFillProject(pid,email,sender());',
+    '    .mgmtFillProject(pid,email,sender(),fillPreviewRows);',
     '});',
 
     'function loadInterviewProjects(){',
@@ -831,10 +1315,12 @@ function _managementDialogHtml() {
     '  if(d.name)$("#ivReviewerName").value=d.name;',
     '  if(d.url)$("#ivSchedulingUrl").value=d.url;',
     '  ivRefreshBtn();',
+    '  scheduleIvDraft(false);',
     '}).mgmtRecallReviewerDefaults();',
 
     '$("#ivProjectSelect").addEventListener("change",()=>{',
     '  const pid=$("#ivProjectSelect").value;const as=$("#ivApplicantSelect");',
+    '  ivDraftDirty=false;$("#ivSubject").value="";$("#ivBody").value="";',
     '  clearStatus($("#ivStatus"));',
     '  if(!pid){as.innerHTML="<option value=\\"\\">Pick a project first</option>";as.disabled=true;ivRefreshBtn();return}',
     '  as.innerHTML="<option value=\\"\\">Loading…</option>";as.disabled=true;',
@@ -846,45 +1332,85 @@ function _managementDialogHtml() {
     '      const label=esc(a.name)+" ("+(a.rank===1?"1st":a.rank===2?"2nd":"3rd")+" choice, "+esc(a.email)+")";',
     '      as.insertAdjacentHTML("beforeend","<option value=\\""+esc(a.email)+"\\">"+label+"</option>");',
     '    });',
-    '    as.disabled=false;ivRefreshBtn();',
+    '    as.disabled=false;ivRefreshBtn();scheduleIvDraft(false);',
     '  }).withFailureHandler(e=>setStatus($("#ivStatus"),"Could not load applicants: "+errMsg(e),"err"))',
     '  .mgmtListApplicantsForProject(pid);',
     '});',
 
+    'function ivDraftReady(){',
+    '  return $("#ivProjectSelect").value&&$("#ivApplicantSelect").value&&$("#ivReviewerName").value.trim()&&/^https?:\\/\\//i.test($("#ivSchedulingUrl").value.trim());',
+    '}',
+    'function scheduleIvDraft(force){',
+    '  clearTimeout(ivDraftTimer);',
+    '  ivDraftTimer=setTimeout(()=>loadIvDraft(!!force),350);',
+    '}',
+    'function loadIvDraft(force){',
+    '  if(!ivDraftReady()){ivRefreshBtn();return}',
+    '  if(ivDraftDirty&&!force){ivRefreshBtn();return}',
+    '  const pid=$("#ivProjectSelect").value;const email=$("#ivApplicantSelect").value;',
+    '  const reviewer=$("#ivReviewerName").value.trim();const url=$("#ivSchedulingUrl").value.trim();',
+    '  const btn=$("#ivDraftBtn");btn.disabled=true;btn.textContent="Loading draft…";',
+    '  google.script.run',
+    '    .withSuccessHandler(d=>{',
+    '      $("#ivSubject").value=d.subject||"";',
+    '      $("#ivBody").value=d.body||"";',
+    '      ivDraftDirty=false;btn.textContent="Regenerate email draft";ivRefreshBtn();',
+    '    })',
+    '    .withFailureHandler(e=>{btn.textContent="Regenerate email draft";setStatus($("#ivStatus"),"Could not generate draft: "+errMsg(e),"err");ivRefreshBtn();})',
+    '    .mgmtBuildInterviewInviteDraft(pid,email,reviewer,url);',
+    '}',
     'function ivDisabledReason(){',
     '  if(!$("#ivProjectSelect").value)return "Pick a project first";',
     '  if(!$("#ivApplicantSelect").value)return "Pick an applicant";',
     '  if(!$("#ivReviewerName").value.trim())return "Enter your name";',
     '  if(!/^https?:\\/\\//i.test($("#ivSchedulingUrl").value.trim()))return "Scheduling link must start with http:// or https://";',
+    '  if(!$("#ivSubject").value.trim())return "Enter or generate an email subject";',
+    '  if(!$("#ivBody").value.trim())return "Enter or generate an email body";',
     '  return "";',
     '}',
     'function ivRefreshBtn(){',
     '  const reason=ivDisabledReason();',
     '  $("#ivSendBtn").disabled=!!reason;',
     '  $("#ivSendBtn").title=reason;',
+    '  $("#ivTestBtn").disabled=!!reason;',
+    '  $("#ivTestBtn").title=reason?reason:"Send the current draft to your own account";',
+    '  $("#ivDraftBtn").disabled=!ivDraftReady();',
+    '  $("#ivDraftBtn").title=ivDraftReady()?"Regenerate the default draft from the current fields":"Set project, applicant, name, and link first";',
     '}',
-    '["#ivApplicantSelect","#ivReviewerName","#ivSchedulingUrl"].forEach(q=>$(q).addEventListener("input",ivRefreshBtn));',
-    '$("#ivApplicantSelect").addEventListener("change",ivRefreshBtn);',
+    '["#ivReviewerName","#ivSchedulingUrl"].forEach(q=>$(q).addEventListener("input",()=>{ivRefreshBtn();scheduleIvDraft(false)}));',
+    '$("#ivApplicantSelect").addEventListener("change",()=>{ivDraftDirty=false;$("#ivSubject").value="";$("#ivBody").value="";ivRefreshBtn();scheduleIvDraft(false)});',
+    '["#ivSubject","#ivBody"].forEach(q=>$(q).addEventListener("input",()=>{ivDraftDirty=true;ivRefreshBtn()}));',
+    '$("#ivDraftBtn").addEventListener("click",()=>{ivDraftDirty=false;loadIvDraft(true)});',
     '$("#ivSchedulingUrl").addEventListener("blur",()=>{',
     '  const el=$("#ivSchedulingUrl");const v=el.value.trim();',
     '  if(v&&!/^https?:\\/\\//i.test(v)&&/^[^\\s]+\\.[^\\s]+/.test(v))el.value="https://"+v;',
-    '  ivRefreshBtn();',
+    '  ivRefreshBtn();scheduleIvDraft(false);',
+    '});',
+
+    '$("#ivTestBtn").addEventListener("click",()=>{',
+    '  const subject=$("#ivSubject").value.trim();const body=$("#ivBody").value.trim();const st=$("#ivStatus");',
+    '  if(!subject||!body)return;',
+    '  $("#ivTestBtn").disabled=true;setStatus(st,"Sending test email to you…","warn");',
+    '  google.script.run',
+    '    .withSuccessHandler(r=>{setStatus(st,"Test email sent to "+r.email+".","ok");ivRefreshBtn();})',
+    '    .withFailureHandler(e=>{setStatus(st,"Test send error: "+errMsg(e),"err");ivRefreshBtn();})',
+    '    .mgmtSendInterviewTestEmail(subject,body,sender());',
     '});',
 
     '$("#ivSendBtn").addEventListener("click",()=>{',
     '  const pid=$("#ivProjectSelect").value;const email=$("#ivApplicantSelect").value;',
     '  const reviewer=$("#ivReviewerName").value.trim();const url=$("#ivSchedulingUrl").value.trim();',
-    '  const note=$("#ivNote").value.trim();const st=$("#ivStatus");',
+    '  const subject=$("#ivSubject").value.trim();const body=$("#ivBody").value.trim();const st=$("#ivStatus");',
     '  const projectLabel=$("#ivProjectSelect").selectedOptions[0].text;',
-    '  if(!confirm("Send "+email+" an interview invite for "+projectLabel+"?\\n\\nEmail will send from "+sender()+"."))return;',
+    '  if(!confirm("Send "+email+" an interview invite for "+projectLabel+"?\\n\\nSubject: "+subject+"\\n\\nEmail will send from "+sender()+"."))return;',
     '  $("#ivSendBtn").disabled=true;setStatus(st,"Sending invite…","warn");',
     '  google.script.run',
     '    .withSuccessHandler(r=>{',
     '      setStatus(st,"Invite sent to "+r.email+" for "+r.projectLabel+". Logged to interview_log.","ok");',
-    '      $("#ivNote").value="";ivRefreshBtn();',
+    '      ivDraftDirty=false;ivRefreshBtn();',
     '    })',
     '    .withFailureHandler(e=>{setStatus(st,"Error: "+errMsg(e),"err");ivRefreshBtn();})',
-    '    .mgmtSendInterviewInvite(pid,email,reviewer,url,note,sender());',
+    '    .mgmtSendInterviewInvite(pid,email,reviewer,url,subject,body,sender());',
     '});',
 
     'function loadPending(){',
@@ -989,23 +1515,40 @@ function _managementDialogHtml() {
     '});',
 
     'function refreshBulkGate(){',
-    '  const prog=$("#bulkProgress");const btn=$("#bulkBtn");',
+    '  const prog=$("#bulkProgress");const btn=$("#bulkBtn");const previewBtn=$("#bulkPreviewBtn");',
+    '  bulkPreviewOk=false;bulkPreviewRows=[];$("#bulkPreview").innerHTML="";btn.disabled=true;previewBtn.disabled=true;',
     '  google.script.run.withSuccessHandler(p=>{',
-    '    if(p.total===0){setStatus(prog,"No projects defined in control sheet.","warn");btn.disabled=true;return}',
+    '    if(p.total===0){setStatus(prog,"No projects defined in control sheet.","warn");btn.disabled=true;previewBtn.disabled=true;return}',
     '    if(p.openProjectCount>0){',
     '      setStatus(prog,p.filled+" of "+p.total+" projects filled. Still open: "+p.openProjectIds.join(", ")+". Close every project before rejecting everyone else.","warn");',
-    '      btn.disabled=true;',
+    '      btn.disabled=true;previewBtn.disabled=true;',
     '    }else{',
-    '      setStatus(prog,"All "+p.total+" projects filled. You can now reject every remaining pending applicant.","ok");',
-    '      btn.disabled=false;',
+    '      setStatus(prog,"All "+p.total+" projects filled. Preview remaining recipients before sending rejections.","ok");',
+    '      previewBtn.disabled=false;',
     '    }',
-    '  }).withFailureHandler(e=>{setStatus(prog,"Could not read progress: "+errMsg(e),"err");btn.disabled=true})',
+    '  }).withFailureHandler(e=>{setStatus(prog,"Could not read progress: "+errMsg(e),"err");btn.disabled=true;previewBtn.disabled=true})',
     '  .mgmtProjectFillProgress();',
     '}',
     'refreshBulkGate();',
 
+    '$("#bulkPreviewBtn").addEventListener("click",()=>{',
+    '  const st=$("#bulkStatus");$("#bulkPreviewBtn").disabled=true;$("#bulkBtn").disabled=true;setStatus(st,"Previewing rejection recipients…","warn");',
+    '  google.script.run',
+    '    .withSuccessHandler(p=>{',
+    '      if(!p.ok){bulkPreviewOk=false;setStatus(st,p.message||"Cannot preview yet.","warn");$("#bulkPreviewBtn").disabled=false;return}',
+    '      renderPreview($("#bulkPreview"),p.recipients,[]);',
+    '      bulkPreviewOk=true;',
+    '      bulkPreviewRows=p.recipients||[];',
+    '      setStatus(st,"Preview ready: "+p.totalToEmail+" rejection email(s) would be sent.","ok");',
+    '      $("#bulkPreviewBtn").disabled=false;$("#bulkBtn").disabled=p.totalToEmail<1;',
+    '    })',
+    '    .withFailureHandler(e=>{bulkPreviewOk=false;setStatus(st,"Preview error: "+errMsg(e),"err");$("#bulkPreviewBtn").disabled=false})',
+    '    .mgmtPreviewRejectAllRemaining();',
+    '});',
+
     '$("#bulkBtn").addEventListener("click",()=>{',
     '  const st=$("#bulkStatus");$("#bulkBtn").disabled=true;setStatus(st,"Counting pending applicants…","warn");',
+    '  if(!bulkPreviewOk){setStatus(st,"Preview rejection recipients before sending.","warn");$("#bulkBtn").disabled=false;return}',
     '  google.script.run.withSuccessHandler(list=>{',
     '    if(!list.length){setStatus(st,"Nothing to do. No pending applicants.","ok");$("#bulkBtn").disabled=false;return}',
     '    if(!confirm("Reject "+list.length+" pending applicants and send decline emails from "+sender()+" to each?\\n\\nThis cannot be undone from this dialog.")){',
@@ -1018,7 +1561,7 @@ function _managementDialogHtml() {
     '        setStatus(st,msg,r.errors?"warn":"ok");loadPending();',
     '      })',
     '      .withFailureHandler(e=>{setStatus(st,"Error: "+errMsg(e),"err");$("#bulkBtn").disabled=false})',
-    '      .mgmtRejectAllRemaining(sender());',
+    '      .mgmtRejectAllRemaining(sender(),bulkPreviewRows);',
     '  }).withFailureHandler(e=>{setStatus(st,"Could not count applicants: "+errMsg(e),"err");$("#bulkBtn").disabled=false})',
     '  .mgmtListPendingApplicants();',
     '});',

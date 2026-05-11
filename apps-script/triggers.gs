@@ -79,6 +79,7 @@ function notifyDisplacedApplicants(projectId, selectedApplicantEmail, fromEmail)
   var headers = apps.getRange(1, 1, 1, apps.getLastColumn()).getValues()[0];
   var emailCol = _col(headers, 'email');
   var tokenCol = _col(headers, 'redirect_token');
+  var statusCol = _col(headers, 'status');
   var choiceCols = CHOICE_COLUMNS.map(function (c) { return _col(headers, c); });
   if (emailCol < 0 || tokenCol < 0 || choiceCols.indexOf(-1) !== -1) {
     throw new Error('applications sheet missing required columns, check FIELD_ALIASES in api.gs');
@@ -104,6 +105,7 @@ function notifyDisplacedApplicants(projectId, selectedApplicantEmail, fromEmail)
     var row = rows[i];
     var email = String(row[emailCol]).trim().toLowerCase();
     if (!email || email === String(selectedApplicantEmail).trim().toLowerCase()) continue;
+    if (statusCol >= 0 && _isTerminalStatus(row[statusCol])) continue;
     var ranks = choiceCols.map(function (c) { return _extractProjectId(row[c]); });
     if (ranks.indexOf(projectId) === -1) continue;
     if (alreadyNotified[email]) continue;

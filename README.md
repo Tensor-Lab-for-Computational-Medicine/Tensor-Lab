@@ -388,17 +388,17 @@ Leadership calls markProjectFilled(project_id, selected_email)
 
 ### **Leadership email sending (Gmail: required for every operator)**
 
-- **Each person** who uses **Tensor Lab → Manage applicants** must add **Send mail as** in **their own Gmail** for `**tensorlabucsf@gmail.com`** and/or `**tensorlabumsom@gmail.com`** (whichever “From” addresses they will select), and **complete Google’s verification** for each, under **Settings → See all settings → Accounts and Import → Send mail as**.
-- **Each new user** must also authorize the bound Apps Script once under their own Google account. Have them open the sheet, go to **Extensions → Apps Script**, run any function, and accept the OAuth prompt.
+- **Each person** who uses **Tensor Lab → Manage applicants** must add **Send mail as** in **their own Gmail** for **`tensorlabucsf@gmail.com`** and/or **`tensorlabumsom@gmail.com`** (whichever “From” addresses they will select), and **complete Google’s verification** for each, under **Settings → See all settings → Accounts and Import → Send mail as**.
+- **Each new user** must also authorize the bound Apps Script once under their own Google account. Have them open the sheet, choose **Tensor Lab → Manage applicants**, start on the **Setup** tab, and run **Run authorization check**. If the custom menu is not available yet, use **Extensions → Apps Script**, run `authorizeManagementUi`, and accept the OAuth prompt.
 - **Sharing the sheet** or **reauthorizing** Apps Script does **not** grant **From** permission by itself; **only** a verified **Send mail as** on the **same Google account** that runs the menu does.
-- **Full details:** see `**apps-script/README.md`** (section **Who may send email (every operator must do this)**) and **Google Workspace** options if your org uses managed mailboxes.
+- **Full details:** see **`apps-script/README.md`** (section **Who may send email (every operator must do this)**) and **Google Workspace** options if your org uses managed mailboxes.
 
 ### Repo layout for the 2026 features
 
 - `data/projects_2026.json` canonical project list (14 projects).
 - `apps-script/api.gs` `doGet` router and `getProjectCounts`.
 - `apps-script/triggers.gs` `markProjectFilled`, `notifyDisplacedApplicants`, `onApplicationSubmit`, `handleReselectionSubmit`.
-- `apps-script/email.gs` prefilled URL builder and email sender.
+- `apps-script/email.gs` prefilled URL builder, email sender, and unified `email_log` audit writer.
 - `apps-script/setup.gs` `initialSetup`, `seedControlFromProjects`, `reopenAllProjects`, `syncFormChoices`, `installTriggers`.
 - `apps-script/appsscript.json` manifest with OAuth scopes and web app settings.
 - `assets/js/applicantCounter.js` frontend polling module.

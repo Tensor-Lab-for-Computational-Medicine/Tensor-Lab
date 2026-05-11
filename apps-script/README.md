@@ -26,7 +26,7 @@ writes stay consistent.
 | --- | --- |
 | `api.gs` | Public web app (`doGet`) endpoints plus shared constants and `FIELD_ALIASES` column lookup. |
 | `triggers.gs` | `onApplicationSubmit`, `handleReselectionSubmit`, `onControlEdit`, leadership menu, `markProjectFilled`, `notifyDisplacedApplicants`. |
-| `management.gs` | In-sheet dialog for leadership: pick projects and applicants from dropdowns, fill projects, reject applicants, close the cohort. |
+| `management.gs` | In-sheet dialog for leadership: setup checklist, project fills, interview invites, single-applicant rejections, test workflow, cleanup, and cohort closeout. |
 | `email.gs` | Outbound mail and edit-URL / prefilled-URL helpers. Congrats, reselection, and rejection emails. |
 | `setup.gs` | One-time setup, annual migrations, trigger installation. |
 | `appsscript.json` | Runtime, OAuth scopes, web app access. |
@@ -56,6 +56,8 @@ Sheet tabs:
 - `reselections` — form response destination for the fallback reselection form.
 - `control` — one row per project. Columns: `project_id`, `label`, `status`, `filled_at`, `selected_applicant`.
 - `redirect_log` — audit trail of redirect emails sent.
+- `interview_log` — one row per interview invite with the final subject and body.
+- `email_log` — unified audit trail of every Apps Script email attempt, including sender, recipient, subject, body, sent/error status, and error text.
 - `error_log` — captured exceptions from triggers.
 
 ---
@@ -178,6 +180,7 @@ When leadership uses **Tensor Lab → Manage applicants** in the spreadsheet, Ap
 - **Sharing the spreadsheet** or **reauthorizing the Apps Script project** does **not** replace **Send mail as**. Those steps do not grant **From** rights by themselves.
 - The **spreadsheet / Apps Script owner** is not a substitute for the steps above: **any other user** who uses the management dialog still needs **Send mail as** on **their** Gmail, unless your org handles this through **Google Workspace** (e.g. admin-configured **Send as** or delegation—ask your **Workspace admin**).
 - Triggers and non-dialog code paths use **`SEND_FROM_EMAIL`**; set that to one allowed address and ensure the **account that runs automated sends** can send as that address the same way.
+- The dialog now runs a sender preflight with `GmailApp.getAliases()` and warns when a selected sender is not available for the current account. The **Setup** tab shows the same account readiness checks inside the management UI.
 
 The dialog also has a **Test workflow** tab. It creates two synthetic
 applications from entered test emails, sends only those two emails through the
@@ -262,8 +265,8 @@ original application in edit mode.
 ### Filling a project and rejecting applicants
 
 Open the spreadsheet and click **Tensor Lab > Manage applicants…**. A modal
-dialog opens with tabs for **Fill project**, **Invite to interview**,
-**Reject applicant**, **Test workflow**, **Remove test data**, and
+dialog opens with tabs for **Setup**, **Fill project**, **Invite to
+interview**, **Reject applicant**, **Test workflow**, **Remove test data**, and
 **Close cohort**.
 
 First time on a Google account, run **Tensor Lab > Authorize this account**
@@ -271,11 +274,20 @@ and accept the OAuth prompt before opening the management dialog. This is per
 Google account, not per spreadsheet share, and it is separate from Gmail
 `Send mail as`.
 
+Start on the dialog's **Setup** tab. It checks the active account, spreadsheet
+tabs, project control rows, application form access, Gmail sender aliases,
+installable triggers, and personal defaults storage. Use **Run authorization
+check** there if a new operator has not granted OAuth yet, then use **Refresh
+setup status** after fixing any warning.
+
 **Fill project.** Pick a project from the dropdown (only unfilled projects
 appear, with their live applicant counts). The applicant dropdown then
 auto-populates with everyone who ranked that project, annotated with their
-rank (1st, 2nd, or 3rd choice). Pick one and click **Fill project and send
-emails**. Behind the scenes this calls `markProjectFilled`, which:
+rank (1st, 2nd, or 3rd choice). Pick one, click **Preview recipients**, review
+the congratulations and reselection recipients, then click **Fill project and
+send emails**. The real send rechecks the recipient list and refuses to run if
+it changed after preview. Behind the scenes this calls `markProjectFilled`,
+which:
 
 1. Flips the `control` row to `filled`, stamps `filled_at`, writes
    `selected_applicant`.
@@ -295,13 +307,16 @@ tab or by the Close cohort action after every project is filled.
 **Invite to interview.** Mentors use this tab to send an applicant a meeting
 scheduling link (Calendly, Cal.com, SavvyCal, Google Calendar appointment page,
 anything with a public link). Pick the project you are interviewing for, pick
-an applicant who ranked it, enter your name and paste your scheduling URL,
-optionally add a short personal note, and click **Send interview invite**.
-The applicant receives a warm email introducing you, the project, and the
-link. Every invite is appended to an `interview_log` tab (auto-created on
-first use) with timestamp, email, project, reviewer, and URL. Your name and
-link are remembered per Google account, so repeat invites from the same
-mentor prefill automatically. Sending an invite does **not** change the
+an applicant who ranked it, enter your name, and paste your scheduling URL.
+The dialog generates a draft subject and body, then the sender can edit every
+word before clicking **Send interview invite**. Use **Send test to me** to send
+the current draft to the operator first. The applicant receives exactly the
+subject and body shown in the dialog. Every invite is appended to an
+`interview_log` tab (auto-created on first use) with timestamp, email, project,
+reviewer, URL, subject, and body, and every email attempt is also appended to
+`email_log`. Your name and link are remembered per Google account, so repeat
+invites from the same mentor prefill automatically. Sending an invite does
+**not** change the
 applicant's status, they stay pending until you separately fill a project or
 reject them.
 
@@ -316,11 +331,13 @@ got filled by someone else.
 
 **Close cohort.** Only enabled after every project in `control` has status
 `filled`. The tab shows live progress (e.g. `8 of 14 projects filled`) and
-lists remaining open projects. When all projects are closed, clicking the
-button sends the standard decline email to every applicant still in pending
-state and stamps each row as `rejected`. Server-side guard: the function
-refuses to run and throws an error if any project is still open, so even a
-motivated power user cannot accidentally bulk-reject the cohort early.
+lists remaining open projects. When all projects are closed, click **Preview
+rejection recipients** to review exactly who will receive the standard decline.
+The real send rechecks the list and refuses to run if it changed after preview.
+Clicking the send button emails every applicant still in pending state and
+stamps each row as `rejected`. Server-side guard: the function refuses to run
+and throws an error if any project is still open, so even a motivated power user
+cannot accidentally bulk-reject the cohort early.
 
 **Power users: direct sheet edit still works.** On the `control` tab you can
 paste the selected email into `selected_applicant` and change `status` to
@@ -388,6 +405,10 @@ this account** from the spreadsheet menu, then accept the OAuth prompt and
 reopen **Tensor Lab > Manage applicants…**. If the menu item is not available
 yet, open **Extensions → Apps Script**, run `authorizeManagementUi`, and accept
 the prompt.
+
+Inside the management dialog, the **Setup** tab can also run
+`authorizeManagementUi` and then refresh a checklist of storage, sheet, form,
+trigger, sender, and account status.
 
 If the error specifically mentions **reading from storage**, that is Apps
 Script storage, not Gmail `Send mail as`. It can happen even when the user is
