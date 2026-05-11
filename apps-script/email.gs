@@ -359,6 +359,8 @@ function _buildInterviewInviteDraft(firstName, reviewerName, projectLabel, sched
     '',
     'The interview is conversational in format. We’re interested in learning more about your background, how you approach technical problems, and why you’re interested in applying machine learning to clinical challenges. There are no live coding tasks or technical quizzes. However, please be prepared to briefly discuss recent projects you have worked on.',
     '',
+    'Interviews are recorded as part of our standard review process so the selection team can compare notes consistently and make fair assessments. Recordings are used only for internal fellowship review.',
+    '',
     'For more information about the fellowship, project structure, and mentorship model, you can explore our website: https://thetensorlab.org/',
     '',
     'We’re looking forward to speaking with you.',
