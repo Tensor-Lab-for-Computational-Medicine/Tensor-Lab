@@ -2,7 +2,101 @@ document.addEventListener('DOMContentLoaded', () => {
     setupSmoothScroll();
     setupActiveNav();
     setupMobileMenu();
+    setupLegalBanner();
 });
+
+/* ── Legal Notice Banner ── */
+function setupLegalBanner() {
+    if (localStorage.getItem('tl_legal_ack') === '1') return;
+
+    const banner = document.createElement('div');
+    banner.id = 'legal-banner';
+    banner.setAttribute('role', 'dialog');
+    banner.setAttribute('aria-label', 'Legal notice');
+    banner.innerHTML = `
+        <div class="legal-banner-inner">
+            <p>By using this website or submitting an application you agree to our
+                <a href="/terms.html">Terms&nbsp;of&nbsp;Use&nbsp;&amp;&nbsp;Disclaimer</a> and
+                <a href="/privacy.html">Privacy&nbsp;Policy</a>.
+                This site is for informational and educational purposes only and does not provide medical advice.</p>
+            <button id="legal-banner-accept" type="button">I Understand</button>
+        </div>
+    `;
+
+    const style = document.createElement('style');
+    style.textContent = `
+        #legal-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            background: rgba(10, 10, 10, 0.97);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(255,255,255,0.12);
+            padding: 1.25rem 2rem;
+            animation: legalSlideUp 0.4s ease-out;
+        }
+        @keyframes legalSlideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to   { transform: translateY(0);    opacity: 1; }
+        }
+        .legal-banner-inner {
+            max-width: 960px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        #legal-banner p {
+            flex: 1;
+            min-width: 260px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            color: rgba(255,255,255,0.7);
+            margin: 0;
+        }
+        #legal-banner a {
+            color: #dc2626;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+        #legal-banner-accept {
+            flex-shrink: 0;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 0.65rem 1.5rem;
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 4px;
+            background: transparent;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        #legal-banner-accept:hover {
+            background: #dc2626;
+            border-color: #dc2626;
+        }
+    `;
+
+    document.head.appendChild(style);
+    document.body.appendChild(banner);
+
+    document.getElementById('legal-banner-accept').addEventListener('click', () => {
+        localStorage.setItem('tl_legal_ack', '1');
+        banner.style.animation = 'none';
+        banner.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+        banner.style.transform = 'translateY(100%)';
+        banner.style.opacity = '0';
+        setTimeout(() => banner.remove(), 350);
+    });
+}
 
 function setupSmoothScroll() {
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
