@@ -188,6 +188,59 @@ selected sender, and marks synthetic rows with `test_` statuses so normal
 applicant lists and public counts ignore them. Use **Remove test data** afterward
 to delete the rows and reopen the tested project if you left it filled.
 
+### New operator onboarding, start to finish
+
+Use this checklist for every teammate who will open **Tensor Lab > Manage
+applicants** or send applicant email.
+
+1. Confirm the teammate is using the correct Google account.
+   Open Google Sheets and Gmail in the account that will operate the dialog,
+   for example `tensorlabumsom@gmail.com`. If the browser is signed into
+   multiple Google accounts, use a fresh Chrome profile or private window to
+   avoid authorizing the wrong account.
+
+2. Share the applications spreadsheet.
+   The spreadsheet owner should share the applications spreadsheet directly
+   with that Google account as **Editor**. Apps Script project editor access is
+   helpful for debugging, but spreadsheet Editor access is what the management
+   dialog needs for normal use.
+
+3. Set up Gmail **Send mail as** for that same account.
+   In Gmail for the operator account, go to **Settings > See all settings >
+   Accounts and Import > Send mail as > Add another email address**. Add the
+   Tensor Lab sender they will use, such as `tensorlabumsom@gmail.com` or
+   `tensorlabucsf@gmail.com`, and complete Google's verification email or code.
+   This is separate from Apps Script authorization.
+
+4. Open the spreadsheet and run **Tensor Lab > Authorize this account**.
+   If Google shows **Google hasn't verified this app**, click **Advanced**,
+   then **Go to Tensor Lab Backend 2026 (unsafe)**, then continue through the
+   permission screen and click **Allow**. This is expected for an internal
+   Apps Script project that has not gone through Google's public verification.
+
+5. If they click **Back to Safety**, run authorization again.
+   **Back to Safety** cancels the authorization. It does not grant permissions.
+   Close the failed authorization tab, return to the spreadsheet, and click
+   **Tensor Lab > Authorize this account** again.
+
+6. If no consent screen appears, check whether it was already approved.
+   Google only shows the consent screen when the account has not already
+   approved the current script scopes. To force a fresh prompt, open the
+   operator's **Google Account > Security > Third-party apps and services**,
+   remove **Tensor Lab Backend 2026**, then return to the spreadsheet and run
+   **Tensor Lab > Authorize this account** again.
+
+7. Reopen the spreadsheet and check the management dialog.
+   Close and reopen the spreadsheet tab, then click **Tensor Lab > Manage
+   applicants**. Start on the **Setup** tab, click **Refresh setup status**,
+   and work through any **How to set this up** notes.
+
+8. Send a test before contacting applicants.
+   On **Invite to interview**, choose a project and applicant, enter the
+   reviewer's name and scheduling link, enter a test recipient email, then
+   click **Send test email**. Confirm the message arrives from the selected
+   Tensor Lab sender and looks correct before sending a real invite.
+
 ### 7. Run setup functions, in this order
 
 From the Apps Script editor, pick each function from the dropdown and click
@@ -278,9 +331,13 @@ Start on the dialog's **Setup** tab. It checks the active account, spreadsheet
 tabs, project control rows, application form access, Gmail sender aliases,
 installable triggers, and personal defaults storage. Use **Run authorization
 check** there if a new operator has not granted OAuth yet, then use **Refresh
-setup status** after fixing any warning. Google sometimes hides the active
-account email from Apps Script; that is informational, not a blocker, as long
-as the sender checks pass. Each checklist row includes the next setup action,
+setup status** after fixing any warning. Google only shows the consent screen
+if the account has not already approved the current script scopes. If no pop-up
+appears, the account may already be authorized. To force a fresh prompt, revoke
+access to **Tensor Lab Backend 2026** in Google Account security settings, then
+run the authorization check again. Google sometimes hides the active account
+email from Apps Script; that is informational, not a blocker, as long as the
+sender checks pass. Each checklist row includes the next setup action,
 including whether the operator can fix it themselves or should ask the Apps
 Script owner to run a setup function.
 
@@ -416,6 +473,23 @@ the prompt.
 Inside the management dialog, the **Setup** tab can also run
 `authorizeManagementUi` and then refresh a checklist of storage, sheet, form,
 trigger, sender, and account status.
+
+Google may not show the consent screen every time. It only appears when the
+account has not already approved the current scopes. To force it, open the
+Google Account used in Sheets, go to **Security > Third-party apps and services**,
+remove access for **Tensor Lab Backend 2026**, then run
+**Tensor Lab > Authorize this account** again.
+
+If the user clicked **Back to Safety** on the **Google hasn't verified this
+app** screen, authorization was canceled. Nothing was granted. Have them close
+that tab and run **Tensor Lab > Authorize this account** again. On the warning
+screen they must click **Advanced**, then **Go to Tensor Lab Backend 2026
+(unsafe)**, then click **Allow** on the permissions screen.
+
+If the authorization screen still does not appear, make sure the user is in the
+same Google account in Sheets and Gmail, then revoke **Tensor Lab Backend 2026**
+from **Google Account > Security > Third-party apps and services** and run
+authorization again.
 
 If the error specifically mentions **reading from storage**, that is Apps
 Script storage, not Gmail `Send mail as`. It can happen even when the user is

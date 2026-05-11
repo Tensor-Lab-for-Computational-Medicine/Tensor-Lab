@@ -1,597 +1,190 @@
-# The Tensor Lab for Computational Medicine
+# Tensor Lab
 
-[Live Site](https://tensor-lab-for-computational-medicine.github.io/Tensor-Lab/)
-[GitHub Pages](https://pages.github.com/)
-[License](LICENSE)
+Tensor Lab is a medical student fellowship program that pairs computer science
+students with physician mentors on clinical AI research projects.
 
-> Connecting computer science students with physician mentors to publish AI research that advances clinical medicine.
+Live site: https://tensor-lab-for-computational-medicine.github.io/Tensor-Lab/
 
-## 🌟 About
+## Start Here
 
-The Tensor Lab is a student-run organization founded by medical students at UCSF and University of Maryland. We run a **10-week summer fellowship** that pairs computer science students with physician mentors working on real clinical research problems. Fellows gain hands-on experience with medical datasets, mentorship from practicing clinicians, and co-authorship on published research.
+Most current operational work is for the 2026 application system:
 
-**Our Mission:** Bridge the gap between engineering talent and clinical problems—producing AI research that can meaningfully change patient care.
+- Applicant project counters on the public site.
+- Google Forms submission validation.
+- Project fill and reselection emails.
+- Interview invite emails from the spreadsheet management dialog.
+- Final cohort closeout emails.
 
-### Why We Exist
+Detailed backend documentation lives in [apps-script/README.md](apps-script/README.md).
+Use this README as the short map.
 
-- **Engineers build tools doctors won't use** — Without clinical context, even sophisticated models fail in practice
-- **Doctors can't validate AI tools** — Most physicians lack the technical background to evaluate AI research critically
+## New Operator Setup
 
-We solve this collaboration problem by creating structured research partnerships where CS students bring technical expertise and medical professionals provide clinical context.
+Use this checklist for every teammate who will open **Tensor Lab > Manage
+applicants** or send applicant emails.
 
-## ✨ Key Features
+1. Use the correct Google account.
+   Open Google Sheets and Gmail in the account that will operate the dialog,
+   such as `tensorlabumsom@gmail.com`. If the browser is signed into multiple
+   Google accounts, use a fresh Chrome profile or private window.
 
-- **🔬 Real Clinical Research** — Work with actual patient data under IRB-approved protocols
-- **👨‍⚕️ 1:1 Physician Mentorship** — Direct guidance from practicing clinicians
-- **📝 Guaranteed Co-Authorship** — First-author opportunities on research papers
-- **🎓 Structured 10-Week Program** — From research question to manuscript submission
-- **🏆 2025 Pilot Results** — 7 papers submitted, 100% of fellows gained independent research capability
+2. Share the applications spreadsheet.
+   The spreadsheet owner should share the applications spreadsheet directly
+   with that account as **Editor**.
 
-## 🚀 Live Demo
+3. Set up Gmail **Send mail as**.
+   In Gmail for that same account, go to **Settings > See all settings >
+   Accounts and Import > Send mail as > Add another email address**. Add the
+   Tensor Lab sender the operator will use, such as `tensorlabumsom@gmail.com`
+   or `tensorlabucsf@gmail.com`, and complete Google's verification email or
+   code.
 
-**Visit:** [https://tensor-lab-for-computational-medicine.github.io/Tensor-Lab/](https://tensor-lab-for-computational-medicine.github.io/Tensor-Lab/)
+4. Authorize Apps Script.
+   In the spreadsheet, choose **Tensor Lab > Authorize this account**.
 
-## 🛠️ Tech Stack
+5. If Google shows **Google hasn't verified this app**, continue through it.
+   Click **Advanced**, then **Go to Tensor Lab Backend 2026 (unsafe)**, then
+   click **Allow** on the permissions screen. This warning is expected for an
+   internal Apps Script project that has not gone through Google's public
+   verification.
 
-- **Frontend:** Vanilla JavaScript (ES6+), HTML5, CSS3
-- **Styling:** Custom CSS with CSS Grid and Flexbox
-- **Animations:** Canvas-based starfield background
-- **Hosting:** GitHub Pages
-- **Design:** Mobile-responsive, modern UI with NASA-inspired space theme
+6. If they click **Back to Safety**, run authorization again.
+   Back to Safety cancels the authorization. It does not grant permissions.
+   Close that tab, return to the spreadsheet, and click **Tensor Lab >
+   Authorize this account** again.
 
-## 📁 Project Structure
+7. If no consent screen appears, force a fresh prompt.
+   Google only shows the consent screen when the account has not already
+   approved the current script scopes. Open the operator's **Google Account >
+   Security > Third-party apps and services**, remove **Tensor Lab Backend
+   2026**, then return to the spreadsheet and run **Tensor Lab > Authorize this
+   account** again.
 
-```
+8. Check the management dialog.
+   Reopen the spreadsheet tab, choose **Tensor Lab > Manage applicants**, start
+   on the **Setup** tab, and click **Refresh setup status**. Each row includes
+   a **How to set this up** note.
+
+9. Send a test email before contacting applicants.
+   On **Invite to interview**, choose a project and applicant, enter the
+   reviewer's name and scheduling link, enter a test recipient, and click
+   **Send test email**. Confirm the email arrives from the selected Tensor Lab
+   sender and looks correct.
+
+## Common Operator Issues
+
+**No authorization pop-up appears.**
+The account may already have approved the app. Revoke **Tensor Lab Backend
+2026** under **Google Account > Security > Third-party apps and services**,
+then run **Tensor Lab > Authorize this account** again.
+
+**They clicked Back to Safety.**
+Nothing was authorized. Have them run **Tensor Lab > Authorize this account**
+again and continue through **Advanced > Go to Tensor Lab Backend 2026
+(unsafe) > Allow**.
+
+**`PERMISSION_DENIED` or `server error occurred while reading from storage`.**
+This is Apps Script storage, not Gmail. Use the latest Apps Script files, then
+open **Manage applicants > Setup**. The dialog has a limited setup mode and
+fallback configuration for shared spreadsheet operators.
+
+**Sender is unavailable.**
+The operator must add the selected Tensor Lab sender under Gmail **Send mail
+as** in the same Google account that opens the spreadsheet. Sharing the sheet
+does not grant From permission.
+
+## Management Workflow
+
+Open the applications spreadsheet and choose **Tensor Lab > Manage
+applicants**.
+
+- **Setup:** account, sheet, form, sender, and trigger readiness checks.
+- **Fill project:** preview the winner and reselection recipients before
+  sending emails.
+- **Invite to interview:** generate an editable email, send a test, then send
+  the real invite.
+- **Reject applicant:** send an individual decline email.
+- **Test workflow:** create dummy applicants and send controlled test emails.
+- **Remove test data:** delete synthetic rows and reopen tested projects.
+- **Close cohort:** preview and reject all remaining pending applicants after
+  every project is filled.
+
+## Apps Script Owner Setup
+
+For a new cohort or a rebuilt backend, follow the full guide in
+[apps-script/README.md](apps-script/README.md). In short:
+
+1. Create the applications spreadsheet.
+2. Create the application and reselection Google Forms.
+3. Create or update the Apps Script project with files from `apps-script/`.
+4. Set Script Properties and mirror non-secret IDs in `FALLBACK_CONFIG` in
+   `apps-script/api.gs`.
+5. Run `initialSetup`.
+6. Run `seedControlFromProjects`.
+7. Run `syncFormChoices`.
+8. Run `captureFormLabels`.
+9. Run `enableApplicationEditing`.
+10. Run `installTriggers`.
+11. Deploy the web app and update `config.json` and `projects-2026.html`.
+12. Smoke test with dummy applicants before using real applicant data.
+
+## Repo Map
+
+```text
 Tensor-Lab/
-├── index.html              # Main HTML structure
-├── assets/                # All site assets
-│   ├── css/               # Stylesheets (styles.css)
-│   ├── js/                # Scripts (script.js, projects-2026.js, etc.)
-│   ├── images/            # UI graphics and logos
-│   ├── nasa-photos/       # Space-themed background images
-│   ├── portrait-photos/   # Leadership team headshots
-│   ├── poster-images/     # Research poster thumbnails
-│   └── posters/           # Full research poster PDFs
-├── data/                  # Project JSON data
-├── Documentation/         # PDF guides and documentation
-├── LICENSE                # Project license
-└── README.md              # This file
+|-- apps-script/              Google Apps Script backend
+|-- assets/                   CSS, JS, images, portraits, posters
+|-- data/projects_2026.json   Canonical 2026 project catalog
+|-- projects-2026.html        Project marketplace and application page
+|-- config.json               Public frontend configuration
+|-- index.html                Main website
+`-- Documentation/            Supporting PDFs and guides
 ```
 
-## 🏃 Getting Started
+Key backend files:
 
-### Prerequisites
+- `apps-script/api.gs`: constants, web API, sheet helpers, fallback config.
+- `apps-script/management.gs`: spreadsheet management dialog.
+- `apps-script/email.gs`: applicant email copy, HTML email wrapper, logging.
+- `apps-script/triggers.gs`: form, sheet, menu, and fill-project triggers.
+- `apps-script/setup.gs`: setup and maintenance functions.
 
-- A modern web browser (Chrome, Firefox, Safari, Edge)
-- Optional: Local web server for development
+## Website Updates
 
-### Local Development
+The public website is static HTML, CSS, and JavaScript. There is no build
+step.
 
-1. **Clone the repository**
-  ```bash
-   git clone https://github.com/Tensor-Lab-for-Computational-Medicine/Tensor-Lab.git
-   cd Tensor-Lab
-  ```
-2. **Open in browser**
-  Simply open `index.html` in your browser, or use a local server:
-3. **Navigate to**
-  ```
-   http://localhost:8000
-  ```
+For local preview:
 
-### Making Changes
-
-- **HTML:** Edit `index.html` for content and structure
-- **Styling:** Modify `styles.css` for visual design
-- **Interactivity:** Update `script.js` for dynamic features
-
-The site uses vanilla JavaScript with no build process required—changes are immediately visible on refresh.
-
-## 📘 Non-Technical Guide: Editing the Website
-
-**For future directors with no technical background**
-
-This guide will walk you through everything you need to edit the Tensor Lab website, even if you've never coded before. Follow these steps carefully, and you'll be updating the website in no time.
-
-### What You'll Need
-
-Download and install these three free tools:
-
-1. **GitHub Desktop** — Makes it easy to save and sync your changes
-  - Download: [desktop.github.com](https://desktop.github.com/)
-  - Install by opening the downloaded file and following the prompts
-2. **Cursor** — A code editor that helps you edit the website (like Microsoft Word, but for code)
-  - Download: [cursor.sh](https://cursor.sh/)
-  - Install by opening the downloaded file and dragging to Applications
-3. **A GitHub Account** — Free account to manage the website files
-  - Sign up: [github.com/signup](https://github.com/signup)
-  - Use your Tensor Lab email address
-
-### Step 1: Get Access to the Repository
-
-A "repository" (or "repo") is just a fancy word for a folder that contains all the website files.
-
-1. **Ask the current technical director** to add your GitHub account as a collaborator:
-  - They need to go to: `github.com/Tensor-Lab-for-Computational-Medicine/Tensor-Lab`
-  - Click `Settings` → `Collaborators` → `Add people`
-  - Add your GitHub username
-2. **Check your email** for an invitation and click "Accept Invitation"
-
-### Step 2: Clone the Repository (First Time Only)
-
-"Cloning" means downloading a copy of all the website files to your computer so you can edit them.
-
-1. **Open GitHub Desktop**
-2. **Sign in to your GitHub account**
-  - Click `GitHub Desktop` menu → `Preferences` (Mac) or `File` → `Options` (Windows)
-  - Click `Accounts` → Sign in with your GitHub account
-3. **Clone the repository**
-  - Click `File` → `Clone Repository`
-  - Click the `URL` tab
-  - Paste this URL: `https://github.com/Tensor-Lab-for-Computational-Medicine/Tensor-Lab.git`
-  - Choose where to save it (your Documents folder is a good choice)
-  - Click `Clone`
-  - Wait for the download to complete (may take 1-2 minutes)
-
-✅ **Success!** You now have a copy of all the website files on your computer.
-
-### Step 3: Open the Website in Cursor
-
-1. **Open Cursor** (the code editor you installed)
-2. **Open the project folder**
-  - Click `File` → `Open Folder`
-  - Navigate to where you saved the Tensor-Lab folder (probably in Documents)
-  - Select the `Tensor-Lab` folder and click `Open`
-3. **You'll see all the website files in the left sidebar:**
-  - `index.html` — The main content (text, images, structure)
-  - `assets/css/styles.css` — Colors, fonts, layouts, and visual design
-  - `assets/js/script.js` — Interactive features (animations, buttons)
-  - Folders with images and documents
-
-### Step 4: Make Your Edits
-
-#### Editing Text Content
-
-To change any text on the website:
-
-1. **Open `index.html`** by clicking it in the left sidebar
-2. **Find the text you want to change**
-  - Use `Cmd+F` (Mac) or `Ctrl+F` (Windows) to search for specific text
-  - Example: Search for "Summer 2026" to update the application year
-3. **Edit the text directly**
-  - Just type your changes like you would in Word
-  - Be careful not to delete any `<` or `>` symbols around the text
-  - Example: Change `<h1>Old Title</h1>` to `<h1>New Title</h1>`
-4. **Save your changes**
-  - Press `Cmd+S` (Mac) or `Ctrl+S` (Windows)
-  - Or click `File` → `Save`
-
-#### Adding New Team Members
-
-1. **Open `index.html`** and search for "Leadership Team"
-2. **Find an existing team member block** (it looks like this):
-
-```html
-<div class="team-member">
-    <img src="assets/portrait-photos/Aaron Ge.png" alt="Aaron Ge">
-    <div>
-        <strong>Aaron Ge</strong>
-        Co-Founder & Technical Director<br>
-        University of Maryland School of Medicine
-        <a href="https://linkedin.com/in/aaronge">LinkedIn ↗</a>
-    </div>
-</div>
+```bash
+python3 -m http.server 8000
 ```
 
-1. **Copy the entire block** and paste it below the others
-2. **Update the information:**
-  - Change the image path to the new person's photo
-  - Update the name, title, and university
-  - Update the LinkedIn URL
-3. **Add their photo:**
-  - Save their photo in the `assets/portrait-photos` folder
-  - Name it: `FirstName LastName.png` (e.g., `Jane Smith.png`)
-  - Make sure it matches the filename in the code
+Then open:
 
-#### Changing Colors or Styles
-
-1. **Open `assets/css/styles.css`** from the left sidebar
-2. **Search for what you want to change:**
-  - Colors: Search for `color:` or specific color names
-  - Font sizes: Search for `font-size:`
-  - Spacing: Search for `margin:` or `padding:`
-3. **Edit carefully** — small changes can affect the whole site
-4. **Save** with `Cmd+S` or `Ctrl+S`
-
-### Step 5: Preview Your Changes Locally
-
-Before publishing, always check how your changes look:
-
-1. **Find `index.html` in Finder (Mac) or File Explorer (Windows)**
-  - It's in the Tensor-Lab folder you cloned
-2. **Right-click `index.html` → Open With → Chrome (or your browser)**
-3. **The website opens in your browser**
-  - This is only visible to you, not the public
-  - Refresh the page (`Cmd+R` or `F5`) after making changes
-4. **Test on different devices:**
-  - Resize your browser window to see mobile view
-  - Check that all links work
-  - Make sure images load correctly
-
-### Step 6: Save Your Changes (Commit)
-
-Once you're happy with your edits, you need to save them in a way that GitHub understands. This is called a "commit."
-
-1. **Open GitHub Desktop**
-2. **You'll see your changes listed**
-  - Files you edited will appear with checkmarks
-  - Green highlights show what you added
-  - Red highlights show what you removed
-3. **Write a commit message** (bottom left)
-  - Summary: Brief description (e.g., "Update team member photos")
-  - Description: Optional details about what you changed
-4. **Click "Commit to main"**
-  - This saves your changes to your local copy
-
-✅ **Your changes are now saved on your computer**
-
-### Step 7: Upload Your Changes (Push)
-
-Now you need to upload your changes so they appear on the live website:
-
-1. **In GitHub Desktop, click "Push origin"** (top right)
-  - This uploads your changes to GitHub
-  - Takes 10-30 seconds
-2. **Wait 1-2 minutes** for automatic deployment
-  - GitHub automatically updates the live website
-  - You don't need to do anything else
-3. **Check the live website**
-  - Visit: [tensor-lab-for-computational-medicine.github.io/Tensor-Lab](https://tensor-lab-for-computational-medicine.github.io/Tensor-Lab/)
-  - Refresh the page (`Cmd+R` or `F5`)
-  - Your changes should be live!
-
-✅ **Your changes are now live on the website!**
-
-### Step 8: Get Updates from Others (Pull)
-
-Before you start editing, always make sure you have the latest version:
-
-1. **Open GitHub Desktop**
-2. **Click "Fetch origin"** (top right)
-  - This checks if others made changes
-3. **If there are changes, click "Pull origin"**
-  - This downloads the latest changes to your computer
-4. **Now you're up to date** and can start editing
-
-⚠️ **Important:** Always do this before starting work to avoid conflicts!
-
-### Troubleshooting Common Issues
-
-#### "I made a mistake and want to undo my changes"
-
-**Before pushing to GitHub:**
-
-1. Open GitHub Desktop
-2. Right-click the file with changes
-3. Click "Discard changes"
-4. Your file returns to the previous version
-
-**After pushing to GitHub:**
-
-1. Ask the technical director for help with "reverting" a commit
-2. Or contact: [aaron@tensorlab.org](mailto:aaron@tensorlab.org)
-
-#### "GitHub Desktop says there's a conflict"
-
-This happens when you and someone else edited the same part of a file.
-
-1. **Don't panic!** This is normal
-2. Open the conflicted file in Cursor
-3. Look for sections marked with `<<<<<<<`, `=======`, and `>>>>>>>`
-4. Delete the markers and keep the version you want
-5. Save the file and commit again
-
-#### "The website looks broken after my changes"
-
-1. **Open GitHub Desktop**
-2. **Right-click the problematic file** → "Discard changes"
-3. **Or** ask for help in the Tensor Lab Discord
-4. **Pro tip:** Make small changes and test frequently
-
-#### "I can't see my changes on the live site"
-
-1. **Hard refresh your browser:**
-  - Mac: `Cmd+Shift+R`
-  - Windows: `Ctrl+Shift+R`
-2. **Wait 2-3 minutes** (deployment can be slow)
-3. **Check GitHub:**
-  - Go to: `github.com/Tensor-Lab-for-Computational-Medicine/Tensor-Lab/actions`
-  - Make sure the latest deployment succeeded (green checkmark)
-
-### Quick Reference: Common Edits
-
-| Application dates | `index.html` | "Summer 2026" or "Feb 2026" |
-| Team member info | `index.html` | "Leadership Team" |
-| Fellowship stats | `index.html` | "2025 Pilot Results" |
-| Contact email | `index.html` | "@" (search for email addresses) |
-| Social media links | `index.html` | "twitter.com" or "discord.gg" |
-| Button colors | `assets/css/styles.css` | `.btn` or `.cta-btn` |
-| Header text | `index.html` | `<h1>` or `<h2>` |
-| Footer content | `index.html` | `<footer>` |
-
-### Getting Help
-
-If you get stuck or something breaks:
-
-1. **Check this guide** — the answer is usually here
-2. **Ask in Tensor Lab Discord** — `#website-support` channel
-3. **Email the technical director** — [aaron@tensorlab.org](mailto:aaron@tensorlab.org)
-4. **GitHub Desktop Help** — [docs.github.com/en/desktop](https://docs.github.com/en/desktop)
-
-### Video Tutorials (Recommended)
-
-These 5-minute videos explain the basics:
-
-- [How to use GitHub Desktop](https://www.youtube.com/results?search_query=github+desktop+tutorial+beginners)
-- [Intro to HTML basics](https://www.youtube.com/results?search_query=html+basics+tutorial)
-- [Understanding CSS](https://www.youtube.com/results?search_query=css+basics+tutorial)
-
-### Best Practices
-
-✅ **DO:**
-
-- Pull changes before you start editing
-- Make small changes and test frequently
-- Write clear commit messages
-- Preview changes locally before pushing
-- Ask for help when unsure
-
-❌ **DON'T:**
-
-- Edit files directly on GitHub.com (always use Cursor)
-- Push changes without testing first
-- Delete files unless you're sure
-- Edit `script.js` unless you know JavaScript
-- Work on the website while someone else is editing
-
----
-
-**Remember:** You can't permanently break anything! Every change is tracked, and we can always undo mistakes. Don't be afraid to experiment.
-
-## 2026 Application System (F1, F2, F3)
-
-This section documents the three features added for the 2026 cohort: the live applicant counter, the applicant redirection system, and the Google Forms integration. See `DEPLOY.md` for step by step deploy instructions.
-
-### Architecture at a glance
-
-```
-Applicant -> Google Form -> Sheet (applications tab)
-                                       |
-                                       v
-                          Apps Script (validate, assign redirect_token)
-
-Frontend projects-2026.html -> polls /exec?action=counts every 30s
-                                       |
-                                       v
-                          Apps Script getProjectCounts (CacheService 60s)
-                                       |
-                                       v
-                                  Sheet (applications, tallied)
-
-Leadership calls markProjectFilled(project_id, selected_email)
-   -> Sheet control tab status=filled
-   -> notifyDisplacedApplicants sends prefilled reselection URL
-   -> Applicant submits reselection -> handleReselectionSubmit
-   -> Sheet applications updated in place
-   -> Sheet redirect_log appended
+```text
+http://localhost:8000
 ```
 
-### **Leadership email sending (Gmail: required for every operator)**
+Common edits:
 
-- **Each person** who uses **Tensor Lab → Manage applicants** must add **Send mail as** in **their own Gmail** for **`tensorlabucsf@gmail.com`** and/or **`tensorlabumsom@gmail.com`** (whichever “From” addresses they will select), and **complete Google’s verification** for each, under **Settings → See all settings → Accounts and Import → Send mail as**.
-- **Each new user** must also authorize the bound Apps Script once under their own Google account. Have them open the sheet, choose **Tensor Lab → Manage applicants**, start on the **Setup** tab, and run **Run authorization check**. Each setup check explains the exact next step. If the custom menu is not available yet, use **Extensions → Apps Script**, run `authorizeManagementUi`, and accept the OAuth prompt.
-- **Sharing the sheet** or **reauthorizing** Apps Script does **not** grant **From** permission by itself; **only** a verified **Send mail as** on the **same Google account** that runs the menu does.
-- **Full details:** see **`apps-script/README.md`** (section **Who may send email (every operator must do this)**) and **Google Workspace** options if your org uses managed mailboxes.
+- Main website copy: `index.html`
+- Site styling: `assets/css/styles.css`
+- Project catalog: `data/projects_2026.json`
+- 2026 project page behavior: `assets/js/projects-2026.js`
+- Applicant counter: `assets/js/applicantCounter.js`
 
-### Repo layout for the 2026 features
+## Deployment
 
-- `data/projects_2026.json` canonical project list (14 projects).
-- `apps-script/api.gs` `doGet` router and `getProjectCounts`.
-- `apps-script/triggers.gs` `markProjectFilled`, `notifyDisplacedApplicants`, `onApplicationSubmit`, `handleReselectionSubmit`.
-- `apps-script/email.gs` prefilled URL builder, email sender, and unified `email_log` audit writer.
-- `apps-script/setup.gs` `initialSetup`, `seedControlFromProjects`, `reopenAllProjects`, `syncFormChoices`, `installTriggers`.
-- `apps-script/appsscript.json` manifest with OAuth scopes and web app settings.
-- `assets/js/applicantCounter.js` frontend polling module.
-- `projects-2026.html` project marketplace page with counter badges and form embed.
-- `assets/js/projects-2026.js` renders cards from the JSON file.
-- `config.json` public ops references (web app URL, form id, sheet id, JSON URL).
+The site deploys from `main` through GitHub Pages. After pushing to `main`,
+wait a few minutes and hard refresh the live site.
 
-### Setup steps, new environment
+Apps Script changes are separate. Copy updated files from `apps-script/` into
+the Apps Script editor, save, and redeploy if the web app code changed.
 
-1. Create a Google Sheet. Note the spreadsheet id from its URL.
-2. Create a Google Form for applications with the required fields (see below). Set it to submit to the sheet, tab name `applications`.
-3. Create a second form for reselections (or branch the same form). Submit responses to tab `reselections`.
-4. Create a new Apps Script project. Paste in the files under `apps-script/`.
-5. Under Project Settings, set Script properties:
-  - `SPREADSHEET_ID`
-  - `APPLICATION_FORM_ID`
-  - `RESELECTION_FORM_ID`
-  - `PROJECTS_JSON_URL` (public URL to the committed `data/projects_2026.json`)
-6. Run `initialSetup` once. This creates any missing tabs and seeds the `control` tab.
-7. Run `syncFormChoices` to push the dropdown values to the application form.
-8. Run `installTriggers` once.
-9. Deploy as a web app. Execute as: Me. Access: Anyone. Copy the URL.
-10. Paste the URL into `projects-2026.html` (the `tensor-lab-api` meta tag) and `config.json`.
-11. Paste the Google Form embed URL into the iframe `data-form-src` on `projects-2026.html`.
-12. Commit and push. GitHub Pages deploys the frontend within 2 minutes.
+## Useful Links
 
-### Required application form fields
-
-The form must include these question titles exactly, because the validator and the pre-filler look them up by title:
-
-- `name`, `email`, `school`, `year` (short answer)
-- `choice_1`, `choice_2`, `choice_3` (dropdown, populated by `syncFormChoices`)
-- `resume_url`, `portfolio_url` (short answer)
-- `response_debugging`, `response_teamwork`, `response_motivation` (long answer)
-- `redirect_token` (short answer, hidden pre-fill, leave blank on the public form)
-
-The reselection form must include:
-
-- `email` (short answer)
-- `redirect_token` (short answer, prefilled)
-- `surviving_choice_1`, `surviving_choice_2` (read only display is acceptable, but keep the titles)
-- `new_choice` (dropdown)
-
-### Required spreadsheet tabs
-
-Created automatically by `initialSetup`:
-
-- `applications` responses tab with the column headers listed above plus `timestamp` and `status`.
-- `reselections` responses tab for new third choices.
-- `control` one row per project, columns `project_id`, `status`, `filled_at`, `selected_applicant`.
-- `redirect_log` audit trail for every email and reselection.
-- `error_log` append only log of internal failures.
-
-### Rotating credentials and ids
-
-1. Open the Apps Script project, Project Settings, Script properties.
-2. Replace the target property value (for example `APPLICATION_FORM_ID`).
-3. If the sheet or form changed, run `installTriggers` from the editor to rewire the submit triggers.
-4. Redeploy only if `api.gs` or `triggers.gs` changed (Deploy, Manage deployments, new version on the existing deployment).
-5. The web app URL is stable across versions unless you create a new deployment.
-
-### Testing results
-
-Run these before declaring the work done. Record outcomes here with a date.
-
-
-| Test                                             | Expected                                                                                              | Status                 |
-| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------- | ---------------------- |
-| Submit three applications with overlapping ranks | Counter badges update within 90 seconds on the public page                                            | pending initial deploy |
-| Mark one project filled                          | Displaced applicants receive email within 5 minutes with prefilled URL carrying two surviving choices | pending initial deploy |
-| Submit a reselection                             | Original applications row updates, no duplicate row created                                           | pending initial deploy |
-| Trigger a deliberate error                       | Row appears in `error_log`, applicant flow is unaffected                                              | pending initial deploy |
-| Submit with invalid `project_id`                 | Row marked `rejected_invalid_project`, logged                                                         | pending initial deploy |
-| Submit duplicate from same email without token   | Row marked `rejected_duplicate`, logged                                                               | pending initial deploy |
-
-
-### Copy rules
-
-All user facing strings avoid dashes (commas, periods, or sentence breaks instead), stay in active voice, and target Flesch reading ease 80 or higher.
-
-## 🌐 Deployment
-
-The site is automatically deployed to GitHub Pages from the `main` branch. Any push to `main` triggers a deployment.
-
-**Deployment URL:** `https://tensor-lab-for-computational-medicine.github.io/Tensor-Lab/`
-
-### Manual Deployment
-
-GitHub Actions handles automatic deployment via `.github/workflows/static.yml`. To manually trigger:
-
-1. Push changes to `main` branch
-2. GitHub Actions automatically builds and deploys
-3. Changes appear live within 1-2 minutes
-
-## 🎯 Key Sections
-
-### Hero Section
-
-10-week fellowship overview with value propositions and CTA buttons
-
-### About Section
-
-Mission statement, problem definition, and leadership team profiles
-
-### How It Works
-
-Three-role model: CS Fellow, Medical Student, Faculty Physician
-
-### Open Roles
-
-Recruitment sections for medical students, CS students, and chapter leads
-
-### Timeline
-
-Application and fellowship timeline from December 2025 to September 2026
-
-### Testimonials
-
-Fellow stories from the 2025 pilot cohort
-
-### Research Showcase
-
-Featured posters and project deep-dives with filters and modal viewers
-
-### FAQ
-
-Common questions organized by audience (medical students, CS students, general)
-
-### Footer CTA
-
-Final conversion section with application links
-
-## 👥 Leadership Team
-
-- **Aaron Ge** — Co-Founder & Technical Director, UMD School of Medicine
-- **Matt Allen** — Co-Founder & Executive Director, UCSF
-- **Chy Murali** — Operational Director, UMD School of Medicine
-- **Gavin Shu** — Strategic Director, UCSF
-- **Angie Lee** — Business Director, UMD School of Medicine
-
-## 📊 2025 Pilot Results
-
-- **7 papers** submitted for publication
-- **100%** of fellows understand clinical context better
-- **100%** of fellows can lead research independently
-- **10 fellows** completed the inaugural cohort
-
-## 🤝 Contributing
-
-We welcome contributions to improve the website! Here's how:
-
-1. **Fork the repository**
-2. **Create a feature branch** (`git checkout -b feature/improvement`)
-3. **Make your changes** and test thoroughly
-4. **Commit** (`git commit -m 'Add feature description'`)
-5. **Push** (`git push origin feature/improvement`)
-6. **Open a Pull Request**
-
-### Contribution Guidelines
-
-- Maintain mobile responsiveness
-- Follow existing code style and conventions
-- Test across multiple browsers
-- Keep accessibility in mind (semantic HTML, ARIA labels)
-- Optimize images before adding to the repo
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 📞 Contact & Social
-
-- **Website:** [tensor-lab-for-computational-medicine.github.io/Tensor-Lab](https://tensor-lab-for-computational-medicine.github.io/Tensor-Lab/)
-- **Twitter:** [@TensorLab](https://twitter.com/TensorLab)
-- **Discord:** [Join our community](https://discord.gg/tensorlab)
-- **GitHub:** [Tensor-Lab-for-Computational-Medicine](https://github.com/Tensor-Lab-for-Computational-Medicine)
-
-## 🎓 For Prospective Fellows
-
-### Medical Students
-
-Have a research idea but don't know how to code? [Submit your project proposal](https://tensor-lab-for-computational-medicine.github.io/Tensor-Lab/#open-roles)
-
-### CS Students
-
-Want to apply AI to healthcare with real mentorship? [Join the waitlist](https://tensor-lab-for-computational-medicine.github.io/Tensor-Lab/#footer-cta) for Summer 2026 applications (opening February 2026)
-
-### Start a Chapter
-
-Want to bring Tensor Lab to your institution? [Apply to start a chapter](https://tensor-lab-for-computational-medicine.github.io/Tensor-Lab/#open-roles)
-
----
-
-**Built with ❤️ by medical students passionate about bridging AI and clinical medicine**
-
-*Summer 2026 applications opening February 2026*
+- Backend guide: [apps-script/README.md](apps-script/README.md)
+- Live site: https://tensor-lab-for-computational-medicine.github.io/Tensor-Lab/
+- GitHub Pages: https://pages.github.com/
+- License: [LICENSE](LICENSE)

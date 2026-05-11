@@ -465,42 +465,72 @@ function onOpenSpreadsheet() {
  * the storage, sheet, form, and Gmail scopes used by the management dialog.
  */
 function authorizeManagementUi() {
-  var ss = _activeSpreadsheet();
-  var spreadsheetId = _optionalScriptProperty('SPREADSHEET_ID');
-  if (!ss && spreadsheetId) ss = SpreadsheetApp.openById(spreadsheetId);
-  if (!ss) {
-    throw new Error(
-      'No active spreadsheet was available and SPREADSHEET_ID could not be read. ' +
-      'Open the bound spreadsheet first, then run Tensor Lab > Authorize this account.'
-    );
+  var checks = [];
+  var check = function (label, fn) {
+    try {
+      fn();
+      checks.push({ label: label, ok: true, message: 'OK' });
+      return true;
+    } catch (err) {
+      checks.push({
+        label: label,
+        ok: false,
+        message: (err && err.message) ? String(err.message) : String(err)
+      });
+      return false;
+    }
+  };
+
+  check('OAuth token', function () { ScriptApp.getOAuthToken(); });
+
+  var ss = null;
+  check('Spreadsheet access', function () {
+    ss = _activeSpreadsheet();
+    if (!ss && FALLBACK_CONFIG && FALLBACK_CONFIG.SPREADSHEET_ID) {
+      ss = SpreadsheetApp.openById(FALLBACK_CONFIG.SPREADSHEET_ID);
+    }
+    if (!ss) throw new Error('No active spreadsheet was available. Open the bound applications spreadsheet first.');
+    ss.getSheetByName(SHEET_CONTROL);
+  });
+
+  var storage = _storageAccessStatus();
+  checks.push({
+    label: 'Apps Script storage',
+    ok: storage.ok,
+    message: storage.ok
+      ? 'OK'
+      : 'Storage is not readable for this account. The management dialog uses fallback configuration where possible.'
+  });
+
+  var appFormId = (FALLBACK_CONFIG && FALLBACK_CONFIG.APPLICATION_FORM_ID) || '';
+  if (appFormId) {
+    check('Application form access', function () { FormApp.openById(appFormId).getTitle(); });
   }
-  ss.getSheetByName(SHEET_CONTROL);
-  var storageOk = !!spreadsheetId;
-  _cacheGet(COUNTS_CACHE_KEY);
 
-  var appFormId = _optionalScriptProperty('APPLICATION_FORM_ID');
-  if (appFormId) FormApp.openById(appFormId).getTitle();
-
-  var reselectionFormId = _optionalScriptProperty('RESELECTION_FORM_ID');
-  if (reselectionFormId) FormApp.openById(reselectionFormId).getTitle();
-
-  try {
-    GmailApp.getAliases();
-  } catch (err) {
-    _logError('authorizeManagementUi.gmail', err);
+  var reselectionFormId = (FALLBACK_CONFIG && FALLBACK_CONFIG.RESELECTION_FORM_ID) || '';
+  if (reselectionFormId) {
+    check('Reselection form access', function () { FormApp.openById(reselectionFormId).getTitle(); });
   }
+
+  check('Gmail sender lookup', function () { GmailApp.getAliases(); });
+  check('Trigger list access', function () { ScriptApp.getProjectTriggers(); });
 
   try {
     SpreadsheetApp.getActiveSpreadsheet().toast(
-      storageOk
-        ? 'This Google account is authorized for Tensor Lab tools.'
-        : 'Authorized for sheet tools. Apps Script storage was not readable for this account, so setup-only properties were skipped.',
+      storage.ok
+        ? 'Authorization check complete for this account.'
+        : 'Authorization accepted, but Apps Script storage is still blocked. Use the dialog fallback checks.',
       'Tensor Lab',
       5
     );
   } catch (_noUi) { /* running from editor, no active spreadsheet UI */ }
 
-  return { ok: true, storageOk: storageOk };
+  return {
+    ok: checks.some(function (c) { return c.ok; }),
+    storageOk: storage.ok,
+    storage: storage,
+    checks: checks
+  };
 }
 
 /** Menu helper. Manually clear the 60 second counts cache. */

@@ -374,6 +374,35 @@ function _isStoragePermissionError(err) {
   return /PERMISSION_DENIED|reading from storage|storage/i.test(msg);
 }
 
+function _storageAccessStatus() {
+  var out = {
+    scriptPropertiesOk: false,
+    userPropertiesOk: false,
+    cacheOk: false,
+    errors: []
+  };
+  try {
+    PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+    out.scriptPropertiesOk = true;
+  } catch (errScript) {
+    out.errors.push('Script Properties: ' + ((errScript && errScript.message) ? errScript.message : String(errScript)));
+  }
+  try {
+    PropertiesService.getUserProperties().getProperty('tl_reviewer_name');
+    out.userPropertiesOk = true;
+  } catch (errUser) {
+    out.errors.push('User Properties: ' + ((errUser && errUser.message) ? errUser.message : String(errUser)));
+  }
+  try {
+    CacheService.getScriptCache().get(COUNTS_CACHE_KEY);
+    out.cacheOk = true;
+  } catch (errCache) {
+    out.errors.push('CacheService: ' + ((errCache && errCache.message) ? errCache.message : String(errCache)));
+  }
+  out.ok = out.scriptPropertiesOk && out.userPropertiesOk && out.cacheOk;
+  return out;
+}
+
 /** Wrap a JS object as a JSON ContentService response. */
 function _jsonResponse(obj) {
   return ContentService
