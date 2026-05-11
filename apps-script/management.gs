@@ -54,7 +54,7 @@ function mgmtListOpenProjects() {
     var id = String(rows[i][idCol] || '').trim();
     if (!id) continue;
     var label = labelCol >= 0 ? String(rows[i][labelCol] || '').trim() : '';
-    out.push({ id: id, label: label || id, count: counts[id] || 0 });
+    out.push({ id: id, label: _displayProjectLabel(label || id), count: counts[id] || 0 });
   }
   out.sort(function (a, b) { return a.label.localeCompare(b.label); });
   return out;
@@ -315,7 +315,7 @@ function mgmtRunDummyWorkflowTest(projectId, winnerEmail, displacedEmail, fromEm
 function mgmtBuildInterviewInviteDraft(projectId, email, reviewerName, schedulingUrl) {
   var ctx = _interviewInviteContext(projectId, email);
   var reviewer = String(reviewerName || '').trim();
-  var url = String(schedulingUrl || '').trim();
+  var url = _normalizeSchedulingUrl(schedulingUrl);
   if (!reviewer) throw new Error('Enter your name so the applicant knows who is interviewing them.');
   if (!/^https?:\/\//i.test(url)) throw new Error('Scheduling link must start with http:// or https://');
 
@@ -350,7 +350,7 @@ function mgmtBuildInterviewInviteDraft(projectId, email, reviewerName, schedulin
 function mgmtSendInterviewInvite(projectId, email, reviewerName, schedulingUrl, subjectOrPersonalNote, bodyOrFromEmail, maybeFromEmail) {
   var ctx = _interviewInviteContext(projectId, email);
   var reviewer = String(reviewerName || '').trim();
-  var url = String(schedulingUrl || '').trim();
+  var url = _normalizeSchedulingUrl(schedulingUrl);
   if (!reviewer) throw new Error('Enter your name so the applicant knows who is interviewing them.');
   if (!/^https?:\/\//i.test(url)) throw new Error('Scheduling link must start with http:// or https://');
 
@@ -410,21 +410,22 @@ function _interviewInviteContext(projectId, email) {
       }
     }
   }
-  var label = _lookupProjectLabel(pid) || pid;
+  var label = _displayProjectLabel(_lookupProjectLabel(pid) || pid);
   return { email: target, projectId: pid, firstName: firstName, projectLabel: label };
 }
 
-/** Return { name, url } from user-scoped properties for prefilling the form. */
+/** Return user-scoped properties for prefilling the interview form. */
 function mgmtRecallReviewerDefaults() {
   try {
     var p = PropertiesService.getUserProperties();
     return {
       name: p.getProperty('tl_reviewer_name') || '',
-      url: p.getProperty('tl_reviewer_url') || ''
+      url: p.getProperty('tl_reviewer_url') || '',
+      testEmail: p.getProperty('tl_test_email') || ''
     };
   } catch (err) {
     _logError('mgmtRecallReviewerDefaults', err);
-    return { name: '', url: '' };
+    return { name: '', url: '', testEmail: '' };
   }
 }
 
@@ -578,56 +579,133 @@ function mgmtSenderStatus() {
 /** Setup checklist for spreadsheet operators opening the dialog for the first time. */
 function mgmtSetupStatus() {
   var checks = [];
-  var add = function (status, label, detail) {
-    checks.push({ status: status, label: label, detail: detail || '' });
+  var add = function (status, label, detail, setup) {
+    checks.push({ status: status, label: label, detail: detail || '', setup: setup || '' });
   };
 
   var active = '';
   var effective = '';
   try { active = String(Session.getActiveUser().getEmail() || '').toLowerCase(); } catch (_a) {}
   try { effective = String(Session.getEffectiveUser().getEmail() || '').toLowerCase(); } catch (_e) {}
-  add(active || effective ? 'ok' : 'warn', 'Google account detected', active || effective || 'Could not read the active account email.');
+  add(
+    'ok',
+    'Authorize this Google account',
+    'This checklist loaded, so the dialog can run at least some Apps Script calls for this account.',
+    'For a new operator, click Run authorization check. Accept every Google permission prompt, then reopen Tensor Lab > Manage applicants and refresh this status.'
+  );
+  add(
+    'ok',
+    'Google account email visibility',
+    active || effective || 'Google did not expose your account email in this context. This is common in Apps Script and does not block sending by itself.',
+    'Make sure Google Sheets and Gmail are open in the account you intend to use. If the email is hidden here, rely on the sender alias check below and enter a test recipient manually for test emails.'
+  );
 
   var ss = null;
   try { ss = _activeSpreadsheet(); } catch (_ss) {}
   if (ss) {
-    add('ok', 'Spreadsheet is accessible', ss.getName());
+    add(
+      'ok',
+      'Spreadsheet is accessible',
+      ss.getName(),
+      'No action needed. New users should open the applications spreadsheet directly and launch the dialog from Tensor Lab > Manage applicants.'
+    );
     [SHEET_APPLICATIONS, SHEET_CONTROL, SHEET_REDIRECT_LOG, SHEET_ERROR_LOG].forEach(function (name) {
       var sheet = ss.getSheetByName(name);
-      add(sheet ? 'ok' : 'err', 'Sheet tab: ' + name, sheet ? 'Found' : 'Missing. Ask the owner to run initialSetup.');
+      add(
+        sheet ? 'ok' : 'err',
+        'Sheet tab: ' + name,
+        sheet ? 'Found' : 'Missing.',
+        sheet
+          ? 'No action needed.'
+          : 'Ask the script owner to open Apps Script and run initialSetup. That creates the required backend tabs.'
+      );
     });
     var emailLog = ss.getSheetByName(SHEET_EMAIL_LOG);
-    add(emailLog ? 'ok' : 'warn', 'Sheet tab: ' + SHEET_EMAIL_LOG, emailLog ? 'Found' : 'Will be created automatically on the first email attempt, or by initialSetup.');
+    add(
+      emailLog ? 'ok' : 'warn',
+      'Sheet tab: ' + SHEET_EMAIL_LOG,
+      emailLog ? 'Found' : 'Will be created automatically on the first email attempt, or by initialSetup.',
+      emailLog
+        ? 'No action needed.'
+        : 'This is safe to leave alone. To create it before sending, ask the owner to run initialSetup, or send a test email from the interview tab.'
+    );
   } else {
-    add('err', 'Spreadsheet is accessible', 'Open this dialog from the bound applications spreadsheet.');
+    add(
+      'err',
+      'Spreadsheet is accessible',
+      'Open this dialog from the bound applications spreadsheet.',
+      'Ask the owner to share the applications spreadsheet with Editor access. Then open that spreadsheet and use Tensor Lab > Manage applicants.'
+    );
   }
 
   try {
     var progress = mgmtProjectFillProgress();
-    add(progress.total > 0 ? 'ok' : 'warn', 'Project control rows', progress.total + ' projects, ' + progress.openProjectCount + ' open.');
+    add(
+      progress.total > 0 ? 'ok' : 'warn',
+      'Project control rows',
+      progress.total + ' projects, ' + progress.openProjectCount + ' open.',
+      progress.total > 0
+        ? 'No setup needed. If the project dropdown says No open projects during testing, use Remove test data > Reopen all projects and resync.'
+        : 'Ask the owner to run seedControlFromProjects after PROJECTS_JSON_URL is set.'
+    );
   } catch (errProgress) {
-    add('err', 'Project control rows', (errProgress && errProgress.message) ? errProgress.message : String(errProgress));
+    add(
+      'err',
+      'Project control rows',
+      (errProgress && errProgress.message) ? errProgress.message : String(errProgress),
+      'Ask the owner to run initialSetup, then seedControlFromProjects, then reopen this dialog.'
+    );
   }
 
   var appFormId = _optionalScriptProperty('APPLICATION_FORM_ID');
   if (appFormId) {
     try {
-      add('ok', 'Application form is accessible', FormApp.openById(appFormId).getTitle());
+      add(
+        'ok',
+        'Application form is accessible',
+        FormApp.openById(appFormId).getTitle(),
+        'No action needed. This verifies APPLICATION_FORM_ID points to a form this script can read.'
+      );
     } catch (errAppForm) {
-      add('err', 'Application form is accessible', (errAppForm && errAppForm.message) ? errAppForm.message : String(errAppForm));
+      add(
+        'err',
+        'Application form is accessible',
+        (errAppForm && errAppForm.message) ? errAppForm.message : String(errAppForm),
+        'Ask the owner to confirm APPLICATION_FORM_ID in Script Properties and FALLBACK_CONFIG, and make sure the script owner can access the form.'
+      );
     }
   } else {
-    add('warn', 'Application form is configured', 'No APPLICATION_FORM_ID found. Ask the owner to check Script Properties or FALLBACK_CONFIG.');
+    add(
+      'warn',
+      'Application form is configured',
+      'No APPLICATION_FORM_ID found.',
+      'Ask the owner to add APPLICATION_FORM_ID under Apps Script Project Settings > Script properties, or update FALLBACK_CONFIG in api.gs.'
+    );
   }
 
   var sender = mgmtSenderStatus();
   var unavailable = sender.senders.filter(function (s) { return s.known && !s.available; }).map(function (s) { return s.email; });
   if (sender.aliasError) {
-    add('warn', 'Gmail senders can be checked', sender.aliasError);
+    add(
+      'warn',
+      'Gmail senders can be checked',
+      sender.aliasError,
+      'Click Run authorization check first. If this still warns, open Gmail in this same Google account and add the Tensor Lab sender under Settings > Accounts and Import > Send mail as.'
+    );
   } else if (unavailable.length) {
-    add('warn', 'Gmail senders are available', 'Unavailable for this account: ' + unavailable.join(', ') + '. Add them in Gmail Send mail as.');
+    add(
+      'warn',
+      'Gmail senders are available',
+      'Unavailable for this account: ' + unavailable.join(', ') + '.',
+      'In Gmail for this exact Google account, go to Settings > See all settings > Accounts and Import > Send mail as > Add another email address. Add each unavailable Tensor Lab address and complete Google verification.'
+    );
   } else {
-    add('ok', 'Gmail senders are available', 'Both Tensor Lab senders appear usable for this account.');
+    add(
+      'ok',
+      'Gmail senders are available',
+      'Both Tensor Lab senders appear usable for this account.',
+      'No action needed for this account. Every other operator must repeat Send mail as setup in their own Gmail.'
+    );
   }
 
   try {
@@ -639,17 +717,35 @@ function mgmtSetupStatus() {
       'Installable triggers visible to this account',
       missing.length
         ? 'Not visible here: ' + missing.join(', ') + '. This can be okay if the owner installed them. Ask the owner to run installTriggers if automations are not working.'
-        : 'Required triggers found.'
+        : 'Required triggers found.',
+      missing.length
+        ? 'If form submissions, control sheet edits, or the Tensor Lab menu do not work, ask the owner to open Apps Script and run installTriggers.'
+        : 'No action needed. Triggers handle form validation, reselections, control edits, and the Tensor Lab menu.'
     );
   } catch (errTriggers) {
-    add('warn', 'Installable triggers can be checked', (errTriggers && errTriggers.message) ? errTriggers.message : String(errTriggers));
+    add(
+      'warn',
+      'Installable triggers can be checked',
+      (errTriggers && errTriggers.message) ? errTriggers.message : String(errTriggers),
+      'This often only affects non-owner visibility. Ask the owner to run installTriggers if automations are not working.'
+    );
   }
 
   try {
     PropertiesService.getUserProperties().getProperty('tl_reviewer_name');
-    add('ok', 'Personal defaults storage', 'Reviewer name and scheduling link can be remembered.');
+    add(
+      'ok',
+      'Personal defaults storage',
+      'Reviewer name, scheduling link, and test recipient can be remembered.',
+      'No action needed. The interview tab saves these after you send an invite or test email.'
+    );
   } catch (errUserProps) {
-    add('warn', 'Personal defaults storage', 'Not readable. The dialog will still work, but reviewer defaults may not persist.');
+    add(
+      'warn',
+      'Personal defaults storage',
+      'Not readable. The dialog will still work, but reviewer defaults may not persist.',
+      'Click Run authorization check. If it still warns, manually enter your reviewer name, scheduling link, and test recipient each time.'
+    );
   }
 
   return {
@@ -660,14 +756,16 @@ function mgmtSetupStatus() {
   };
 }
 
-/** Send the current editable interview draft to the operator as a test. */
-function mgmtSendInterviewTestEmail(subject, body, fromEmail) {
-  var to = '';
-  try { to = String(Session.getActiveUser().getEmail() || '').toLowerCase(); } catch (_a) {}
+/** Send the current editable interview draft to an explicit test recipient. */
+function mgmtSendInterviewTestEmail(subject, body, fromEmail, testToEmail) {
+  var to = _normalizeTestEmail(testToEmail);
+  if (!to) {
+    try { to = String(Session.getActiveUser().getEmail() || '').toLowerCase(); } catch (_a) {}
+  }
   if (!to) {
     try { to = String(Session.getEffectiveUser().getEmail() || '').toLowerCase(); } catch (_e) {}
   }
-  if (!to) throw new Error('Could not determine your email address for a test send.');
+  if (!to) throw new Error('Enter a test recipient email address.');
   var subj = String(subject || '').trim();
   var text = String(body || '').trim();
   if (!subj) throw new Error('Enter an email subject before sending a test.');
@@ -678,6 +776,11 @@ function mgmtSendInterviewTestEmail(subject, body, fromEmail) {
     body: text,
     action: 'interview_test'
   }, fromEmail);
+  try {
+    PropertiesService.getUserProperties().setProperty('tl_test_email', to);
+  } catch (err) {
+    _logError('mgmtSendInterviewTestEmail.rememberDefault', err);
+  }
   return { email: to };
 }
 
@@ -1027,6 +1130,8 @@ function _managementDialogHtml() {
     '.check{display:flex;gap:8px;align-items:flex-start;border:1px solid #d8dee6;border-radius:4px;padding:8px;background:#fff}',
     '.check strong{min-width:42px;text-align:center;border-radius:12px;padding:2px 6px;font-size:11px;box-sizing:border-box}',
     '.check span{line-height:1.35}',
+    '.setup-help{margin-top:6px;color:#4b5563;font-size:12px;line-height:1.45}',
+    '.setup-help b{color:#374151}',
     '.check.ok strong{background:#e6f4ea;color:#155724}',
     '.check.warn strong{background:#fff4de;color:#7a5200}',
     '.check.err strong{background:#fdecea;color:#721c24}',
@@ -1062,9 +1167,9 @@ function _managementDialogHtml() {
     '  <div id="setupStatus"></div>',
     '  <div id="setupChecklist" class="setup-grid"><div class="status warn">Checking setup…</div></div>',
     '  <ol class="setup-steps">',
-    '    <li>Confirm this dialog shows the Google account you intend to use.</li>',
+    '    <li>Run the authorization check once for each Google account that will use this dialog.</li>',
     '    <li>Confirm the sender you need is available. If not, add it in Gmail under Settings &gt; Accounts and Import &gt; Send mail as.</li>',
-    '    <li>For interview invites, generate the draft, edit it, then send a test to yourself.</li>',
+    '    <li>For interview invites, generate the draft, edit it, enter a test recipient, then send a test email.</li>',
     '    <li>For Fill project and Close cohort, preview recipients before sending. The real send is blocked if the list changes after preview.</li>',
     '    <li>After sending, check email_log for sent or error rows if anything looks off.</li>',
     '  </ol>',
@@ -1097,9 +1202,11 @@ function _managementDialogHtml() {
     '  <input id="ivSubject" type="text" placeholder="Subject loads after project, applicant, name, and link are set" />',
     '  <label for="ivBody">Email body</label>',
     '  <textarea id="ivBody" placeholder="Body loads after project, applicant, name, and link are set. You can edit every word before sending."></textarea>',
-    '  <button id="ivTestBtn" class="secondary" disabled>Send test to me</button>',
+    '  <label for="ivTestEmail">Test recipient email</label>',
+    '  <input id="ivTestEmail" type="text" placeholder="your.email@example.com" />',
+    '  <button id="ivTestBtn" class="secondary" disabled>Send test email</button>',
     '  <button id="ivSendBtn" class="primary" disabled>Send interview invite</button>',
-    '  <p class="meta">The generated draft is only a starting point. The subject and body above are sent exactly as shown and logged to the interview_log tab. Your name and link are remembered for next time.</p>',
+    '  <p class="meta">The generated draft is only a starting point. The subject and body above are sent exactly as shown and logged to the interview_log tab. Your name, link, and test recipient are remembered for next time.</p>',
     '  <div id="ivStatus"></div>',
     '</div>',
 
@@ -1202,7 +1309,7 @@ function _managementDialogHtml() {
     '}',
     'const setupBadge=s=>s==="ok"?"OK":s==="err"?"Fix":"Check";',
     'function renderSetupStatus(s){',
-    '  const rows=(s.checks||[]).map(c=>{const kind=["ok","warn","err"].includes(c.status)?c.status:"warn";return "<div class=\\"check "+kind+"\\"><strong>"+setupBadge(kind)+"</strong><span><b>"+esc(c.label||"")+"</b><br>"+esc(c.detail||"")+"</span></div>"}).join("");',
+    '  const rows=(s.checks||[]).map(c=>{const kind=["ok","warn","err"].includes(c.status)?c.status:"warn";const help=c.setup?"<div class=\\"setup-help\\"><b>How to set this up:</b> "+esc(c.setup)+"</div>":"";return "<div class=\\"check "+kind+"\\"><strong>"+setupBadge(kind)+"</strong><span><b>"+esc(c.label||"")+"</b><br>"+esc(c.detail||"")+help+"</span></div>"}).join("");',
     '  $("#setupChecklist").innerHTML=rows||"<div class=\\"status warn\\">No setup checks returned.</div>";',
     '}',
     'function loadSetupStatus(){',
@@ -1314,6 +1421,7 @@ function _managementDialogHtml() {
     'google.script.run.withSuccessHandler(d=>{',
     '  if(d.name)$("#ivReviewerName").value=d.name;',
     '  if(d.url)$("#ivSchedulingUrl").value=d.url;',
+    '  if(d.testEmail)$("#ivTestEmail").value=d.testEmail;',
     '  ivRefreshBtn();',
     '  scheduleIvDraft(false);',
     '}).mgmtRecallReviewerDefaults();',
@@ -1337,8 +1445,9 @@ function _managementDialogHtml() {
     '  .mgmtListApplicantsForProject(pid);',
     '});',
 
+    'function cleanUrlValue(v){v=String(v||"").trim().replace(/\\s+/g,"");v=v.replace(/^(?:https?:\\/\\/)+/i,"https://");if(v&&!/^https?:\\/\\//i.test(v)&&/^[^\\s\\/]+\\.[^\\s]+/.test(v))v="https://"+v;return v}',
     'function ivDraftReady(){',
-    '  return $("#ivProjectSelect").value&&$("#ivApplicantSelect").value&&$("#ivReviewerName").value.trim()&&/^https?:\\/\\//i.test($("#ivSchedulingUrl").value.trim());',
+    '  return $("#ivProjectSelect").value&&$("#ivApplicantSelect").value&&$("#ivReviewerName").value.trim()&&/^https?:\\/\\//i.test(cleanUrlValue($("#ivSchedulingUrl").value));',
     '}',
     'function scheduleIvDraft(force){',
     '  clearTimeout(ivDraftTimer);',
@@ -1348,7 +1457,7 @@ function _managementDialogHtml() {
     '  if(!ivDraftReady()){ivRefreshBtn();return}',
     '  if(ivDraftDirty&&!force){ivRefreshBtn();return}',
     '  const pid=$("#ivProjectSelect").value;const email=$("#ivApplicantSelect").value;',
-    '  const reviewer=$("#ivReviewerName").value.trim();const url=$("#ivSchedulingUrl").value.trim();',
+    '  const reviewer=$("#ivReviewerName").value.trim();const url=cleanUrlValue($("#ivSchedulingUrl").value);$("#ivSchedulingUrl").value=url;',
     '  const btn=$("#ivDraftBtn");btn.disabled=true;btn.textContent="Loading draft…";',
     '  google.script.run',
     '    .withSuccessHandler(d=>{',
@@ -1359,47 +1468,54 @@ function _managementDialogHtml() {
     '    .withFailureHandler(e=>{btn.textContent="Regenerate email draft";setStatus($("#ivStatus"),"Could not generate draft: "+errMsg(e),"err");ivRefreshBtn();})',
     '    .mgmtBuildInterviewInviteDraft(pid,email,reviewer,url);',
     '}',
-    'function ivDisabledReason(){',
+    'function validEmail(v){return /.+@.+\\..+/.test(String(v||"").trim())}',
+    'function ivSendDisabledReason(){',
     '  if(!$("#ivProjectSelect").value)return "Pick a project first";',
     '  if(!$("#ivApplicantSelect").value)return "Pick an applicant";',
     '  if(!$("#ivReviewerName").value.trim())return "Enter your name";',
-    '  if(!/^https?:\\/\\//i.test($("#ivSchedulingUrl").value.trim()))return "Scheduling link must start with http:// or https://";',
+    '  if(!/^https?:\\/\\//i.test(cleanUrlValue($("#ivSchedulingUrl").value)))return "Enter a scheduling link";',
+    '  if(!$("#ivSubject").value.trim())return "Enter or generate an email subject";',
+    '  if(!$("#ivBody").value.trim())return "Enter or generate an email body";',
+    '  return "";',
+    '}',
+    'function ivTestDisabledReason(){',
+    '  if(!validEmail($("#ivTestEmail").value))return "Enter a test recipient email";',
     '  if(!$("#ivSubject").value.trim())return "Enter or generate an email subject";',
     '  if(!$("#ivBody").value.trim())return "Enter or generate an email body";',
     '  return "";',
     '}',
     'function ivRefreshBtn(){',
-    '  const reason=ivDisabledReason();',
-    '  $("#ivSendBtn").disabled=!!reason;',
-    '  $("#ivSendBtn").title=reason;',
-    '  $("#ivTestBtn").disabled=!!reason;',
-    '  $("#ivTestBtn").title=reason?reason:"Send the current draft to your own account";',
+    '  const sendReason=ivSendDisabledReason();',
+    '  const testReason=ivTestDisabledReason();',
+    '  $("#ivSendBtn").disabled=!!sendReason;',
+    '  $("#ivSendBtn").title=sendReason;',
+    '  $("#ivTestBtn").disabled=!!testReason;',
+    '  $("#ivTestBtn").title=testReason?testReason:"Send the current draft to the test recipient";',
     '  $("#ivDraftBtn").disabled=!ivDraftReady();',
     '  $("#ivDraftBtn").title=ivDraftReady()?"Regenerate the default draft from the current fields":"Set project, applicant, name, and link first";',
     '}',
     '["#ivReviewerName","#ivSchedulingUrl"].forEach(q=>$(q).addEventListener("input",()=>{ivRefreshBtn();scheduleIvDraft(false)}));',
     '$("#ivApplicantSelect").addEventListener("change",()=>{ivDraftDirty=false;$("#ivSubject").value="";$("#ivBody").value="";ivRefreshBtn();scheduleIvDraft(false)});',
-    '["#ivSubject","#ivBody"].forEach(q=>$(q).addEventListener("input",()=>{ivDraftDirty=true;ivRefreshBtn()}));',
+    '["#ivSubject","#ivBody","#ivTestEmail"].forEach(q=>$(q).addEventListener("input",()=>{if(q!=="#ivTestEmail")ivDraftDirty=true;ivRefreshBtn()}));',
     '$("#ivDraftBtn").addEventListener("click",()=>{ivDraftDirty=false;loadIvDraft(true)});',
     '$("#ivSchedulingUrl").addEventListener("blur",()=>{',
-    '  const el=$("#ivSchedulingUrl");const v=el.value.trim();',
-    '  if(v&&!/^https?:\\/\\//i.test(v)&&/^[^\\s]+\\.[^\\s]+/.test(v))el.value="https://"+v;',
+    '  const el=$("#ivSchedulingUrl");el.value=cleanUrlValue(el.value);',
     '  ivRefreshBtn();scheduleIvDraft(false);',
     '});',
 
     '$("#ivTestBtn").addEventListener("click",()=>{',
-    '  const subject=$("#ivSubject").value.trim();const body=$("#ivBody").value.trim();const st=$("#ivStatus");',
-    '  if(!subject||!body)return;',
-    '  $("#ivTestBtn").disabled=true;setStatus(st,"Sending test email to you…","warn");',
+    '  const subject=$("#ivSubject").value.trim();const body=$("#ivBody").value.trim();const to=$("#ivTestEmail").value.trim();const st=$("#ivStatus");',
+    '  if(!subject||!body||!validEmail(to))return;',
+    '  $("#ivTestBtn").disabled=true;setStatus(st,"Sending test email to "+to+"…","warn");',
     '  google.script.run',
     '    .withSuccessHandler(r=>{setStatus(st,"Test email sent to "+r.email+".","ok");ivRefreshBtn();})',
     '    .withFailureHandler(e=>{setStatus(st,"Test send error: "+errMsg(e),"err");ivRefreshBtn();})',
-    '    .mgmtSendInterviewTestEmail(subject,body,sender());',
+    '    .mgmtSendInterviewTestEmail(subject,body,sender(),to);',
     '});',
 
     '$("#ivSendBtn").addEventListener("click",()=>{',
     '  const pid=$("#ivProjectSelect").value;const email=$("#ivApplicantSelect").value;',
-    '  const reviewer=$("#ivReviewerName").value.trim();const url=$("#ivSchedulingUrl").value.trim();',
+    '  const reviewer=$("#ivReviewerName").value.trim();const url=cleanUrlValue($("#ivSchedulingUrl").value);$("#ivSchedulingUrl").value=url;',
     '  const subject=$("#ivSubject").value.trim();const body=$("#ivBody").value.trim();const st=$("#ivStatus");',
     '  const projectLabel=$("#ivProjectSelect").selectedOptions[0].text;',
     '  if(!confirm("Send "+email+" an interview invite for "+projectLabel+"?\\n\\nSubject: "+subject+"\\n\\nEmail will send from "+sender()+"."))return;',

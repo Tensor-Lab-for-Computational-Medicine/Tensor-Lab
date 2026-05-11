@@ -83,6 +83,17 @@ function _buildReselectionUrl(token, survivingChoices) {
  */
 var TENSOR_LAB_SENDERS = ['tensorlabucsf@gmail.com', 'tensorlabumsom@gmail.com'];
 
+function _normalizeSchedulingUrl(url) {
+  var value = String(url || '').trim();
+  if (!value) return '';
+  value = value.replace(/\s+/g, '');
+  value = value.replace(/^(?:https?:\/\/)+/i, 'https://');
+  if (!/^https?:\/\//i.test(value) && /^[^\s\/]+\.[^\s]+/.test(value)) {
+    value = 'https://' + value;
+  }
+  return value;
+}
+
 /**
  * Send the selected applicant a warm, useful congratulations email. Copy is
  * intentionally warm but grounded so it reads as human, not corporate. No
@@ -92,7 +103,7 @@ var TENSOR_LAB_SENDERS = ['tensorlabucsf@gmail.com', 'tensorlabumsom@gmail.com']
  */
 function _sendCongratulationsEmail(toEmail, projectLabel, fromEmail) {
   if (!toEmail) throw new Error('toEmail required');
-  var label = projectLabel || 'your Tensor Lab project';
+  var label = _displayProjectLabel(projectLabel) || 'your Tensor Lab project';
   var subject = 'Welcome to Tensor Lab. You have been selected.';
   var body = [
     'Hi,',
@@ -185,25 +196,26 @@ function _buildInterviewInviteDraft(firstName, reviewerName, projectLabel, sched
   if (!reviewerName) throw new Error('reviewerName required');
   if (!schedulingUrl) throw new Error('schedulingUrl required');
   var greeting = firstName ? 'Hi ' + String(firstName).trim() + ',' : 'Hi,';
-  var label = projectLabel || 'one of your Tensor Lab project choices';
+  var label = _displayProjectLabel(projectLabel) || 'one of your Tensor Lab project choices';
   var reviewer = String(reviewerName).trim();
-  var subject = 'Tensor Lab interview for ' + label;
+  var url = _normalizeSchedulingUrl(schedulingUrl);
+  var subject = 'Tensor Lab interview invitation';
   var lines = [
     greeting,
     '',
-    'Thank you for your application to Tensor Lab. Your materials for the following project caught our attention, and we would like to talk with you about it:',
+    'Thank you for applying to Tensor Lab. We enjoyed reading your application and would like to invite you to a short interview for this project:',
     '',
-    '    ' + label,
+    'Project: ' + label,
     '',
-    'I am ' + reviewer + ', one of the mentors on this project, and I will be running your interview. Plan for about thirty minutes. We will talk through your background, your interest in the project, and a couple of technical questions so we can both check that this is the right fit.',
+    'I am ' + reviewer + ', and I will be leading the conversation. The interview should take about 30 minutes. We will talk about your background, what drew you to the project, and a few practical technical questions related to the work.',
     '',
-    'Please pick a time that works for you here:',
+    'Please choose any time that works for you:',
     '',
-    '    ' + String(schedulingUrl).trim(),
+    url,
     '',
-    'If none of the available slots work, reply to this email and we will find another time.',
+    'If none of the listed times fit your schedule, just reply to this email and we will coordinate a time manually.',
     '',
-    'Looking forward to talking with you,',
+    'Looking forward to meeting you,',
     reviewer,
     'Tensor Lab'
   ];
@@ -231,14 +243,14 @@ function _sendInterviewInviteEmail(toEmail, firstName, reviewerName, projectLabe
     subject: draft.subject,
     body: draft.body,
     action: 'interview',
-    project_label: projectLabel || ''
+    project_label: _displayProjectLabel(projectLabel) || ''
   }, fromEmail);
 }
 
 function _sendReselectionEmail(toEmail, linkUrl, mode, projectLabel, fromEmail) {
   if (!toEmail) throw new Error('toEmail required');
   var isEdit = mode === 'edit';
-  var label = projectLabel || 'one of your top three project choices';
+  var label = _displayProjectLabel(projectLabel) || 'one of your top three project choices';
   var subject = 'Update your Tensor Lab project choices.';
   var intro = isEdit
     ? 'The following project has been filled: ' + label + '. The link below reopens your original application with every answer you already gave. Swap that filled project for a new one and resubmit. You do not need to retype anything else.'
@@ -272,6 +284,8 @@ function _sendTensorLabEmail(message, fromEmail) {
     throw new Error('Unsupported sender: ' + from + '. Pick tensorlabucsf@gmail.com or tensorlabumsom@gmail.com.');
   }
   var opts = { name: 'Tensor Lab Team' };
+  var htmlBody = message.htmlBody || _buildTensorLabHtmlEmail(message);
+  if (htmlBody) opts.htmlBody = htmlBody;
   var identity = _gmailAccountEmail();
   if (identity && from === identity) {
     // Same mailbox as the one running the script: omit `from` or Gmail can throw
@@ -294,7 +308,9 @@ function _sendTensorLabEmail(message, fromEmail) {
       var eff = _effectiveUserEmail();
       if (eff && eff === from) {
         try {
-          GmailApp.sendEmail(message.to, message.subject, message.body, { name: 'Tensor Lab Team', replyTo: from });
+          var retryOpts = { name: 'Tensor Lab Team', replyTo: from };
+          if (htmlBody) retryOpts.htmlBody = htmlBody;
+          GmailApp.sendEmail(message.to, message.subject, message.body, retryOpts);
           _appendEmailLog(message, from, 'sent', 'sent without from option after Gmail rejected alias argument');
         } catch (e2) {
           var errText2 = (e2 && e2.message) ? String(e2.message) : String(e2);
@@ -307,6 +323,103 @@ function _sendTensorLabEmail(message, fromEmail) {
     _appendEmailLog(message, from, 'error', errText);
     _throwGmailFromHelp(from);
   }
+}
+
+function _buildTensorLabHtmlEmail(message) {
+  var subject = String((message && message.subject) || 'Tensor Lab').trim();
+  var body = String((message && message.body) || '').trim();
+  if (!body) return '';
+  var logoUrl = _tensorLabLogoUrl();
+  var preheader = _emailPreheader(message);
+  return [
+    '<div style="display:none;max-height:0;overflow:hidden;color:transparent;opacity:0;">' + _escapeHtml(preheader) + '</div>',
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0;padding:0;background:#f5f7fb;">',
+    '<tr><td align="center" style="padding:28px 16px;">',
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">',
+    '<tr><td style="background:#111827;padding:22px 28px;">',
+    '<img src="' + _escapeHtml(logoUrl) + '" alt="Tensor Lab" style="display:block;height:40px;width:auto;border:0;outline:none;text-decoration:none;">',
+    '</td></tr>',
+    '<tr><td style="padding:30px 32px 28px;font-family:Arial,Helvetica,sans-serif;color:#1f2937;font-size:16px;line-height:1.58;">',
+    '<h1 style="margin:0 0 22px;font-size:22px;line-height:1.3;font-weight:700;color:#111827;">' + _escapeHtml(subject) + '</h1>',
+    _plainTextToEmailHtml(body),
+    '</td></tr>',
+    '<tr><td style="padding:18px 32px;background:#f9fafb;border-top:1px solid #e5e7eb;font-family:Arial,Helvetica,sans-serif;color:#6b7280;font-size:13px;line-height:1.45;">',
+    'Tensor Lab for Computational Medicine<br>',
+    '<a href="https://thetensorlab.org" style="color:#2563eb;text-decoration:none;">thetensorlab.org</a>',
+    '</td></tr>',
+    '</table>',
+    '</td></tr>',
+    '</table>'
+  ].join('');
+}
+
+function _emailPreheader(message) {
+  var action = String((message && message.action) || '').trim();
+  if (action === 'interview' || action === 'interview_test') {
+    return 'Please choose a time for your Tensor Lab interview.';
+  }
+  if (action === 'congratulations') return 'Congratulations on your Tensor Lab match.';
+  if (action === 'reselection') return 'One project has filled. Please update your project choices.';
+  if (action === 'rejection') return 'An update on your Tensor Lab application.';
+  return 'A message from Tensor Lab.';
+}
+
+function _plainTextToEmailHtml(body) {
+  var blocks = String(body || '').replace(/\r\n/g, '\n').split(/\n\s*\n/);
+  var out = [];
+  blocks.forEach(function (block) {
+    var text = String(block || '').trim();
+    if (!text) return;
+    var url = _normalizeSchedulingUrl(text);
+    if (/^(?:https?:\/\/)?[^\s]+\.[^\s]+$/i.test(text) && /^https?:\/\/[^\s]+$/i.test(url)) {
+      out.push(_emailButtonHtml(url));
+      return;
+    }
+    if (/^Project:\s*/i.test(text)) {
+      var label = _displayProjectLabel(text.replace(/^Project:\s*/i, ''));
+      out.push(
+        '<div style="margin:18px 0;padding:16px 18px;background:#f8fafc;border:1px solid #dbe4f0;border-radius:10px;">' +
+        '<div style="font-size:12px;line-height:1.2;text-transform:uppercase;letter-spacing:.08em;color:#64748b;font-weight:700;margin-bottom:6px;">Project</div>' +
+        '<div style="font-size:16px;line-height:1.45;color:#111827;font-weight:700;">' + _escapeHtml(label) + '</div>' +
+        '</div>'
+      );
+      return;
+    }
+    out.push('<p style="margin:0 0 16px;">' + _linkifyEmailText(text).replace(/\n/g, '<br>') + '</p>');
+  });
+  return out.join('');
+}
+
+function _emailButtonHtml(url) {
+  var safe = _escapeHtml(url);
+  return [
+    '<div style="margin:22px 0;">',
+    '<a href="' + safe + '" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;font-weight:700;padding:12px 18px;border-radius:8px;">Choose an interview time</a>',
+    '<div style="margin-top:10px;font-size:13px;line-height:1.45;color:#6b7280;">',
+    '<a href="' + safe + '" style="color:#2563eb;text-decoration:none;word-break:break-all;">' + safe + '</a>',
+    '</div>',
+    '</div>'
+  ].join('');
+}
+
+function _linkifyEmailText(text) {
+  return _escapeHtml(text).replace(/(https?:\/\/[^\s<]+)/g, function (url) {
+    return '<a href="' + url + '" style="color:#2563eb;text-decoration:underline;word-break:break-word;">' + url + '</a>';
+  });
+}
+
+function _tensorLabLogoUrl() {
+  var origin = _optionalScriptProperty('PUBLIC_SITE_ORIGIN') || 'https://thetensorlab.org';
+  return String(origin || 'https://thetensorlab.org').replace(/\/+$/, '') + '/assets/images/logo2white.png';
+}
+
+function _escapeHtml(value) {
+  return String(value === null || value === undefined ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function _appendEmailLog(message, fromEmail, status, errorText) {

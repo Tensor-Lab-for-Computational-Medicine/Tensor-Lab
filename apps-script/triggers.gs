@@ -364,9 +364,9 @@ function _lookupProjectLabel(projectId) {
   for (var i = 0; i < rows.length; i++) {
     if (String(rows[i][idCol]).trim() !== projectId) continue;
     var label = labelCol >= 0 ? String(rows[i][labelCol] || '').trim() : '';
-    return label || projectId;
+    return _displayProjectLabel(label || projectId);
   }
-  return projectId;
+  return _displayProjectLabel(projectId);
 }
 
 /** Email column lookup for a specific row in applications. */

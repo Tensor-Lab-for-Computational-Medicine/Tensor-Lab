@@ -241,6 +241,15 @@ function _extractProjectId(cellValue) {
   return raw;
 }
 
+/** Human-facing project label. Strips the `project_id ::` prefix used in forms. */
+function _displayProjectLabel(labelOrId) {
+  var value = String(labelOrId || '').trim();
+  if (!value) return '';
+  var sep = value.indexOf('::');
+  if (sep !== -1) value = value.substring(sep + 2).trim();
+  return value.replace(/\s+/g, ' ');
+}
+
 /**
  * Build and cache a lookup of known project_ids and their labels, read from
  * the control sheet. Cached in CacheService for 5 minutes to avoid a sheet

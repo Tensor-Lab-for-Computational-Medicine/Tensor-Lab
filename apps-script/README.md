@@ -180,7 +180,7 @@ When leadership uses **Tensor Lab → Manage applicants** in the spreadsheet, Ap
 - **Sharing the spreadsheet** or **reauthorizing the Apps Script project** does **not** replace **Send mail as**. Those steps do not grant **From** rights by themselves.
 - The **spreadsheet / Apps Script owner** is not a substitute for the steps above: **any other user** who uses the management dialog still needs **Send mail as** on **their** Gmail, unless your org handles this through **Google Workspace** (e.g. admin-configured **Send as** or delegation—ask your **Workspace admin**).
 - Triggers and non-dialog code paths use **`SEND_FROM_EMAIL`**; set that to one allowed address and ensure the **account that runs automated sends** can send as that address the same way.
-- The dialog now runs a sender preflight with `GmailApp.getAliases()` and warns when a selected sender is not available for the current account. The **Setup** tab shows the same account readiness checks inside the management UI.
+- The dialog now runs a sender preflight with `GmailApp.getAliases()` and warns when a selected sender is not available for the current account. The **Setup** tab shows the same account readiness checks inside the management UI and includes a **How to set this up** note on every checklist item.
 
 The dialog also has a **Test workflow** tab. It creates two synthetic
 applications from entered test emails, sends only those two emails through the
@@ -278,7 +278,11 @@ Start on the dialog's **Setup** tab. It checks the active account, spreadsheet
 tabs, project control rows, application form access, Gmail sender aliases,
 installable triggers, and personal defaults storage. Use **Run authorization
 check** there if a new operator has not granted OAuth yet, then use **Refresh
-setup status** after fixing any warning.
+setup status** after fixing any warning. Google sometimes hides the active
+account email from Apps Script; that is informational, not a blocker, as long
+as the sender checks pass. Each checklist row includes the next setup action,
+including whether the operator can fix it themselves or should ask the Apps
+Script owner to run a setup function.
 
 **Fill project.** Pick a project from the dropdown (only unfilled projects
 appear, with their live applicant counts). The applicant dropdown then
@@ -309,13 +313,16 @@ scheduling link (Calendly, Cal.com, SavvyCal, Google Calendar appointment page,
 anything with a public link). Pick the project you are interviewing for, pick
 an applicant who ranked it, enter your name, and paste your scheduling URL.
 The dialog generates a draft subject and body, then the sender can edit every
-word before clicking **Send interview invite**. Use **Send test to me** to send
-the current draft to the operator first. The applicant receives exactly the
-subject and body shown in the dialog. Every invite is appended to an
+word before clicking **Send interview invite**. Enter a test recipient and use
+**Send test email** to send the current draft there first. The applicant
+receives the subject and body shown in the dialog inside a formatted Tensor Lab
+email wrapper with the logo, a readable project card, and a scheduling button.
+Scheduling links are normalized automatically, so pasted links such as
+`https://https://calendly.com/...` are cleaned before sending. Every invite is appended to an
 `interview_log` tab (auto-created on first use) with timestamp, email, project,
 reviewer, URL, subject, and body, and every email attempt is also appended to
-`email_log`. Your name and link are remembered per Google account, so repeat
-invites from the same mentor prefill automatically. Sending an invite does
+`email_log`. Your name, link, and test recipient are remembered per Google
+account, so repeat invites from the same mentor prefill automatically. Sending an invite does
 **not** change the
 applicant's status, they stay pending until you separately fill a project or
 reject them.
