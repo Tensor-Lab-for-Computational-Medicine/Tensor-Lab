@@ -82,6 +82,7 @@ function _buildReselectionUrl(token, survivingChoices) {
  * Output: void. Throws on invalid email.
  */
 var TENSOR_LAB_SENDERS = ['tensorlabucsf@gmail.com', 'tensorlabumsom@gmail.com'];
+var TENSOR_LAB_LEGAL_FOOTER = 'This fellowship is unpaid and is not employment. By continuing in this process you agree to our Terms (https://thetensorlab.org/terms.html) and Privacy Policy (https://thetensorlab.org/privacy.html). Selection decisions are final.';
 
 function _normalizeSchedulingUrl(url) {
   var value = String(url || '').trim();
@@ -403,6 +404,7 @@ function _sendReselectionEmail(toEmail, linkUrl, mode, projectLabel, fromEmail) 
  * account; non-dialog sends fall back to SEND_FROM_EMAIL.
  */
 function _sendTensorLabEmail(message, fromEmail) {
+  message = _withTensorLabLegalFooter(message);
   var from = _normalizeSenderEmail(fromEmail);
   if (TENSOR_LAB_SENDERS.indexOf(from) === -1) {
     throw new Error('Unsupported sender: ' + from + '. Pick tensorlabucsf@gmail.com or tensorlabumsom@gmail.com.');
@@ -447,6 +449,46 @@ function _sendTensorLabEmail(message, fromEmail) {
     _appendEmailLog(message, from, 'error', errText);
     _throwGmailFromHelp(from);
   }
+}
+
+function _withTensorLabLegalFooter(message) {
+  var src = message || {};
+  var out = {};
+  for (var key in src) {
+    if (Object.prototype.hasOwnProperty.call(src, key)) out[key] = src[key];
+  }
+  out.body = _appendTensorLabLegalFooter(out.body);
+  if (out.htmlBody) out.htmlBody = _appendTensorLabLegalFooterToHtml(out.htmlBody);
+  return out;
+}
+
+function _appendTensorLabLegalFooter(body) {
+  var text = String(body || '').replace(/\r\n/g, '\n').trim();
+  if (!text) return TENSOR_LAB_LEGAL_FOOTER;
+  if (text.indexOf(TENSOR_LAB_LEGAL_FOOTER) !== -1) return text;
+  return text + '\n\n' + TENSOR_LAB_LEGAL_FOOTER;
+}
+
+function _appendTensorLabLegalFooterToHtml(htmlBody) {
+  var html = String(htmlBody || '').trim();
+  if (!html) return '';
+  if (html.indexOf(TENSOR_LAB_LEGAL_FOOTER) !== -1) return html;
+  if (
+    html.indexOf('This fellowship is unpaid and is not employment') !== -1 &&
+    html.indexOf('thetensorlab.org/terms.html') !== -1 &&
+    html.indexOf('thetensorlab.org/privacy.html') !== -1 &&
+    html.indexOf('Selection decisions are final') !== -1
+  ) return html;
+
+  var footerHtml = [
+    '<div style="margin-top:24px;padding-top:16px;border-top:1px solid #e5eaf0;color:#64748b;font-family:Arial,Helvetica,sans-serif;font-size:12.5px;line-height:1.5;">',
+    _linkifyEmailText(TENSOR_LAB_LEGAL_FOOTER),
+    '</div>'
+  ].join('');
+  if (/<\/body\s*>/i.test(html)) {
+    return html.replace(/<\/body\s*>/i, footerHtml + '</body>');
+  }
+  return html + footerHtml;
 }
 
 function _buildTensorLabHtmlEmail(message) {
@@ -507,6 +549,10 @@ function _plainTextToEmailHtml(body, message) {
         '<div style="font-size:16px;line-height:1.45;color:#111827;font-weight:700;">' + _escapeHtml(label) + '</div>' +
         '</div>'
       );
+      return;
+    }
+    if (text === TENSOR_LAB_LEGAL_FOOTER) {
+      out.push('<p style="margin:8px 0 0;padding-top:16px;border-top:1px solid #e5eaf0;color:#64748b;font-size:12.5px;line-height:1.5;">' + _linkifyEmailText(text) + '</p>');
       return;
     }
     out.push('<p style="margin:0 0 17px;">' + _linkifyEmailText(text).replace(/\n/g, '<br>') + '</p>');

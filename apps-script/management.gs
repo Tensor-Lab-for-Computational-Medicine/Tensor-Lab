@@ -475,7 +475,7 @@ function mgmtSendInterviewInvite(projectId, email, reviewerName, schedulingUrl, 
     project_id: ctx.projectId,
     project_label: ctx.projectLabel
   }, fromEmail);
-  _logInterviewInvite(ctx.email, ctx.projectId, reviewer, url, subject, body);
+  _logInterviewInvite(ctx.email, ctx.projectId, reviewer, url, subject, _appendTensorLabLegalFooter(body));
 
   try {
     PropertiesService.getUserProperties().setProperties({
