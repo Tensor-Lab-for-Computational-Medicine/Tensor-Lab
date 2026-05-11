@@ -603,32 +603,41 @@ function mgmtSetupStatus() {
   var ss = null;
   try { ss = _activeSpreadsheet(); } catch (_ss) {}
   if (ss) {
-    add(
-      'ok',
-      'Spreadsheet is accessible',
-      ss.getName(),
-      'No action needed. New users should open the applications spreadsheet directly and launch the dialog from Tensor Lab > Manage applicants.'
-    );
-    [SHEET_APPLICATIONS, SHEET_CONTROL, SHEET_REDIRECT_LOG, SHEET_ERROR_LOG].forEach(function (name) {
-      var sheet = ss.getSheetByName(name);
+    try {
       add(
-        sheet ? 'ok' : 'err',
-        'Sheet tab: ' + name,
-        sheet ? 'Found' : 'Missing.',
-        sheet
-          ? 'No action needed.'
-          : 'Ask the script owner to open Apps Script and run initialSetup. That creates the required backend tabs.'
+        'ok',
+        'Spreadsheet is accessible',
+        ss.getName(),
+        'No action needed. New users should open the applications spreadsheet directly and launch the dialog from Tensor Lab > Manage applicants.'
       );
-    });
-    var emailLog = ss.getSheetByName(SHEET_EMAIL_LOG);
-    add(
-      emailLog ? 'ok' : 'warn',
-      'Sheet tab: ' + SHEET_EMAIL_LOG,
-      emailLog ? 'Found' : 'Will be created automatically on the first email attempt, or by initialSetup.',
-      emailLog
-        ? 'No action needed.'
-        : 'This is safe to leave alone. To create it before sending, ask the owner to run initialSetup, or send a test email from the interview tab.'
-    );
+      [SHEET_APPLICATIONS, SHEET_CONTROL, SHEET_REDIRECT_LOG, SHEET_ERROR_LOG].forEach(function (name) {
+        var sheet = ss.getSheetByName(name);
+        add(
+          sheet ? 'ok' : 'err',
+          'Sheet tab: ' + name,
+          sheet ? 'Found' : 'Missing.',
+          sheet
+            ? 'No action needed.'
+            : 'Ask the script owner to open Apps Script and run initialSetup. That creates the required backend tabs.'
+        );
+      });
+      var emailLog = ss.getSheetByName(SHEET_EMAIL_LOG);
+      add(
+        emailLog ? 'ok' : 'warn',
+        'Sheet tab: ' + SHEET_EMAIL_LOG,
+        emailLog ? 'Found' : 'Will be created automatically on the first email attempt, or by initialSetup.',
+        emailLog
+          ? 'No action needed.'
+          : 'This is safe to leave alone. To create it before sending, ask the owner to run initialSetup, or send a test email from the interview tab.'
+      );
+    } catch (errSheets) {
+      add(
+        'err',
+        'Spreadsheet checks can run',
+        (errSheets && errSheets.message) ? errSheets.message : String(errSheets),
+        'Confirm this account has Editor access to the applications spreadsheet. If access is correct, ask the owner to open the spreadsheet, reload it, and run Tensor Lab > Authorize this account once.'
+      );
+    }
   } else {
     add(
       'err',
@@ -685,7 +694,20 @@ function mgmtSetupStatus() {
     );
   }
 
-  var sender = mgmtSenderStatus();
+  var sender = {
+    activeUser: active,
+    effectiveUser: effective,
+    aliases: [],
+    aliasError: '',
+    senders: TENSOR_LAB_SENDERS.map(function (s) {
+      return { email: s, available: true, known: false, reason: 'not checked yet' };
+    })
+  };
+  try {
+    sender = mgmtSenderStatus();
+  } catch (errSender) {
+    sender.aliasError = (errSender && errSender.message) ? String(errSender.message) : String(errSender);
+  }
   var unavailable = sender.senders.filter(function (s) { return s.known && !s.available; }).map(function (s) { return s.email; });
   if (sender.aliasError) {
     add(
@@ -1338,10 +1360,22 @@ function _managementDialogHtml() {
     '  const rows=(s.checks||[]).map(c=>{const kind=["ok","warn","err"].includes(c.status)?c.status:"warn";const help=c.setup?"<div class=\\"setup-help\\"><b>How to set this up:</b> "+esc(c.setup)+"</div>":"";return "<div class=\\"check "+kind+"\\"><strong>"+setupBadge(kind)+"</strong><span><b>"+esc(c.label||"")+"</b><br>"+esc(c.detail||"")+help+"</span></div>"}).join("");',
     '  $("#setupChecklist").innerHTML=rows||"<div class=\\"status warn\\">No setup checks returned.</div>";',
     '}',
+    'function renderSetupFallback(e){',
+    '  const m=errMsg(e);',
+    '  const checks=[',
+    '    {status:"warn",label:"Limited setup mode",detail:m,setup:"This account can open the dialog but Google blocked one setup check. You can still use the workflow tabs if their dropdowns load."},',
+    '    {status:"ok",label:"Authorize this Google account",detail:"Run Tensor Lab > Authorize this account once for this Google account.",setup:"After accepting permissions, close and reopen the spreadsheet tab, then reopen Tensor Lab > Manage applicants."},',
+    '    {status:"warn",label:"Gmail Send mail as",detail:"Confirm the selected Tensor Lab sender is configured in this exact Gmail account.",setup:"In Gmail, go to Settings > See all settings > Accounts and Import > Send mail as. Add tensorlabucsf@gmail.com and/or tensorlabumsom@gmail.com and complete verification."},',
+    '    {status:"warn",label:"Spreadsheet access",detail:"Confirm this account is an Editor on the applications spreadsheet.",setup:"Ask the owner to share the applications spreadsheet directly with Editor access. Then open the spreadsheet and launch this dialog from the Tensor Lab menu."},',
+    '    {status:"warn",label:"Send a test email",detail:"Use Invite to interview, enter a test recipient, and send a test before contacting applicants.",setup:"If the test email sends, the remaining setup error is only a checklist visibility issue, not a blocker for sending."}',
+    '  ];',
+    '  renderSetupStatus({checks});',
+    '  setStatus($("#setupStatus"),"Setup checks opened in limited mode. Try the workflow tabs and send a test email before contacting applicants.","warn");',
+    '}',
     'function loadSetupStatus(){',
     '  const box=$("#setupChecklist");box.innerHTML="<div class=\\"status warn\\">Checking setup…</div>";clearStatus($("#setupStatus"));',
     '  google.script.run.withSuccessHandler(s=>{renderSetupStatus(s);loadSenderStatus();})',
-    '    .withFailureHandler(e=>{box.innerHTML="";setStatus($("#setupStatus"),"Could not check setup: "+errMsg(e),"err")})',
+    '    .withFailureHandler(e=>{renderSetupFallback(e)})',
     '    .mgmtSetupStatus();',
     '}',
     '$("#setupRefreshBtn").addEventListener("click",loadSetupStatus);',
