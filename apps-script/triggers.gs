@@ -17,7 +17,7 @@
  * This function must only be invoked by leadership from the Apps Script editor
  * or from a leadership-only menu. It is not exposed through doGet.
  */
-function markProjectFilled(projectId, selectedApplicantEmail, fromEmail) {
+function markProjectFilled(projectId, selectedApplicantEmail, fromEmail, emailTemplates) {
   if (!projectId || !selectedApplicantEmail) {
     throw new Error('markProjectFilled requires projectId and selectedApplicantEmail.');
   }
@@ -61,7 +61,7 @@ function markProjectFilled(projectId, selectedApplicantEmail, fromEmail) {
     lock.releaseLock();
   }
 
-  var notified = notifyDisplacedApplicants(projectId, selectedApplicantEmail, fromEmail);
+  var notified = notifyDisplacedApplicants(projectId, selectedApplicantEmail, fromEmail, emailTemplates);
   _refreshProjectSurfaces();
   return { ok: true, notified: notified };
 }
@@ -72,7 +72,7 @@ function markProjectFilled(projectId, selectedApplicantEmail, fromEmail) {
  * Output: number of emails sent this run.
  * Skips applicants already logged for this project in redirect_log.
  */
-function notifyDisplacedApplicants(projectId, selectedApplicantEmail, fromEmail) {
+function notifyDisplacedApplicants(projectId, selectedApplicantEmail, fromEmail, emailTemplates) {
   var apps = _getSheet(SHEET_APPLICATIONS);
   if (!apps || apps.getLastRow() < 2) return 0;
 
@@ -80,6 +80,8 @@ function notifyDisplacedApplicants(projectId, selectedApplicantEmail, fromEmail)
   var emailCol = _col(headers, 'email');
   var tokenCol = _col(headers, 'redirect_token');
   var statusCol = _col(headers, 'status');
+  var preferredNameCol = _col(headers, 'preferred_name');
+  var fullNameCol = _col(headers, 'name');
   var choiceCols = CHOICE_COLUMNS.map(function (c) { return _col(headers, c); });
   if (emailCol < 0 || tokenCol < 0 || choiceCols.indexOf(-1) !== -1) {
     throw new Error('applications sheet missing required columns, check FIELD_ALIASES in api.gs');
@@ -92,9 +94,20 @@ function notifyDisplacedApplicants(projectId, selectedApplicantEmail, fromEmail)
 
   var selectedEmail = String(selectedApplicantEmail || '').trim().toLowerCase();
   var projectLabel = _lookupProjectLabel(projectId);
+  var templateSet = _normalizeFillEmailTemplates(emailTemplates, projectLabel);
+  if (templateSet.reselection) _assertReselectionTemplateHasLink(templateSet.reselection);
   if (selectedEmail && !_alreadyCongratulated(selectedEmail, projectId)) {
     try {
-      _sendCongratulationsEmail(selectedEmail, projectLabel, fromEmail);
+      if (templateSet.congratulations) {
+        _sendEmailFromTemplate(selectedEmail, templateSet.congratulations, {
+          first_name: _firstNameForEmailInApplicationRows(rows, selectedEmail, emailCol, preferredNameCol, fullNameCol),
+          applicant_name: _nameForEmailInApplicationRows(rows, selectedEmail, emailCol, preferredNameCol, fullNameCol),
+          project: projectLabel,
+          project_label: projectLabel
+        }, 'congratulations', projectLabel, fromEmail);
+      } else {
+        _sendCongratulationsEmail(selectedEmail, projectLabel, fromEmail);
+      }
       _appendRedirectLog(selectedEmail, '', projectId);
     } catch (err) {
       _logError('notifyDisplacedApplicants.congrats', err);
@@ -119,12 +132,55 @@ function notifyDisplacedApplicants(projectId, selectedApplicantEmail, fromEmail)
 
     var editUrl = _buildEditApplicationUrl(email);
     var linkUrl = editUrl || _buildReselectionUrl(token, survivingChoices);
-    _sendReselectionEmail(email, linkUrl, editUrl ? 'edit' : 'reselect', projectLabel, fromEmail);
+    if (templateSet.reselection) {
+      var displayName = _rowDisplayName(row, preferredNameCol, fullNameCol);
+      _sendEmailFromTemplate(email, templateSet.reselection, {
+        first_name: _firstNameFromName(displayName),
+        applicant_name: displayName,
+        project: projectLabel,
+        project_label: projectLabel,
+        reselection_link: linkUrl,
+        link: linkUrl
+      }, 'reselection', projectLabel, fromEmail);
+    } else {
+      _sendReselectionEmail(email, linkUrl, editUrl ? 'edit' : 'reselect', projectLabel, fromEmail);
+    }
     _appendRedirectLog(email, projectId, '');
     alreadyNotified[email] = true;
     sent++;
   }
   return sent;
+}
+
+function _normalizeFillEmailTemplates(emailTemplates, projectLabel) {
+  if (!emailTemplates) return {};
+  var out = {};
+  if (emailTemplates.congratulations) {
+    out.congratulations = _normalizeEmailTemplate(emailTemplates.congratulations, _buildCongratulationsDraft(projectLabel));
+  }
+  if (emailTemplates.reselection) {
+    out.reselection = _normalizeEmailTemplate(emailTemplates.reselection, _buildReselectionDraft(projectLabel));
+  }
+  return out;
+}
+
+function _rowDisplayName(row, preferredNameCol, fullNameCol) {
+  var preferred = preferredNameCol >= 0 ? String(row[preferredNameCol] || '').trim() : '';
+  var full = fullNameCol >= 0 ? String(row[fullNameCol] || '').trim() : '';
+  return preferred || full;
+}
+
+function _nameForEmailInApplicationRows(rows, email, emailCol, preferredNameCol, fullNameCol) {
+  var target = String(email || '').trim().toLowerCase();
+  for (var i = 0; i < rows.length; i++) {
+    if (String(rows[i][emailCol] || '').trim().toLowerCase() !== target) continue;
+    return _rowDisplayName(rows[i], preferredNameCol, fullNameCol);
+  }
+  return '';
+}
+
+function _firstNameForEmailInApplicationRows(rows, email, emailCol, preferredNameCol, fullNameCol) {
+  return _firstNameFromName(_nameForEmailInApplicationRows(rows, email, emailCol, preferredNameCol, fullNameCol));
 }
 
 /**
@@ -462,7 +518,12 @@ function onOpenSpreadsheet() {
 /**
  * Harmless first-run helper for spreadsheet operators. Running this once from
  * the Tensor Lab menu or Apps Script editor forces the OAuth consent screen for
- * the storage, sheet, form, and Gmail scopes used by the management dialog.
+ * the sheet, form, Gmail, and trigger scopes used by the management dialog.
+ *
+ * Important: do not touch PropertiesService or CacheService here. Some shared
+ * spreadsheet operators can grant OAuth successfully but still receive
+ * PERMISSION_DENIED when Apps Script storage is read. The dialog has fallbacks
+ * for that, so authorization should stay storage-free.
  */
 function authorizeManagementUi() {
   var checks = [];
@@ -493,15 +554,6 @@ function authorizeManagementUi() {
     ss.getSheetByName(SHEET_CONTROL);
   });
 
-  var storage = _storageAccessStatus();
-  checks.push({
-    label: 'Apps Script storage',
-    ok: storage.ok,
-    message: storage.ok
-      ? 'OK'
-      : 'Storage is not readable for this account. The management dialog uses fallback configuration where possible.'
-  });
-
   var appFormId = (FALLBACK_CONFIG && FALLBACK_CONFIG.APPLICATION_FORM_ID) || '';
   if (appFormId) {
     check('Application form access', function () { FormApp.openById(appFormId).getTitle(); });
@@ -517,9 +569,7 @@ function authorizeManagementUi() {
 
   try {
     SpreadsheetApp.getActiveSpreadsheet().toast(
-      storage.ok
-        ? 'Authorization check complete for this account.'
-        : 'Authorization accepted, but Apps Script storage is still blocked. Use the dialog fallback checks.',
+      'Authorization check complete for this account. Storage is intentionally skipped for shared operators.',
       'Tensor Lab',
       5
     );
@@ -527,8 +577,7 @@ function authorizeManagementUi() {
 
   return {
     ok: checks.some(function (c) { return c.ok; }),
-    storageOk: storage.ok,
-    storage: storage,
+    storageSkipped: true,
     checks: checks
   };
 }

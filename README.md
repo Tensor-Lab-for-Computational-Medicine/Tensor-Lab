@@ -24,20 +24,23 @@ Use this checklist for every teammate who will open **Tensor Lab > Manage
 applicants** or send applicant emails.
 
 1. Use the correct Google account.
-   Open Google Sheets and Gmail in the account that will operate the dialog,
-   such as `tensorlabumsom@gmail.com`. If the browser is signed into multiple
-   Google accounts, use a fresh Chrome profile or private window.
+   Open Google Sheets with the operator's own Google account, usually their
+   personal or work Gmail. Do not do the setup inside the shared
+   `tensorlabumsom@gmail.com` inbox unless that shared inbox is the account
+   that will personally operate the spreadsheet. If the browser is signed into
+   multiple Google accounts, use a fresh Chrome profile or private window.
 
 2. Share the applications spreadsheet.
    The spreadsheet owner should share the applications spreadsheet directly
    with that account as **Editor**.
 
-3. Set up Gmail **Send mail as**.
-   In Gmail for that same account, go to **Settings > See all settings >
-   Accounts and Import > Send mail as > Add another email address**. Add the
-   Tensor Lab sender the operator will use, such as `tensorlabumsom@gmail.com`
-   or `tensorlabucsf@gmail.com`, and complete Google's verification email or
-   code.
+3. Set up Gmail **Send mail as** in the operator's personal Gmail.
+   In Gmail for the same account that opens the spreadsheet, go to
+   **Settings > See all settings > Accounts and Import > Send mail as > Add
+   another email address**. Add both Tensor Lab sender addresses,
+   `tensorlabumsom@gmail.com` and `tensorlabucsf@gmail.com`, and complete
+   Google's verification email or code. This setting lives in Gmail settings,
+   not general Google Account settings.
 
 4. Authorize Apps Script.
    In the spreadsheet, choose **Tensor Lab > Authorize this account**.
@@ -90,8 +93,9 @@ fallback configuration for shared spreadsheet operators.
 
 **Sender is unavailable.**
 The operator must add the selected Tensor Lab sender under Gmail **Send mail
-as** in the same Google account that opens the spreadsheet. Sharing the sheet
-does not grant From permission.
+as** in their own Gmail account, the same account that opens the spreadsheet.
+Do not add it only inside the shared Tensor Lab inbox. Sharing the sheet does
+not grant From permission.
 
 ## Management Workflow
 
@@ -99,15 +103,12 @@ Open the applications spreadsheet and choose **Tensor Lab > Manage
 applicants**.
 
 - **Setup:** account, sheet, form, sender, and trigger readiness checks.
-- **Fill project:** preview the winner and reselection recipients before
-  sending emails.
+- **Match projects:** choose a winner, edit the winner and reselection emails,
+  test them, preview recipients, then send.
 - **Invite to interview:** generate an editable email, send a test, then send
   the real invite.
-- **Reject applicant:** send an individual decline email.
-- **Test workflow:** create dummy applicants and send controlled test emails.
-- **Remove test data:** delete synthetic rows and reopen tested projects.
-- **Close cohort:** preview and reject all remaining pending applicants after
-  every project is filled.
+- **Closeout and tools:** edit individual or bulk decline emails, preview
+  recipients, run dummy tests, remove test data, and reopen projects.
 
 ## Apps Script Owner Setup
 

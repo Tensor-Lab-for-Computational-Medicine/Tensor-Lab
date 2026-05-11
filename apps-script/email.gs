@@ -95,6 +95,152 @@ function _normalizeSchedulingUrl(url) {
 }
 
 /**
+ * Editable default draft for the selected applicant when a project is filled.
+ * Dialog users may edit this before sending. Placeholders are replaced at
+ * send time so the same draft can still personalize per applicant.
+ */
+function _buildCongratulationsDraft(projectLabel) {
+  var label = _displayProjectLabel(projectLabel) || 'your Tensor Lab project';
+  var subject = 'Welcome to Tensor Lab';
+  var body = [
+    'Hi {{first_name}},',
+    '',
+    'Congratulations. We are delighted to offer you a place in the Tensor Lab fellowship for this project:',
+    '',
+    'Project: {{project}}',
+    '',
+    'Your application stood out to the review team, and we are excited about the perspective and energy you would bring to the work.',
+    '',
+    'A project lead will follow up soon with next steps, including introductions, background reading, and scheduling for kickoff. In the meantime, no action is needed from you.',
+    '',
+    'If anything about your availability, time zone, or start date has changed since you applied, please reply to this email so we can plan around it.',
+    '',
+    'Warmly,',
+    'Tensor Lab Team'
+  ].join('\n');
+  return _emailDraft(subject, body, { project: label });
+}
+
+/**
+ * Editable default draft for applicants who need to replace a filled project.
+ * Must keep {{reselection_link}} or {{link}} somewhere in the body.
+ */
+function _buildReselectionDraft(projectLabel) {
+  var label = _displayProjectLabel(projectLabel) || 'one of your Tensor Lab project choices';
+  var subject = 'Please update your Tensor Lab project choices';
+  var body = [
+    'Hi {{first_name}},',
+    '',
+    'Thank you again for applying to Tensor Lab. One of the projects you ranked has now been filled:',
+    '',
+    'Project: {{project}}',
+    '',
+    'You are still being considered for your other choices. Please use the link below to update your application and replace the filled project with another open option. Your previous answers should already be preserved.',
+    '',
+    '{{reselection_link}}',
+    '',
+    'If you have any trouble with the form, reply to this email and we will help.',
+    '',
+    'Warmly,',
+    'Tensor Lab Team'
+  ].join('\n');
+  return _emailDraft(subject, body, { project: label });
+}
+
+/** Editable default rejection or closeout draft. */
+function _buildRejectionDraft(firstName, personalNote) {
+  var greeting = firstName ? 'Hi ' + String(firstName).trim() + ',' : 'Hi {{first_name}},';
+  var subject = 'An update on your Tensor Lab application';
+  var bodyLines = [
+    greeting,
+    '',
+    'Thank you for applying to Tensor Lab and for the care you put into your application. We read every submission closely, and we know this process takes real time.',
+    '',
+    'After careful review, we are not able to offer you a place in this cohort. This was a competitive cycle, and each project had very limited capacity.',
+    '',
+    'This decision reflects the constraints of this particular round, not a judgment on your ability or potential. We would be glad to see a future application from you.'
+  ];
+  if (personalNote) {
+    bodyLines.push('');
+    bodyLines.push('A note from your reviewer:');
+    bodyLines.push('');
+    bodyLines.push(String(personalNote).trim());
+  }
+  bodyLines.push('');
+  bodyLines.push('Thank you again for your interest in Tensor Lab. We wish you the very best in what you take on next.');
+  bodyLines.push('');
+  bodyLines.push('Warmly,');
+  bodyLines.push('Tensor Lab Team');
+  return _emailDraft(subject, bodyLines.join('\n'), {});
+}
+
+function _emailDraft(subject, body, context) {
+  return {
+    subject: String(subject || ''),
+    body: String(body || ''),
+    context: context || {}
+  };
+}
+
+function _normalizeEmailTemplate(template, fallback) {
+  var src = template || fallback || {};
+  return {
+    subject: String(src.subject || '').trim(),
+    body: String(src.body || '').trim()
+  };
+}
+
+function _applyEmailTemplate(value, context) {
+  var ctx = context || {};
+  var aliases = {
+    first_name: ctx.first_name || ctx.firstName || '',
+    applicant_name: ctx.applicant_name || ctx.applicantName || '',
+    project: ctx.project || ctx.project_label || ctx.projectLabel || '',
+    project_label: ctx.project_label || ctx.projectLabel || ctx.project || '',
+    reselection_link: ctx.reselection_link || ctx.reselectionLink || ctx.link || '',
+    link: ctx.link || ctx.reselection_link || ctx.reselectionLink || '',
+    scheduling_link: ctx.scheduling_link || ctx.schedulingLink || '',
+    reviewer: ctx.reviewer || ctx.reviewerName || ''
+  };
+  var rendered = String(value || '').replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (match, key) {
+    var normalized = String(key || '').toLowerCase();
+    return Object.prototype.hasOwnProperty.call(aliases, normalized) ? aliases[normalized] : match;
+  });
+  return rendered.replace(/Hi\s*,/g, 'Hi,').replace(/[ \t]+\n/g, '\n').trim();
+}
+
+function _templateSubject(template, fallbackSubject, context) {
+  return _applyEmailTemplate((template && template.subject) || fallbackSubject || '', context);
+}
+
+function _assertReselectionTemplateHasLink(template) {
+  var body = String((template && template.body) || '');
+  if (!/\{\{\s*(reselection_link|link)\s*\}\}/i.test(body)) {
+    throw new Error('The reselection email body must include {{reselection_link}} so applicants can update their choices.');
+  }
+}
+
+function _sendEmailFromTemplate(toEmail, template, context, action, projectLabel, fromEmail) {
+  var ctx = context || {};
+  var subject = _applyEmailTemplate(template && template.subject, ctx);
+  var body = _applyEmailTemplate(template && template.body, ctx);
+  if (!subject) throw new Error('Enter an email subject.');
+  if (!body) throw new Error('Enter an email body.');
+  _sendTensorLabEmail({
+    to: toEmail,
+    subject: subject,
+    body: body,
+    action: action || 'custom',
+    project_label: projectLabel || ctx.project || ctx.project_label || ''
+  }, fromEmail);
+}
+
+function _firstNameFromName(name) {
+  var value = String(name || '').trim();
+  return value ? value.split(/\s+/)[0] : '';
+}
+
+/**
  * Send the selected applicant a warm, useful congratulations email. Copy is
  * intentionally warm but grounded so it reads as human, not corporate. No
  * dashes per the house style.
@@ -104,36 +250,12 @@ function _normalizeSchedulingUrl(url) {
 function _sendCongratulationsEmail(toEmail, projectLabel, fromEmail) {
   if (!toEmail) throw new Error('toEmail required');
   var label = _displayProjectLabel(projectLabel) || 'your Tensor Lab project';
-  var subject = 'Welcome to Tensor Lab. You have been selected.';
-  var body = [
-    'Hi,',
-    '',
-    'Congratulations. You have been selected for the Tensor Lab fellowship and matched with:',
-    '',
-    '    ' + label,
-    '',
-    'This round was competitive. Your application stood out on the strength of your work and the way you think, and we are genuinely excited to have you on the team.',
-    '',
-    'A few things to expect from here:',
-    '',
-    '  1. Your project lead will reach out within the next few business days to introduce the team, share background reading, and schedule a kickoff.',
-    '  2. We will send onboarding details (communication channels, shared drives, any paperwork) in a follow up email shortly after that.',
-    '  3. If anything about your availability, time zone, or start date has shifted since you applied, reply to this email and let us know so we can plan around it.',
-    '',
-    'In the meantime, no action is required. Take a moment to enjoy the news, and reply any time if a question comes up.',
-    '',
-    'Welcome aboard. We are looking forward to working with you.',
-    '',
-    'Warmly,',
-    'Tensor Lab Team'
-  ].join('\n');
-  _sendTensorLabEmail({
-    to: toEmail,
-    subject: subject,
-    body: body,
-    action: 'congratulations',
+  var draft = _buildCongratulationsDraft(label);
+  _sendEmailFromTemplate(toEmail, draft, {
+    first_name: '',
+    project: label,
     project_label: label
-  }, fromEmail);
+  }, 'congratulations', label, fromEmail);
 }
 
 /**
@@ -147,38 +269,11 @@ function _sendCongratulationsEmail(toEmail, projectLabel, fromEmail) {
  */
 function _sendRejectionEmail(toEmail, firstName, personalNote, fromEmail) {
   if (!toEmail) throw new Error('toEmail required');
-  var greeting = firstName
-    ? 'Hi ' + String(firstName).trim() + ','
-    : 'Hi,';
-  var subject = 'An update on your Tensor Lab application';
-  var bodyLines = [
-    greeting,
-    '',
-    'Thank you for applying to Tensor Lab and for putting real thought into your application. We know a submission like yours takes meaningful time, and we read every one with care.',
-    '',
-    'After careful review, we are not able to offer you a place in this cohort. This round was competitive, and each of our projects could only take one fellow whose specific focus and skills lined up tightly with what that team needs this summer. That is the main reason we had to make the call we did.',
-    '',
-    'This decision reflects the narrow shape of a single cycle, not a judgment on your ability or your promise. We have seen applicants we could not take in one year come back and do outstanding work with us the next, and we would genuinely welcome a future application from you.'
-  ];
-  if (personalNote) {
-    bodyLines.push('');
-    bodyLines.push('A note from your reviewer:');
-    bodyLines.push('');
-    bodyLines.push('    ' + String(personalNote).trim());
-  }
-  bodyLines.push('');
-  bodyLines.push('If specific feedback would be useful, reply to this email. We cannot always respond quickly, but we will try to share something honest and useful when we can.');
-  bodyLines.push('');
-  bodyLines.push('Wishing you the best in what you take on from here, and thank you again for the time and thought you put into applying.');
-  bodyLines.push('');
-  bodyLines.push('Warmly,');
-  bodyLines.push('Tensor Lab Team');
-  _sendTensorLabEmail({
-    to: toEmail,
-    subject: subject,
-    body: bodyLines.join('\n'),
-    action: 'rejection'
-  }, fromEmail);
+  var draft = _buildRejectionDraft(firstName, personalNote);
+  _sendEmailFromTemplate(toEmail, draft, {
+    first_name: firstName || '',
+    applicant_name: firstName || ''
+  }, 'rejection', '', fromEmail);
 }
 
 /**
@@ -251,27 +346,15 @@ function _sendReselectionEmail(toEmail, linkUrl, mode, projectLabel, fromEmail) 
   if (!toEmail) throw new Error('toEmail required');
   var isEdit = mode === 'edit';
   var label = _displayProjectLabel(projectLabel) || 'one of your top three project choices';
-  var subject = 'Update your Tensor Lab project choices.';
-  var intro = isEdit
-    ? 'The following project has been filled: ' + label + '. The link below reopens your original application with every answer you already gave. Swap that filled project for a new one and resubmit. You do not need to retype anything else.'
-    : 'The following project has been filled: ' + label + '. You can swap in a replacement so your list stays at three. Your other two choices are already filled in on the link below.';
-  var body = [
-    'Hi,',
-    '',
-    intro,
-    '',
-    linkUrl,
-    '',
-    'Thanks,',
-    'Tensor Lab Team'
-  ].join('\n');
-  _sendTensorLabEmail({
-    to: toEmail,
-    subject: subject,
-    body: body,
-    action: 'reselection',
-    project_label: label
-  }, fromEmail);
+  var draft = _buildReselectionDraft(label);
+  _sendEmailFromTemplate(toEmail, draft, {
+    first_name: '',
+    project: label,
+    project_label: label,
+    reselection_link: linkUrl,
+    link: linkUrl,
+    mode: isEdit ? 'edit' : 'reselect'
+  }, 'reselection', label, fromEmail);
 }
 
 /**
@@ -332,20 +415,20 @@ function _buildTensorLabHtmlEmail(message) {
   var logoUrl = _tensorLabLogoUrl();
   var preheader = _emailPreheader(message);
   return [
-    '<div style="display:none;max-height:0;overflow:hidden;color:transparent;opacity:0;">' + _escapeHtml(preheader) + '</div>',
-    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0;padding:0;background:#f5f7fb;">',
-    '<tr><td align="center" style="padding:28px 16px;">',
-    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">',
-    '<tr><td style="background:#111827;padding:22px 28px;">',
-    '<img src="' + _escapeHtml(logoUrl) + '" alt="Tensor Lab" style="display:block;height:40px;width:auto;border:0;outline:none;text-decoration:none;">',
+    '<div style="display:none;max-height:0;overflow:hidden;color:transparent;opacity:0;mso-hide:all;">' + _escapeHtml(preheader) + '</div>',
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0;padding:0;background:#eef2f7;">',
+    '<tr><td align="center" style="padding:32px 16px;">',
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:660px;background:#ffffff;border:1px solid #dbe2ea;border-radius:16px;overflow:hidden;box-shadow:0 12px 32px rgba(15,23,42,0.08);">',
+    '<tr><td style="background:#000000;padding:24px 30px;">',
+    '<img src="' + _escapeHtml(logoUrl) + '" alt="The Tensor Lab for Computational Medicine" style="display:block;width:320px;max-width:100%;height:auto;border:0;outline:none;text-decoration:none;">',
     '</td></tr>',
-    '<tr><td style="padding:30px 32px 28px;font-family:Arial,Helvetica,sans-serif;color:#1f2937;font-size:16px;line-height:1.58;">',
-    '<h1 style="margin:0 0 22px;font-size:22px;line-height:1.3;font-weight:700;color:#111827;">' + _escapeHtml(subject) + '</h1>',
-    _plainTextToEmailHtml(body),
+    '<tr><td style="padding:34px 38px 30px;font-family:Arial,Helvetica,sans-serif;color:#243041;font-size:15.5px;line-height:1.68;">',
+    '<h1 style="margin:0 0 22px;font-size:23px;line-height:1.28;font-weight:700;color:#111827;">' + _escapeHtml(subject) + '</h1>',
+    _plainTextToEmailHtml(body, message),
     '</td></tr>',
-    '<tr><td style="padding:18px 32px;background:#f9fafb;border-top:1px solid #e5e7eb;font-family:Arial,Helvetica,sans-serif;color:#6b7280;font-size:13px;line-height:1.45;">',
-    'Tensor Lab for Computational Medicine<br>',
-    '<a href="https://thetensorlab.org" style="color:#2563eb;text-decoration:none;">thetensorlab.org</a>',
+    '<tr><td style="padding:20px 38px;background:#f8fafc;border-top:1px solid #e5eaf0;font-family:Arial,Helvetica,sans-serif;color:#64748b;font-size:13px;line-height:1.5;">',
+    '<strong style="color:#334155;font-weight:700;">Tensor Lab for Computational Medicine</strong><br>',
+    '<a href="https://thetensorlab.org" style="color:#0f766e;text-decoration:none;">thetensorlab.org</a>',
     '</td></tr>',
     '</table>',
     '</td></tr>',
@@ -364,7 +447,7 @@ function _emailPreheader(message) {
   return 'A message from Tensor Lab.';
 }
 
-function _plainTextToEmailHtml(body) {
+function _plainTextToEmailHtml(body, message) {
   var blocks = String(body || '').replace(/\r\n/g, '\n').split(/\n\s*\n/);
   var out = [];
   blocks.forEach(function (block) {
@@ -372,31 +455,39 @@ function _plainTextToEmailHtml(body) {
     if (!text) return;
     var url = _normalizeSchedulingUrl(text);
     if (/^(?:https?:\/\/)?[^\s]+\.[^\s]+$/i.test(text) && /^https?:\/\/[^\s]+$/i.test(url)) {
-      out.push(_emailButtonHtml(url));
+      out.push(_emailButtonHtml(url, message));
       return;
     }
     if (/^Project:\s*/i.test(text)) {
       var label = _displayProjectLabel(text.replace(/^Project:\s*/i, ''));
       out.push(
-        '<div style="margin:18px 0;padding:16px 18px;background:#f8fafc;border:1px solid #dbe4f0;border-radius:10px;">' +
-        '<div style="font-size:12px;line-height:1.2;text-transform:uppercase;letter-spacing:.08em;color:#64748b;font-weight:700;margin-bottom:6px;">Project</div>' +
+        '<div style="margin:20px 0 22px;padding:17px 19px;background:#f8fafc;border:1px solid #d7e0eb;border-left:4px solid #0f766e;border-radius:12px;">' +
+        '<div style="font-size:11px;line-height:1.2;text-transform:uppercase;letter-spacing:.12em;color:#64748b;font-weight:700;margin-bottom:7px;">Project</div>' +
         '<div style="font-size:16px;line-height:1.45;color:#111827;font-weight:700;">' + _escapeHtml(label) + '</div>' +
         '</div>'
       );
       return;
     }
-    out.push('<p style="margin:0 0 16px;">' + _linkifyEmailText(text).replace(/\n/g, '<br>') + '</p>');
+    out.push('<p style="margin:0 0 17px;">' + _linkifyEmailText(text).replace(/\n/g, '<br>') + '</p>');
   });
   return out.join('');
 }
 
-function _emailButtonHtml(url) {
+function _emailButtonHtml(url, message) {
   var safe = _escapeHtml(url);
+  var action = String((message && message.action) || '').trim();
+  var label = action === 'reselection'
+    ? 'Update project choices'
+    : (action === 'interview' || action === 'interview_test')
+      ? 'Choose an interview time'
+      : 'Open link';
+  var color = action === 'reselection' ? '#0f766e' : '#2563eb';
+  var hoverless = 'display:inline-block;background:' + color + ';color:#ffffff;text-decoration:none;font-weight:700;padding:13px 20px;border-radius:9px;';
   return [
-    '<div style="margin:22px 0;">',
-    '<a href="' + safe + '" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;font-weight:700;padding:12px 18px;border-radius:8px;">Choose an interview time</a>',
-    '<div style="margin-top:10px;font-size:13px;line-height:1.45;color:#6b7280;">',
-    '<a href="' + safe + '" style="color:#2563eb;text-decoration:none;word-break:break-all;">' + safe + '</a>',
+    '<div style="margin:24px 0 22px;">',
+    '<a href="' + safe + '" style="' + hoverless + '">' + _escapeHtml(label) + '</a>',
+    '<div style="margin-top:11px;font-size:12.5px;line-height:1.45;color:#64748b;">',
+    '<a href="' + safe + '" style="color:#475569;text-decoration:none;word-break:break-all;">' + safe + '</a>',
     '</div>',
     '</div>'
   ].join('');
@@ -404,13 +495,13 @@ function _emailButtonHtml(url) {
 
 function _linkifyEmailText(text) {
   return _escapeHtml(text).replace(/(https?:\/\/[^\s<]+)/g, function (url) {
-    return '<a href="' + url + '" style="color:#2563eb;text-decoration:underline;word-break:break-word;">' + url + '</a>';
+    return '<a href="' + url + '" style="color:#0f766e;text-decoration:underline;word-break:break-word;">' + url + '</a>';
   });
 }
 
 function _tensorLabLogoUrl() {
   var origin = _optionalScriptProperty('PUBLIC_SITE_ORIGIN') || 'https://thetensorlab.org';
-  return String(origin || 'https://thetensorlab.org').replace(/\/+$/, '') + '/assets/images/logo2white.png';
+  return String(origin || 'https://thetensorlab.org').replace(/\/+$/, '') + '/assets/images/tensor-logo.png';
 }
 
 function _escapeHtml(value) {

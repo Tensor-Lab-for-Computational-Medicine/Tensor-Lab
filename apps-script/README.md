@@ -26,7 +26,7 @@ writes stay consistent.
 | --- | --- |
 | `api.gs` | Public web app (`doGet`) endpoints plus shared constants and `FIELD_ALIASES` column lookup. |
 | `triggers.gs` | `onApplicationSubmit`, `handleReselectionSubmit`, `onControlEdit`, leadership menu, `markProjectFilled`, `notifyDisplacedApplicants`. |
-| `management.gs` | In-sheet dialog for leadership: setup checklist, project fills, interview invites, single-applicant rejections, test workflow, cleanup, and cohort closeout. |
+| `management.gs` | In-sheet dialog for leadership: setup checklist, editable email workflows, project matching, interviews, closeout, testing, and cleanup. |
 | `email.gs` | Outbound mail and edit-URL / prefilled-URL helpers. Congrats, reselection, and rejection emails. |
 | `setup.gs` | One-time setup, annual migrations, trigger installation. |
 | `appsscript.json` | Runtime, OAuth scopes, web app access. |
@@ -176,17 +176,18 @@ Properties and `FALLBACK_CONFIG`.
 
 When leadership uses **Tensor Lab → Manage applicants** in the spreadsheet, Apps Script sends mail with Gmail’s **From** set to the address selected in the dialog (`tensorlabucsf@gmail.com` or `tensorlabumsom@gmail.com`). **Gmail only allows that if the Google account that is actually running the script is allowed to send as that address.**
 
-- **Each person** who will send applicant email must use **their own Google account** (the one they use to open Google Sheets) and, in **Gmail** for **that account only**: **Settings → See all settings → Accounts and Import → Send mail as → Add another email address**, then add **`tensorlabucsf@gmail.com`** and/or **`tensorlabumsom@gmail.com`** as needed and **complete every verification** (link or code Google sends to those inboxes). Until that is done for **their** account, sends with that **From** will fail with an invalid-argument style error.
+- **Each person** who will send applicant email must use **their own Google account** (the personal or work Gmail they use to open Google Sheets). In **Gmail settings for that personal account**, go to **Settings → See all settings → Accounts and Import → Send mail as → Add another email address**, then add **both** Tensor Lab sender addresses: **`tensorlabucsf@gmail.com`** and **`tensorlabumsom@gmail.com`**. Complete every verification link or code Google sends. Do **not** do this only inside the shared `tensorlabumsom@gmail.com` inbox unless that shared inbox is also the account operating the spreadsheet.
 - **Sharing the spreadsheet** or **reauthorizing the Apps Script project** does **not** replace **Send mail as**. Those steps do not grant **From** rights by themselves.
-- The **spreadsheet / Apps Script owner** is not a substitute for the steps above: **any other user** who uses the management dialog still needs **Send mail as** on **their** Gmail, unless your org handles this through **Google Workspace** (e.g. admin-configured **Send as** or delegation—ask your **Workspace admin**).
+- The **spreadsheet / Apps Script owner** is not a substitute for the steps above: **any other user** who uses the management dialog still needs **Send mail as** on **their personal Gmail account**, unless your org handles this through **Google Workspace** (for example admin-configured **Send as** or delegation).
 - Triggers and non-dialog code paths use **`SEND_FROM_EMAIL`**; set that to one allowed address and ensure the **account that runs automated sends** can send as that address the same way.
 - The dialog now runs a sender preflight with `GmailApp.getAliases()` and warns when a selected sender is not available for the current account. The **Setup** tab shows the same account readiness checks inside the management UI and includes a **How to set this up** note on every checklist item.
 
-The dialog also has a **Test workflow** tab. It creates two synthetic
-applications from entered test emails, sends only those two emails through the
-selected sender, and marks synthetic rows with `test_` statuses so normal
-applicant lists and public counts ignore them. Use **Remove test data** afterward
-to delete the rows and reopen the tested project if you left it filled.
+The dialog also has a collapsible **Dummy testing workflow** under
+**Closeout and tools**. It creates two synthetic applications from entered test
+emails, sends only those two emails through the selected sender, and marks
+synthetic rows with `test_` statuses so normal applicant lists and public
+counts ignore them. Use **Remove test data and reset projects** afterward to
+delete the rows and reopen the tested project if you left it filled.
 
 ### New operator onboarding, start to finish
 
@@ -194,10 +195,12 @@ Use this checklist for every teammate who will open **Tensor Lab > Manage
 applicants** or send applicant email.
 
 1. Confirm the teammate is using the correct Google account.
-   Open Google Sheets and Gmail in the account that will operate the dialog,
-   for example `tensorlabumsom@gmail.com`. If the browser is signed into
-   multiple Google accounts, use a fresh Chrome profile or private window to
-   avoid authorizing the wrong account.
+   Open Google Sheets with the teammate's own Google account, usually their
+   personal or work Gmail. Do not do operator setup inside the shared
+   `tensorlabumsom@gmail.com` inbox unless that shared inbox is the account
+   that will operate the spreadsheet. If the browser is signed into multiple
+   Google accounts, use a fresh Chrome profile or private window to avoid
+   authorizing the wrong account.
 
 2. Share the applications spreadsheet.
    The spreadsheet owner should share the applications spreadsheet directly
@@ -205,11 +208,12 @@ applicants** or send applicant email.
    helpful for debugging, but spreadsheet Editor access is what the management
    dialog needs for normal use.
 
-3. Set up Gmail **Send mail as** for that same account.
-   In Gmail for the operator account, go to **Settings > See all settings >
-   Accounts and Import > Send mail as > Add another email address**. Add the
-   Tensor Lab sender they will use, such as `tensorlabumsom@gmail.com` or
-   `tensorlabucsf@gmail.com`, and complete Google's verification email or code.
+3. Set up Gmail **Send mail as** for that same personal account.
+   In Gmail for the account that opens the spreadsheet, go to **Settings > See
+   all settings > Accounts and Import > Send mail as > Add another email
+   address**. Add both `tensorlabumsom@gmail.com` and
+   `tensorlabucsf@gmail.com`, then complete Google's verification email or
+   code. This is a Gmail setting, not a general Google Account setting.
    This is separate from Apps Script authorization.
 
 4. Open the spreadsheet and run **Tensor Lab > Authorize this account**.
@@ -318,9 +322,10 @@ original application in edit mode.
 ### Filling a project and rejecting applicants
 
 Open the spreadsheet and click **Tensor Lab > Manage applicants…**. A modal
-dialog opens with tabs for **Setup**, **Fill project**, **Invite to
-interview**, **Reject applicant**, **Test workflow**, **Remove test data**, and
-**Close cohort**.
+dialog opens with four top-level tabs: **Setup**, **Match projects**,
+**Interviews**, and **Closeout and tools**. The less common dummy testing,
+cleanup, and project reset tools live inside collapsible sections under
+**Closeout and tools** so the daily workflows stay easier to scan.
 
 First time on a Google account, run **Tensor Lab > Authorize this account**
 and accept the OAuth prompt before opening the management dialog. This is per
@@ -341,14 +346,15 @@ sender checks pass. Each checklist row includes the next setup action,
 including whether the operator can fix it themselves or should ask the Apps
 Script owner to run a setup function.
 
-**Fill project.** Pick a project from the dropdown (only unfilled projects
+**Match projects.** Pick a project from the dropdown (only unfilled projects
 appear, with their live applicant counts). The applicant dropdown then
 auto-populates with everyone who ranked that project, annotated with their
-rank (1st, 2nd, or 3rd choice). Pick one, click **Preview recipients**, review
-the congratulations and reselection recipients, then click **Fill project and
-send emails**. The real send rechecks the recipient list and refuses to run if
-it changed after preview. Behind the scenes this calls `markProjectFilled`,
-which:
+rank (1st, 2nd, or 3rd choice). Pick one, review the generated winner and
+reselection email drafts, edit any wording you want, send test emails if
+needed, then click **Preview recipients**. After the preview looks right,
+click **Fill project and send emails**. The real send rechecks the recipient
+list and refuses to run if it changed after preview. Behind the scenes this
+calls `markProjectFilled`, which:
 
 1. Flips the `control` row to `filled`, stamps `filled_at`, writes
    `selected_applicant`.
@@ -362,8 +368,15 @@ which:
 
 Non-winners keep `applications.status = submitted`. They are still eligible
 for their other two choices and for any later matching round. They are only
-rejected when leadership explicitly says so, either by the Reject applicant
-tab or by the Close cohort action after every project is filled.
+rejected when leadership explicitly says so, either by **Decline one applicant**
+or by the **Close cohort** action after every project is filled.
+
+All management-dialog email communications are editable before send:
+winner congratulations, reselection requests, interview invites, individual
+declines, and bulk closeout declines. Placeholders such as `{{first_name}}`,
+`{{project}}`, and `{{reselection_link}}` are replaced at send time. Keep
+`{{reselection_link}}` in reselection emails so applicants receive their update
+link.
 
 **Invite to interview.** Mentors use this tab to send an applicant a meeting
 scheduling link (Calendly, Cal.com, SavvyCal, Google Calendar appointment page,
@@ -384,28 +397,32 @@ account, so repeat invites from the same mentor prefill automatically. Sending a
 applicant's status, they stay pending until you separately fill a project or
 reject them.
 
-**Reject applicant.** Use this for explicit decisions to drop an applicant,
+**Decline one applicant.** Under **Closeout and tools**, use this for explicit
+decisions to drop an applicant,
 for example after a technical screening or when someone becomes unavailable.
 Pick a pending applicant from the dropdown (anyone with status `submitted`
-or empty, i.e. not already selected or rejected). Optionally write a short
-reviewer note to include in the email body as a personal aside. Click
+or empty, meaning not already selected or rejected). Generate the decline
+draft, edit the subject and body, optionally send a test, then click
 **Reject and send decline email**. The applicant's row is stamped `rejected`
-and the decline email goes out. Do not use this just because a single choice
-got filled by someone else.
+and the exact draft shown in the dialog goes out. Do not use this just because
+a single choice got filled by someone else.
 
-**Close cohort.** Only enabled after every project in `control` has status
+**Close cohort.** Under **Closeout and tools**, this is only enabled after every project in `control` has status
 `filled`. The tab shows live progress (e.g. `8 of 14 projects filled`) and
-lists remaining open projects. When all projects are closed, click **Preview
-rejection recipients** to review exactly who will receive the standard decline.
-The real send rechecks the list and refuses to run if it changed after preview.
-Clicking the send button emails every applicant still in pending state and
-stamps each row as `rejected`. Server-side guard: the function refuses to run
-and throws an error if any project is still open, so even a motivated power user
-cannot accidentally bulk-reject the cohort early.
+lists remaining open projects. When all projects are closed, generate and edit
+the closeout decline draft, send a test if needed, then click **Preview
+rejection recipients** to review exactly who will receive it. The real send
+rechecks the list and refuses to run if it changed after preview. Clicking the
+send button emails every applicant still in pending state and stamps each row
+as `rejected`. Server-side guard: the function refuses to run and throws an
+error if any project is still open, so even a motivated power user cannot
+accidentally bulk-reject the cohort early.
 
 **Power users: direct sheet edit still works.** On the `control` tab you can
 paste the selected email into `selected_applicant` and change `status` to
-`filled`. The `onControlEdit` trigger runs the same flow as the dialog.
+`filled`. The `onControlEdit` trigger runs the same flow as the dialog, but it
+uses the default email copy because there is no UI surface for editing drafts.
+Use the dialog when you want to customize the applicant emails.
 
 ### Reopening a project
 
@@ -416,10 +433,11 @@ the row to look pristine.
 
 To reopen every project after dummy testing or an accidental all-filled state,
 use **Tensor Lab > Reopen all projects**, click **Reopen all projects and
-resync** on the management dialog's **Remove test data** tab, or run
+resync** under **Closeout and tools > Remove test data and reset projects**, or run
 `reopenAllProjects` from the Apps Script editor. Do not use
 `seedControlFromProjects` for this, because it preserves existing filled
-statuses by design.
+statuses by design. In the management dialog, this reset tool is now under
+**Closeout and tools > Remove test data and reset projects**.
 
 ### Changing project list mid-cycle
 
@@ -471,8 +489,10 @@ yet, open **Extensions → Apps Script**, run `authorizeManagementUi`, and accep
 the prompt.
 
 Inside the management dialog, the **Setup** tab can also run
-`authorizeManagementUi` and then refresh a checklist of storage, sheet, form,
-trigger, sender, and account status.
+`authorizeManagementUi` and then refresh a checklist of sheet, form, trigger,
+sender, and account status. The authorization helper intentionally skips Apps
+Script storage for shared spreadsheet operators. The dialog uses fallback
+configuration when storage is blocked.
 
 Google may not show the consent screen every time. It only appears when the
 account has not already approved the current scopes. To force it, open the
