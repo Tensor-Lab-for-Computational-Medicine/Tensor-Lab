@@ -23,7 +23,7 @@
 var OWNED_TABS = {
   control: ['project_id', 'label', 'status', 'filled_at', 'selected_applicant'],
   redirect_log: ['timestamp', 'applicant_email', 'project_removed', 'project_added'],
-  email_log: ['timestamp', 'action', 'to', 'from', 'subject', 'status', 'project_id', 'project_label', 'run_id', 'error', 'body'],
+  email_log: ['timestamp', 'action', 'to', 'cc', 'from', 'subject', 'status', 'project_id', 'project_label', 'run_id', 'error', 'body'],
   error_log: ['timestamp', 'function_name', 'message', 'stack']
 };
 
@@ -397,13 +397,18 @@ function refreshCatalogFromJson() {
   return { ok: true, projectCount: projectCount };
 }
 
-/** Fetch the canonical project list from the configured URL or throw. */
-function _fetchProjects() {
+/** Fetch the canonical project catalog from the configured URL or throw. */
+function _fetchProjectCatalog() {
   var url = _scriptProperty('PROJECTS_JSON_URL');
   if (!url) throw new Error('Set PROJECTS_JSON_URL script property first.');
   var res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
   if (res.getResponseCode() !== 200) throw new Error('Failed to fetch projects JSON: ' + res.getResponseCode());
   var data = JSON.parse(res.getContentText());
   if (!data || !Array.isArray(data.projects)) throw new Error('Invalid projects JSON.');
-  return data.projects;
+  return data;
+}
+
+/** Fetch the canonical project list from the configured URL or throw. */
+function _fetchProjects() {
+  return _fetchProjectCatalog().projects;
 }

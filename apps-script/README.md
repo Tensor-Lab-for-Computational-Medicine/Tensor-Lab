@@ -57,7 +57,7 @@ Sheet tabs:
 - `control` — one row per project. Columns: `project_id`, `label`, `status`, `filled_at`, `selected_applicant`.
 - `redirect_log` — audit trail of redirect emails sent.
 - `interview_log` — one row per interview invite with the final subject and body.
-- `email_log` — unified audit trail of every Apps Script email attempt, including sender, recipient, subject, body, sent/error status, and error text.
+- `email_log` — unified audit trail of every Apps Script email attempt, including sender, recipient, cc, subject, body, sent/error status, and error text.
 - `error_log` — captured exceptions from triggers.
 
 ---

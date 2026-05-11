@@ -226,7 +226,8 @@ function _normalizeEmailTemplate(template, fallback) {
   var src = template || fallback || {};
   return {
     subject: String(src.subject || '').trim(),
-    body: String(src.body || '').trim()
+    body: String(src.body || '').trim(),
+    cc: String(src.cc || '').trim()
   };
 }
 
@@ -260,17 +261,21 @@ function _assertReselectionTemplateHasLink(template) {
   }
 }
 
-function _sendEmailFromTemplate(toEmail, template, context, action, projectLabel, fromEmail) {
+function _sendEmailFromTemplate(toEmail, template, context, action, projectLabel, fromEmail, projectId) {
   var ctx = context || {};
   var subject = _applyEmailTemplate(template && template.subject, ctx);
   var body = _applyEmailTemplate(template && template.body, ctx);
+  var cc = _applyEmailTemplate((template && template.cc) || ctx.cc || '', ctx);
+  var pid = String(projectId || ctx.project_id || ctx.projectId || '').trim();
   if (!subject) throw new Error('Enter an email subject.');
   if (!body) throw new Error('Enter an email body.');
   _sendTensorLabEmail({
     to: toEmail,
+    cc: cc,
     subject: subject,
     body: body,
     action: action || 'custom',
+    project_id: pid,
     project_label: projectLabel || ctx.project || ctx.project_label || ''
   }, fromEmail);
 }
@@ -287,15 +292,16 @@ function _firstNameFromName(name) {
  * Inputs: toEmail string, projectLabel string (human readable project title).
  * Output: void. Throws on invalid email.
  */
-function _sendCongratulationsEmail(toEmail, projectLabel, fromEmail) {
+function _sendCongratulationsEmail(toEmail, projectLabel, fromEmail, projectId) {
   if (!toEmail) throw new Error('toEmail required');
   var label = _displayProjectLabel(projectLabel) || 'your Tensor Lab project';
   var draft = _buildCongratulationsDraft(label);
   _sendEmailFromTemplate(toEmail, draft, {
     first_name: '',
     project: label,
-    project_label: label
-  }, 'congratulations', label, fromEmail);
+    project_label: label,
+    project_id: projectId || ''
+  }, 'congratulations', label, fromEmail, projectId);
 }
 
 /**
@@ -367,7 +373,7 @@ function _buildInterviewInviteDraft(firstName, reviewerName, projectLabel, sched
  * Send an interview invite with the reviewer's scheduling link. Used by older
  * callers and tests. The management dialog now sends an edited draft directly.
  */
-function _sendInterviewInviteEmail(toEmail, firstName, reviewerName, projectLabel, schedulingUrl, personalNote, fromEmail) {
+function _sendInterviewInviteEmail(toEmail, firstName, reviewerName, projectLabel, schedulingUrl, personalNote, fromEmail, projectId, cc) {
   if (!toEmail) throw new Error('toEmail required');
   var draft = _buildInterviewInviteDraft(firstName, reviewerName, projectLabel, schedulingUrl);
   if (personalNote) {
@@ -381,14 +387,16 @@ function _sendInterviewInviteEmail(toEmail, firstName, reviewerName, projectLabe
   }
   _sendTensorLabEmail({
     to: toEmail,
+    cc: cc || '',
     subject: draft.subject,
     body: draft.body,
     action: 'interview',
+    project_id: projectId || '',
     project_label: _displayProjectLabel(projectLabel) || ''
   }, fromEmail);
 }
 
-function _sendReselectionEmail(toEmail, linkUrl, mode, projectLabel, fromEmail) {
+function _sendReselectionEmail(toEmail, linkUrl, mode, projectLabel, fromEmail, projectId) {
   if (!toEmail) throw new Error('toEmail required');
   var isEdit = mode === 'edit';
   var label = _displayProjectLabel(projectLabel) || 'one of your top three project choices';
@@ -397,10 +405,11 @@ function _sendReselectionEmail(toEmail, linkUrl, mode, projectLabel, fromEmail) 
     first_name: '',
     project: label,
     project_label: label,
+    project_id: projectId || '',
     reselection_link: linkUrl,
     link: linkUrl,
     mode: isEdit ? 'edit' : 'reselect'
-  }, 'reselection', label, fromEmail);
+  }, 'reselection', label, fromEmail, projectId);
 }
 
 /**
@@ -409,6 +418,7 @@ function _sendReselectionEmail(toEmail, linkUrl, mode, projectLabel, fromEmail) 
  */
 function _sendTensorLabEmail(message, fromEmail) {
   message = _withTensorLabLegalFooter(message);
+  message = _withProjectMedMentorCc(message);
   var from = _normalizeSenderEmail(fromEmail);
   if (TENSOR_LAB_SENDERS.indexOf(from) === -1) {
     throw new Error('Unsupported sender: ' + from + '. Pick tensorlabucsf@gmail.com or tensorlabumsom@gmail.com.');
@@ -416,6 +426,8 @@ function _sendTensorLabEmail(message, fromEmail) {
   var opts = { name: 'Tensor Lab Team' };
   var htmlBody = message.htmlBody || _buildTensorLabHtmlEmail(message);
   if (htmlBody) opts.htmlBody = htmlBody;
+  var cc = _normalizeCcEmails(message.cc || '');
+  if (cc) opts.cc = cc;
   var identity = _gmailAccountEmail();
   if (identity && from === identity) {
     // Same mailbox as the one running the script: omit `from` or Gmail can throw
@@ -440,6 +452,7 @@ function _sendTensorLabEmail(message, fromEmail) {
         try {
           var retryOpts = { name: 'Tensor Lab Team', replyTo: from };
           if (htmlBody) retryOpts.htmlBody = htmlBody;
+          if (cc) retryOpts.cc = cc;
           GmailApp.sendEmail(message.to, message.subject, message.body, retryOpts);
           _appendEmailLog(message, from, 'sent', 'sent without from option after Gmail rejected alias argument');
         } catch (e2) {
@@ -453,6 +466,111 @@ function _sendTensorLabEmail(message, fromEmail) {
     _appendEmailLog(message, from, 'error', errText);
     _throwGmailFromHelp(from);
   }
+}
+
+function _withProjectMedMentorCc(message) {
+  var src = message || {};
+  var out = {};
+  for (var key in src) {
+    if (Object.prototype.hasOwnProperty.call(src, key)) out[key] = src[key];
+  }
+  var mentorCc = _medMentorCcForMessage(out);
+  out.cc = _mergeCcEmails(out.cc || '', mentorCc);
+  return out;
+}
+
+function _medMentorCcForMessage(message) {
+  var action = String((message && message.action) || '').trim();
+  if (/_test$/i.test(action)) return '';
+  if (action !== 'congratulations' && action !== 'reselection' && action !== 'interview') return '';
+  return _medMentorCcForProject(
+    (message && message.project_id) || '',
+    (message && message.project_label) || (message && message.project) || ''
+  );
+}
+
+function _medMentorCcForProject(projectId, projectLabel) {
+  var lookup = _projectMedMentorLookupTable();
+  var id = String(projectId || '').trim();
+  if (id && lookup.byProjectId[id]) return lookup.byProjectId[id];
+
+  var label = _displayProjectLabel(projectLabel || '').toLowerCase();
+  if (label && lookup.byProjectLabel[label]) return lookup.byProjectLabel[label];
+  return '';
+}
+
+function _ccForProjectEmail(projectId, projectLabel, explicitCc) {
+  return _mergeCcEmails(explicitCc || '', _medMentorCcForProject(projectId, projectLabel));
+}
+
+function _projectMedMentorLookupTable() {
+  var cached = _cacheGet('project_med_mentor_lookup_v1');
+  if (cached) return JSON.parse(cached);
+
+  var out = { byProjectId: {}, byProjectLabel: {} };
+  try {
+    var catalog = _fetchProjectCatalog();
+    var mentors = catalog.med_mentors || {};
+    var projects = catalog.projects || [];
+    projects.forEach(function (p) {
+      var id = String(p.project_id || '').trim();
+      var title = _displayProjectLabel(p.title || '');
+      var key = String(p.med_student_mentor_key || '').trim();
+      var mentor = key && mentors[key] ? mentors[key] : (p.med_student_mentor || null);
+      var email = mentor && mentor.email ? _normalizeKnownEmail(mentor.email) : '';
+      if (!id || !email) return;
+      out.byProjectId[id] = email;
+      if (title) out.byProjectLabel[title.toLowerCase()] = email;
+    });
+    _cachePut('project_med_mentor_lookup_v1', JSON.stringify(out), 600);
+  } catch (err) {
+    _logError('_projectMedMentorLookupTable', err);
+  }
+  return out;
+}
+
+function _normalizeKnownEmail(value) {
+  var email = String(value || '').trim();
+  return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) ? email : '';
+}
+
+function _normalizeCcEmails(value) {
+  return _ccEmailList(value, true).join(', ');
+}
+
+function _mergeCcEmails(primary, secondary) {
+  var seen = {};
+  var out = [];
+  var add = function (email) {
+    var key = String(email || '').toLowerCase();
+    if (!key || seen[key]) return;
+    seen[key] = true;
+    out.push(email);
+  };
+  _ccEmailList(primary, true).forEach(add);
+  _ccEmailList(secondary, true).forEach(add);
+  return out.join(', ');
+}
+
+function _ccEmailList(value, throwOnInvalid) {
+  var raw = String(value || '').trim();
+  if (!raw) return [];
+  var out = [];
+  var seen = {};
+  var parts = raw.split(/[\s,;]+/);
+  for (var i = 0; i < parts.length; i++) {
+    var email = String(parts[i] || '').trim();
+    if (!email) continue;
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      if (throwOnInvalid) throw new Error('Invalid CC email address: ' + email);
+      continue;
+    }
+    var key = email.toLowerCase();
+    if (seen[key]) continue;
+    seen[key] = true;
+    out.push(email);
+  }
+  return out;
 }
 
 function _withTensorLabLegalFooter(message) {
@@ -690,7 +808,7 @@ function _appendEmailLog(message, fromEmail, status, errorText) {
     }
     if (!ss) return;
     var sheet = ss.getSheetByName(SHEET_EMAIL_LOG) || ss.insertSheet(SHEET_EMAIL_LOG);
-    var desired = ['timestamp', 'action', 'to', 'from', 'subject', 'status', 'project_id', 'project_label', 'run_id', 'error', 'body'];
+    var desired = ['timestamp', 'action', 'to', 'cc', 'from', 'subject', 'status', 'project_id', 'project_label', 'run_id', 'error', 'body'];
     var existing = sheet.getLastColumn() > 0
       ? sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0]
       : [];
@@ -707,6 +825,7 @@ function _appendEmailLog(message, fromEmail, status, errorText) {
       timestamp: new Date(),
       action: message.action || '',
       to: message.to || '',
+      cc: message.cc || '',
       from: fromEmail || '',
       subject: message.subject || '',
       status: status || '',

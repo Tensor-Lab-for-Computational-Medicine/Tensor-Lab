@@ -103,10 +103,11 @@ function notifyDisplacedApplicants(projectId, selectedApplicantEmail, fromEmail,
           first_name: _firstNameForEmailInApplicationRows(rows, selectedEmail, emailCol, preferredNameCol, fullNameCol),
           applicant_name: _nameForEmailInApplicationRows(rows, selectedEmail, emailCol, preferredNameCol, fullNameCol),
           project: projectLabel,
-          project_label: projectLabel
-        }, 'congratulations', projectLabel, fromEmail);
+          project_label: projectLabel,
+          project_id: projectId
+        }, 'congratulations', projectLabel, fromEmail, projectId);
       } else {
-        _sendCongratulationsEmail(selectedEmail, projectLabel, fromEmail);
+        _sendCongratulationsEmail(selectedEmail, projectLabel, fromEmail, projectId);
       }
       _appendRedirectLog(selectedEmail, '', projectId);
     } catch (err) {
@@ -139,11 +140,12 @@ function notifyDisplacedApplicants(projectId, selectedApplicantEmail, fromEmail,
         applicant_name: displayName,
         project: projectLabel,
         project_label: projectLabel,
+        project_id: projectId,
         reselection_link: linkUrl,
         link: linkUrl
-      }, 'reselection', projectLabel, fromEmail);
+      }, 'reselection', projectLabel, fromEmail, projectId);
     } else {
-      _sendReselectionEmail(email, linkUrl, editUrl ? 'edit' : 'reselect', projectLabel, fromEmail);
+      _sendReselectionEmail(email, linkUrl, editUrl ? 'edit' : 'reselect', projectLabel, fromEmail, projectId);
     }
     _appendRedirectLog(email, projectId, '');
     alreadyNotified[email] = true;
@@ -160,6 +162,11 @@ function _normalizeFillEmailTemplates(emailTemplates, projectLabel) {
   }
   if (emailTemplates.reselection) {
     out.reselection = _normalizeEmailTemplate(emailTemplates.reselection, _buildReselectionDraft(projectLabel));
+  }
+  var sharedCc = String(emailTemplates.cc || '').trim();
+  if (sharedCc) {
+    if (out.congratulations && !out.congratulations.cc) out.congratulations.cc = sharedCc;
+    if (out.reselection && !out.reselection.cc) out.reselection.cc = sharedCc;
   }
   return out;
 }

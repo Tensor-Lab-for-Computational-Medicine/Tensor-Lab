@@ -177,7 +177,8 @@ function mgmtPreviewFillProject(projectId, selectedApplicantEmail, emailTemplate
       name: winnerName,
       rank: 'selected',
       project: projectLabel,
-      subject: congratsSubject
+      subject: congratsSubject,
+      cc: _ccForProjectEmail(pid, projectLabel, templateSet.congratulations && templateSet.congratulations.cc)
     });
   }
 
@@ -219,7 +220,8 @@ function mgmtPreviewFillProject(projectId, selectedApplicantEmail, emailTemplate
         name: r.name || email,
         rank: rank + 1,
         project: projectLabel,
-        subject: reselectionSubject
+        subject: reselectionSubject,
+        cc: _ccForProjectEmail(pid, projectLabel, templateSet.reselection && templateSet.reselection.cc)
       });
       seen[email] = true;
     }
@@ -271,7 +273,8 @@ function mgmtRejectApplicant(email, subjectOrPersonalNote, bodyOrFromEmail, mayb
   if (arguments.length >= 4) {
     return rejectApplicant(email, '', maybeFromEmail, {
       subject: subjectOrPersonalNote,
-      body: bodyOrFromEmail
+      body: bodyOrFromEmail,
+      cc: arguments.length >= 5 ? arguments[4] : ''
     });
   }
   return rejectApplicant(email, subjectOrPersonalNote || '', bodyOrFromEmail);
@@ -405,13 +408,14 @@ function mgmtBuildRejectionEmailDraft(email, personalNote) {
 }
 
 /** Send any editable draft to a test recipient with safe sample placeholders. */
-function mgmtSendDraftTestEmail(subject, body, fromEmail, testToEmail, action, projectLabel) {
+function mgmtSendDraftTestEmail(subject, body, fromEmail, testToEmail, action, projectLabel, ccText) {
   var to = _normalizeTestEmail(testToEmail);
   if (!to) throw new Error('Enter a test recipient email address.');
   var label = _displayProjectLabel(projectLabel) || 'Sample Tensor Lab project';
   _sendEmailFromTemplate(to, {
     subject: '[Test] ' + String(subject || '').trim(),
-    body: String(body || '').trim()
+    body: String(body || '').trim(),
+    cc: ccText || ''
   }, {
     first_name: 'Test',
     applicant_name: 'Test Applicant',
@@ -443,7 +447,7 @@ function mgmtSendDraftTestEmail(subject, body, fromEmail, testToEmail, action, p
  * failure or send failure. Not idempotent, sending twice will deliver two
  * emails, so the dialog confirms before calling.
  */
-function mgmtSendInterviewInvite(projectId, email, reviewerName, schedulingUrl, subjectOrPersonalNote, bodyOrFromEmail, maybeFromEmail) {
+function mgmtSendInterviewInvite(projectId, email, reviewerName, schedulingUrl, subjectOrPersonalNote, bodyOrFromEmail, maybeFromEmail, maybeCc) {
   var ctx = _interviewInviteContext(projectId, email);
   var reviewer = String(reviewerName || '').trim();
   var url = _assertValidSchedulingUrl(schedulingUrl);
@@ -452,10 +456,12 @@ function mgmtSendInterviewInvite(projectId, email, reviewerName, schedulingUrl, 
   var subject = '';
   var body = '';
   var fromEmail = '';
+  var cc = '';
   if (arguments.length >= 7) {
     subject = String(subjectOrPersonalNote || '').trim();
     body = String(bodyOrFromEmail || '').trim();
     fromEmail = maybeFromEmail;
+    cc = maybeCc || '';
   } else {
     var draft = _buildInterviewInviteDraft(ctx.firstName, reviewer, ctx.projectLabel, url);
     subject = draft.subject;
@@ -469,6 +475,7 @@ function mgmtSendInterviewInvite(projectId, email, reviewerName, schedulingUrl, 
 
   _sendTensorLabEmail({
     to: ctx.email,
+    cc: cc,
     subject: subject,
     body: body,
     action: 'interview',
@@ -588,6 +595,7 @@ function mgmtRejectAllRemaining(fromEmail, expectedRecipients, emailTemplate) {
   if (expectedRecipients && expectedRecipients.length !== undefined) {
     _assertPreviewEmailsUnchanged(pending, expectedRecipients);
   }
+  if (emailTemplate && emailTemplate.cc) _normalizeCcEmails(emailTemplate.cc);
   var rejected = 0;
   var errors = 0;
   for (var i = 0; i < pending.length; i++) {
@@ -616,6 +624,8 @@ function mgmtPreviewRejectAllRemaining(emailTemplate) {
   }
   var pending = mgmtListPendingApplicants();
   var fallback = _buildRejectionDraft('', '');
+  var normalized = _normalizeEmailTemplate(emailTemplate, fallback);
+  var cc = _normalizeCcEmails(normalized.cc || '');
   var recipients = pending.map(function (p) {
     var subject = _templateSubject(emailTemplate, fallback.subject, {
       first_name: _firstNameFromName(p.name),
@@ -626,7 +636,8 @@ function mgmtPreviewRejectAllRemaining(emailTemplate) {
       email: p.email,
       name: p.name || p.email,
       project: p.topChoice || '',
-      subject: subject
+      subject: subject,
+      cc: cc
     };
   });
   return {
@@ -905,7 +916,7 @@ function _projectFillProgressFromSheet(sheet) {
 }
 
 /** Send the current editable interview draft to an explicit test recipient. */
-function mgmtSendInterviewTestEmail(subject, body, fromEmail, testToEmail) {
+function mgmtSendInterviewTestEmail(subject, body, fromEmail, testToEmail, ccText) {
   var to = _normalizeTestEmail(testToEmail);
   if (!to) {
     try { to = String(Session.getActiveUser().getEmail() || '').toLowerCase(); } catch (_a) {}
@@ -920,6 +931,7 @@ function mgmtSendInterviewTestEmail(subject, body, fromEmail, testToEmail) {
   if (!text) throw new Error('Enter an email body before sending a test.');
   _sendTensorLabEmail({
     to: to,
+    cc: ccText || '',
     subject: '[Test] ' + subj,
     body: text,
     action: 'interview_test'
@@ -1349,6 +1361,9 @@ function _managementDialogHtml() {
     '  <div class="section">',
     '    <h2>Email drafts</h2>',
     '    <p class="placeholder-note">You can edit these before sending. Available placeholders: {{first_name}}, {{project}}, and {{reselection_link}}. Keep {{reselection_link}} in the reselection email.</p>',
+    '    <label for="fillCc">Additional CC for project emails</label>',
+    '    <input id="fillCc" type="text" placeholder="Optional, comma separated email addresses" />',
+    '    <p class="meta">The project med mentor is added to CC automatically when a mentor email is listed in the catalog.</p>',
     '    <button id="fillDraftBtn" class="secondary" disabled>Generate email drafts</button>',
     '    <div id="fillDraftStatus"></div>',
     '    <label for="fillCongratsSubject">Winner email subject</label>',
@@ -1388,6 +1403,8 @@ function _managementDialogHtml() {
     '  <input id="ivSubject" type="text" placeholder="Subject loads after project, applicant, name, and link are set" />',
     '  <label for="ivBody">Email body</label>',
     '  <textarea id="ivBody" placeholder="Body loads after project, applicant, name, and link are set. You can edit every word before sending."></textarea>',
+    '  <label for="ivCc">CC</label>',
+    '  <input id="ivCc" type="text" placeholder="Optional, comma separated email addresses" />',
     '  <label for="ivTestEmail">Test recipient email</label>',
     '  <input id="ivTestEmail" type="text" placeholder="your.email@example.com" />',
     '  <button id="ivTestBtn" class="secondary" disabled>Send test email</button>',
@@ -1410,6 +1427,8 @@ function _managementDialogHtml() {
     '  <input id="rejectSubject" type="text" placeholder="Generate a draft after choosing an applicant" />',
     '  <label for="rejectBody">Decline email body</label>',
     '  <textarea id="rejectBody" placeholder="Edit this decline email before sending. {{first_name}} is available if you want a placeholder."></textarea>',
+    '  <label for="rejectCc">CC</label>',
+    '  <input id="rejectCc" type="text" placeholder="Optional, comma separated email addresses" />',
     '  <div class="inline-row">',
     '    <div style="flex:1"><label for="rejectTestEmail">Test recipient email</label><input id="rejectTestEmail" type="text" placeholder="your.email@example.com" /></div>',
     '    <button id="rejectTestBtn" class="secondary" disabled>Send decline test</button>',
@@ -1462,6 +1481,8 @@ function _managementDialogHtml() {
     '  <input id="bulkSubject" type="text" placeholder="Generate the closeout draft before previewing recipients" />',
     '  <label for="bulkBody">Closeout email body</label>',
     '  <textarea id="bulkBody" placeholder="Edit this email before sending to remaining pending applicants. {{first_name}} is replaced for each recipient."></textarea>',
+    '  <label for="bulkCc">CC</label>',
+    '  <input id="bulkCc" type="text" placeholder="Optional, comma separated email addresses" />',
     '  <div class="inline-row">',
     '    <div style="flex:1"><label for="bulkTestEmail">Test recipient email</label><input id="bulkTestEmail" type="text" placeholder="your.email@example.com" /></div>',
     '    <button id="bulkTestBtn" class="secondary" disabled>Send closeout test</button>',
@@ -1490,18 +1511,19 @@ function _managementDialogHtml() {
     'let bulkPreviewRows=[];',
     'let bulkGateOpen=false;',
     'const validEmail=v=>/.+@.+\\..+/.test(String(v||"").trim());',
-    'const fillEmailTemplates=()=>({',
-    '  congratulations:{subject:$("#fillCongratsSubject").value.trim(),body:$("#fillCongratsBody").value.trim()},',
-    '  reselection:{subject:$("#fillReselectSubject").value.trim(),body:$("#fillReselectBody").value.trim()}',
-    '});',
-    'const rejectEmailTemplate=()=>({subject:$("#rejectSubject").value.trim(),body:$("#rejectBody").value.trim()});',
-    'const bulkEmailTemplate=()=>({subject:$("#bulkSubject").value.trim(),body:$("#bulkBody").value.trim()});',
+    'const fillEmailTemplates=()=>{const cc=$("#fillCc").value.trim();return {',
+    '  cc,',
+    '  congratulations:{subject:$("#fillCongratsSubject").value.trim(),body:$("#fillCongratsBody").value.trim(),cc},',
+    '  reselection:{subject:$("#fillReselectSubject").value.trim(),body:$("#fillReselectBody").value.trim(),cc}',
+    '}};',
+    'const rejectEmailTemplate=()=>({subject:$("#rejectSubject").value.trim(),body:$("#rejectBody").value.trim(),cc:$("#rejectCc").value.trim()});',
+    'const bulkEmailTemplate=()=>({subject:$("#bulkSubject").value.trim(),body:$("#bulkBody").value.trim(),cc:$("#bulkCc").value.trim()});',
     'const templateReady=t=>!!(t&&t.subject&&t.body);',
     'const renderPreview=(el,rows,skipped)=>{',
     '  const parts=[];',
     '  if(rows&&rows.length){',
-    '    parts.push("<div class=\\"preview\\"><table><thead><tr><th>Action</th><th>Recipient</th><th>Project</th><th>Subject</th></tr></thead><tbody>");',
-    '    rows.forEach(r=>parts.push("<tr><td>"+esc(r.action||"")+"</td><td>"+esc(r.name||"")+"<br><span class=\\"muted\\">"+esc(r.email||"")+"</span></td><td>"+esc(r.project||"")+(r.rank?"<br><span class=\\"muted\\">rank "+esc(r.rank)+"</span>":"")+"</td><td>"+esc(r.subject||"")+"</td></tr>"));',
+    '    parts.push("<div class=\\"preview\\"><table><thead><tr><th>Action</th><th>Recipient</th><th>Project</th><th>CC</th><th>Subject</th></tr></thead><tbody>");',
+    '    rows.forEach(r=>parts.push("<tr><td>"+esc(r.action||"")+"</td><td>"+esc(r.name||"")+"<br><span class=\\"muted\\">"+esc(r.email||"")+"</span></td><td>"+esc(r.project||"")+(r.rank?"<br><span class=\\"muted\\">rank "+esc(r.rank)+"</span>":"")+"</td><td>"+esc(r.cc||"")+"</td><td>"+esc(r.subject||"")+"</td></tr>"));',
     '    parts.push("</tbody></table></div>");',
     '  }else parts.push("<p class=\\"meta\\">No emails would be sent.</p>");',
     '  if(skipped&&skipped.length){',
@@ -1595,7 +1617,7 @@ function _managementDialogHtml() {
     '  return opt?opt.text.replace(/\\s+\\(\\d+ applicants\\)$/,""):"";',
     '}',
     'function clearFillDrafts(){',
-    '  ["#fillCongratsSubject","#fillCongratsBody","#fillReselectSubject","#fillReselectBody"].forEach(q=>$(q).value="");',
+    '  ["#fillCc","#fillCongratsSubject","#fillCongratsBody","#fillReselectSubject","#fillReselectBody"].forEach(q=>$(q).value="");',
     '  clearStatus($("#fillDraftStatus"));',
     '}',
     'function fillDraftsReady(){',
@@ -1624,14 +1646,14 @@ function _managementDialogHtml() {
     '  .mgmtBuildFillEmailDrafts(pid,email);',
     '}',
     '$("#fillDraftBtn").addEventListener("click",()=>loadFillDrafts(true));',
-    '["#fillCongratsSubject","#fillCongratsBody","#fillReselectSubject","#fillReselectBody","#fillTestEmail"].forEach(q=>$(q).addEventListener("input",()=>{fillPreviewOk=false;fillPreviewRows=[];$("#fillPreview").innerHTML="";fillRefreshButtons()}));',
+    '["#fillCc","#fillCongratsSubject","#fillCongratsBody","#fillReselectSubject","#fillReselectBody","#fillTestEmail"].forEach(q=>$(q).addEventListener("input",()=>{fillPreviewOk=false;fillPreviewRows=[];$("#fillPreview").innerHTML="";fillRefreshButtons()}));',
     'function sendFillDraftTest(kind){',
     '  const to=$("#fillTestEmail").value.trim();const t=fillEmailTemplates();const draft=kind==="congratulations"?t.congratulations:t.reselection;const st=$("#fillDraftStatus");',
     '  if(!validEmail(to)||!templateReady(draft))return;',
     '  setStatus(st,"Sending test email…","warn");$("#fillTestCongratsBtn").disabled=true;$("#fillTestReselectBtn").disabled=true;',
     '  google.script.run.withSuccessHandler(r=>{setStatus(st,"Test email sent to "+r.email+".","ok");fillRefreshButtons();})',
     '    .withFailureHandler(e=>{setStatus(st,"Test send error: "+errMsg(e),"err");fillRefreshButtons();})',
-    '    .mgmtSendDraftTestEmail(draft.subject,draft.body,sender(),to,kind+"_test",selectedProjectLabel("#projectSelect"));',
+    '    .mgmtSendDraftTestEmail(draft.subject,draft.body,sender(),to,kind+"_test",selectedProjectLabel("#projectSelect"),t.cc);',
     '}',
     '$("#fillTestCongratsBtn").addEventListener("click",()=>sendFillDraftTest("congratulations"));',
     '$("#fillTestReselectBtn").addEventListener("click",()=>sendFillDraftTest("reselection"));',
@@ -1719,7 +1741,7 @@ function _managementDialogHtml() {
 
     '$("#ivProjectSelect").addEventListener("change",()=>{',
     '  const pid=$("#ivProjectSelect").value;const as=$("#ivApplicantSelect");',
-    '  ivDraftDirty=false;$("#ivSubject").value="";$("#ivBody").value="";',
+    '  ivDraftDirty=false;$("#ivSubject").value="";$("#ivBody").value="";$("#ivCc").value="";',
     '  clearStatus($("#ivStatus"));clearStatus($("#ivDraftStatus"));',
     '  if(!pid){as.innerHTML="<option value=\\"\\">Pick a project first</option>";as.disabled=true;ivRefreshBtn();return}',
     '  as.innerHTML="<option value=\\"\\">Loading…</option>";as.disabled=true;',
@@ -1819,8 +1841,8 @@ function _managementDialogHtml() {
     '  $("#ivDraftBtn").title=draftReason?"To generate a draft, "+draftReason:"Regenerate the default draft from the current fields";',
     '}',
     '["#ivReviewerName","#ivSchedulingUrl"].forEach(q=>$(q).addEventListener("input",()=>{ivRefreshBtn();scheduleIvDraft(false)}));',
-    '$("#ivApplicantSelect").addEventListener("change",()=>{ivDraftDirty=false;$("#ivSubject").value="";$("#ivBody").value="";ivRefreshBtn();scheduleIvDraft(false)});',
-    '["#ivSubject","#ivBody","#ivTestEmail"].forEach(q=>$(q).addEventListener("input",()=>{if(q!=="#ivTestEmail")ivDraftDirty=true;ivRefreshBtn()}));',
+    '$("#ivApplicantSelect").addEventListener("change",()=>{ivDraftDirty=false;$("#ivSubject").value="";$("#ivBody").value="";$("#ivCc").value="";ivRefreshBtn();scheduleIvDraft(false)});',
+    '["#ivSubject","#ivBody","#ivCc","#ivTestEmail"].forEach(q=>$(q).addEventListener("input",()=>{if(q==="#ivSubject"||q==="#ivBody")ivDraftDirty=true;ivRefreshBtn()}));',
     '// Draft button uses inline onclick so the visible status still works if later listeners fail.',
     '$("#ivSchedulingUrl").addEventListener("blur",()=>{',
     '  const el=$("#ivSchedulingUrl");el.value=cleanUrlValue(el.value);',
@@ -1836,13 +1858,13 @@ function _managementDialogHtml() {
     '  google.script.run',
     '    .withSuccessHandler(r=>{setStatus(st,"Test email sent to "+r.email+".","ok");ivRefreshBtn();})',
     '    .withFailureHandler(e=>{setStatus(st,"Test send error: "+errMsg(e),"err");ivRefreshBtn();})',
-    '    .mgmtSendInterviewTestEmail(subject,body,sender(),to);',
+    '    .mgmtSendInterviewTestEmail(subject,body,sender(),to,$("#ivCc").value.trim());',
     '});',
 
     '$("#ivSendBtn").addEventListener("click",()=>{',
     '  const pid=$("#ivProjectSelect").value;const email=$("#ivApplicantSelect").value;',
     '  const reviewer=$("#ivReviewerName").value.trim();const url=cleanUrlValue($("#ivSchedulingUrl").value);$("#ivSchedulingUrl").value=url;',
-    '  const subject=$("#ivSubject").value.trim();const body=$("#ivBody").value.trim();const st=$("#ivStatus");',
+    '  const subject=$("#ivSubject").value.trim();const body=$("#ivBody").value.trim();const cc=$("#ivCc").value.trim();const st=$("#ivStatus");',
     '  const projectLabel=$("#ivProjectSelect").selectedOptions[0].text;',
     '  if(!confirm("Send "+email+" an interview invite for "+projectLabel+"?\\n\\nSubject: "+subject+"\\n\\nEmail will send from "+sender()+"."))return;',
     '  $("#ivSendBtn").disabled=true;setStatus(st,"Sending invite…","warn");',
@@ -1852,7 +1874,7 @@ function _managementDialogHtml() {
     '      ivDraftDirty=false;ivRefreshBtn();',
     '    })',
     '    .withFailureHandler(e=>{setStatus(st,"Error: "+errMsg(e),"err");ivRefreshBtn();})',
-    '    .mgmtSendInterviewInvite(pid,email,reviewer,url,subject,body,sender());',
+    '    .mgmtSendInterviewInvite(pid,email,reviewer,url,subject,body,sender(),cc);',
     '});',
 
     'function loadPending(){',
@@ -1877,7 +1899,7 @@ function _managementDialogHtml() {
     '  $("#rejectTestBtn").disabled=!(ready&&validEmail($("#rejectTestEmail").value));',
     '}',
     'function clearRejectDraft(){',
-    '  $("#rejectSubject").value="";$("#rejectBody").value="";clearStatus($("#rejectDraftStatus"));rejectRefreshButtons();',
+    '  $("#rejectSubject").value="";$("#rejectBody").value="";$("#rejectCc").value="";clearStatus($("#rejectDraftStatus"));rejectRefreshButtons();',
     '}',
     'function loadRejectDraft(force){',
     '  const email=$("#rejectSelect").value;const note=$("#rejectNote").value.trim();',
@@ -1926,7 +1948,7 @@ function _managementDialogHtml() {
 
     '$("#rejectSelect").addEventListener("change",()=>{clearRejectDraft();if($("#rejectSelect").value)loadRejectDraft(false)});',
     '$("#rejectDraftBtn").addEventListener("click",()=>loadRejectDraft(true));',
-    '["#rejectSubject","#rejectBody","#rejectTestEmail"].forEach(q=>$(q).addEventListener("input",rejectRefreshButtons));',
+    '["#rejectSubject","#rejectBody","#rejectCc","#rejectTestEmail"].forEach(q=>$(q).addEventListener("input",rejectRefreshButtons));',
     '$("#rejectNote").addEventListener("input",()=>{clearStatus($("#rejectDraftStatus"))});',
     '$("#rejectTestBtn").addEventListener("click",()=>{',
     '  const t=rejectEmailTemplate();const to=$("#rejectTestEmail").value.trim();const st=$("#rejectDraftStatus");',
@@ -1934,7 +1956,7 @@ function _managementDialogHtml() {
     '  $("#rejectTestBtn").disabled=true;setStatus(st,"Sending decline test…","warn");',
     '  google.script.run.withSuccessHandler(r=>{setStatus(st,"Test email sent to "+r.email+".","ok");rejectRefreshButtons();})',
     '    .withFailureHandler(e=>{setStatus(st,"Test send error: "+errMsg(e),"err");rejectRefreshButtons();})',
-    '    .mgmtSendDraftTestEmail(t.subject,t.body,sender(),to,"rejection_test","");',
+    '    .mgmtSendDraftTestEmail(t.subject,t.body,sender(),to,"rejection_test","",t.cc);',
     '});',
 
     '$("#rejectBtn").addEventListener("click",()=>{',
@@ -1949,7 +1971,7 @@ function _managementDialogHtml() {
     '      $("#rejectNote").value="";clearRejectDraft();loadPending();',
     '    })',
     '    .withFailureHandler(e=>{setStatus(st,"Error: "+errMsg(e),"err");rejectRefreshButtons();})',
-    '    .mgmtRejectApplicant(email,t.subject,t.body,sender());',
+    '    .mgmtRejectApplicant(email,t.subject,t.body,sender(),t.cc);',
     '});',
 
     'function cleanupRefreshBtn(){',
@@ -1998,20 +2020,20 @@ function _managementDialogHtml() {
     'function loadBulkDraft(force){',
     '  $("#bulkDraftBtn").disabled=true;setStatus($("#bulkDraftStatus"),"Generating closeout draft…","warn");',
     '  google.script.run.withSuccessHandler(d=>{',
-    '    $("#bulkSubject").value=d.subject||"";$("#bulkBody").value=d.body||"";bulkPreviewOk=false;bulkPreviewRows=[];$("#bulkPreview").innerHTML="";',
+    '    $("#bulkSubject").value=d.subject||"";$("#bulkBody").value=d.body||"";$("#bulkCc").value="";bulkPreviewOk=false;bulkPreviewRows=[];$("#bulkPreview").innerHTML="";',
     '    setStatus($("#bulkDraftStatus"),"Draft generated. Edit it before previewing recipients.","ok");$("#bulkDraftBtn").disabled=false;bulkRefreshButtons();refreshBulkGate();',
     '  }).withFailureHandler(e=>{setStatus($("#bulkDraftStatus"),"Could not generate draft: "+errMsg(e),"err");$("#bulkDraftBtn").disabled=false;bulkRefreshButtons();})',
     '  .mgmtBuildRejectionEmailDraft("", "");',
     '}',
     '$("#bulkDraftBtn").addEventListener("click",()=>loadBulkDraft(true));',
-    '["#bulkSubject","#bulkBody","#bulkTestEmail"].forEach(q=>$(q).addEventListener("input",()=>{bulkPreviewOk=false;bulkPreviewRows=[];$("#bulkPreview").innerHTML="";bulkRefreshButtons()}));',
+    '["#bulkSubject","#bulkBody","#bulkCc","#bulkTestEmail"].forEach(q=>$(q).addEventListener("input",()=>{bulkPreviewOk=false;bulkPreviewRows=[];$("#bulkPreview").innerHTML="";bulkRefreshButtons()}));',
     '$("#bulkTestBtn").addEventListener("click",()=>{',
     '  const t=bulkEmailTemplate();const to=$("#bulkTestEmail").value.trim();const st=$("#bulkDraftStatus");',
     '  if(!templateReady(t)||!validEmail(to))return;',
     '  $("#bulkTestBtn").disabled=true;setStatus(st,"Sending closeout test…","warn");',
     '  google.script.run.withSuccessHandler(r=>{setStatus(st,"Test email sent to "+r.email+".","ok");bulkRefreshButtons();})',
     '    .withFailureHandler(e=>{setStatus(st,"Test send error: "+errMsg(e),"err");bulkRefreshButtons();})',
-    '    .mgmtSendDraftTestEmail(t.subject,t.body,sender(),to,"rejection_test","");',
+    '    .mgmtSendDraftTestEmail(t.subject,t.body,sender(),to,"rejection_test","",t.cc);',
     '});',
 
     'function refreshBulkGate(){',
