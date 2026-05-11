@@ -339,13 +339,17 @@ function _buildInterviewInviteDraft(firstName, reviewerName, projectLabel, sched
   var lines = [
     greeting,
     '',
-    'Congratulations!! After reviewing a highly competitive pool of applicants, we’re excited to invite you to interview for the Tensor Lab for Computational Medicine Summer Fellowship. You were selected based on the strength of your past work and your potential to lead meaningful research at the intersection of machine learning and medicine.',
+    'Congratulations. After reviewing a highly competitive pool of applicants, we’re excited to invite you to interview for the Tensor Lab for Computational Medicine Summer Fellowship. You were selected based on the strength of your past work and your potential to lead meaningful research at the intersection of machine learning and medicine.',
     '',
     'You have been selected to interview for this project:',
     '',
-    label,
+    'Project: ' + label,
     '',
-    'To schedule your interview, please use the following link: ' + url + '. If none of the listed times fit your schedule, just reply to this email and we will coordinate a time manually.',
+    'To schedule your interview, please use the link below.',
+    '',
+    url,
+    '',
+    'If none of the listed times fit your schedule, just reply to this email and we will coordinate a time manually.',
     '',
     'The interview is conversational in format. We’re interested in learning more about your background, how you approach technical problems, and why you’re interested in applying machine learning to clinical challenges. There are no live coding tasks or technical quizzes. However, please be prepared to briefly discuss recent projects you have worked on.',
     '',
@@ -481,7 +485,7 @@ function _appendTensorLabLegalFooterToHtml(htmlBody) {
   ) return html;
 
   var footerHtml = [
-    '<div style="margin-top:24px;padding-top:16px;border-top:1px solid #e5eaf0;color:#64748b;font-family:Arial,Helvetica,sans-serif;font-size:12.5px;line-height:1.5;">',
+    '<div style="margin-top:26px;padding-top:18px;border-top:1px solid #e2e8f0;color:#64748b;font-family:Arial,Helvetica,sans-serif;font-size:12.5px;line-height:1.55;">',
     _linkifyEmailText(TENSOR_LAB_LEGAL_FOOTER),
     '</div>'
   ].join('');
@@ -491,27 +495,61 @@ function _appendTensorLabLegalFooterToHtml(htmlBody) {
   return html + footerHtml;
 }
 
+function _emailActionLabel(message) {
+  var action = String((message && message.action) || '').trim();
+  if (/_test$/i.test(action)) return 'Test Email';
+  if (action === 'interview') return 'Interview Invitation';
+  if (action === 'congratulations') return 'Fellowship Update';
+  if (action === 'reselection') return 'Project Choice Update';
+  if (action === 'rejection') return 'Application Update';
+  return 'Tensor Lab';
+}
+
+function _emailAccentColor(message) {
+  var action = String((message && message.action) || '').trim();
+  if (action === 'interview' || action === 'interview_test') return '#2563eb';
+  if (action === 'congratulations' || action === 'reselection') return '#0f766e';
+  if (action === 'rejection' || action === 'rejection_test') return '#475569';
+  return '#0f766e';
+}
+
+function _emailAccentTint(message) {
+  var action = String((message && message.action) || '').trim();
+  if (action === 'interview' || action === 'interview_test') return '#eff6ff';
+  if (action === 'rejection' || action === 'rejection_test') return '#f1f5f9';
+  return '#eef6f5';
+}
+
 function _buildTensorLabHtmlEmail(message) {
   var subject = String((message && message.subject) || 'Tensor Lab').trim();
   var body = String((message && message.body) || '').trim();
   if (!body) return '';
   var logoUrl = _tensorLabLogoUrl();
   var preheader = _emailPreheader(message);
+  var accent = _emailAccentColor(message);
+  var accentTint = _emailAccentTint(message);
+  var actionLabel = _emailActionLabel(message);
   return [
     '<div style="display:none;max-height:0;overflow:hidden;color:transparent;opacity:0;mso-hide:all;">' + _escapeHtml(preheader) + '</div>',
-    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0;padding:0;background:#eef2f7;">',
-    '<tr><td align="center" style="padding:32px 16px;">',
-    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:660px;background:#ffffff;border:1px solid #dbe2ea;border-radius:16px;overflow:hidden;box-shadow:0 12px 32px rgba(15,23,42,0.08);">',
-    '<tr><td style="background:#000000;padding:24px 30px;">',
-    '<img src="' + _escapeHtml(logoUrl) + '" alt="The Tensor Lab for Computational Medicine" style="display:block;width:320px;max-width:100%;height:auto;border:0;outline:none;text-decoration:none;">',
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0;padding:0;background:#f3f6fa;">',
+    '<tr><td align="center" style="padding:28px 12px;">',
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:#ffffff;border:1px solid #d8e1ec;border-radius:18px;overflow:hidden;box-shadow:0 14px 38px rgba(15,23,42,0.10);">',
+    '<tr><td style="background:#050505;padding:25px 34px 23px;">',
+    '<img src="' + _escapeHtml(logoUrl) + '" alt="The Tensor Lab for Computational Medicine" style="display:block;width:282px;max-width:100%;height:auto;border:0;outline:none;text-decoration:none;">',
     '</td></tr>',
-    '<tr><td style="padding:34px 38px 30px;font-family:Arial,Helvetica,sans-serif;color:#243041;font-size:15.5px;line-height:1.68;">',
-    '<h1 style="margin:0 0 22px;font-size:23px;line-height:1.28;font-weight:700;color:#111827;">' + _escapeHtml(subject) + '</h1>',
+    '<tr><td height="4" style="height:4px;line-height:4px;font-size:0;background:' + accent + ';">&nbsp;</td></tr>',
+    '<tr><td style="padding:34px 38px 31px;font-family:Arial,Helvetica,sans-serif;color:#1f2937;font-size:15.5px;line-height:1.68;">',
+    '<div style="display:inline-block;margin:0 0 14px;padding:5px 9px;border-radius:999px;background:' + accentTint + ';color:' + accent + ';font-size:11px;line-height:1.2;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">' + _escapeHtml(actionLabel) + '</div>',
+    '<h1 style="margin:0 0 24px;font-size:24px;line-height:1.28;font-weight:700;color:#111827;letter-spacing:0;">' + _escapeHtml(subject) + '</h1>',
     _plainTextToEmailHtml(body, message),
     '</td></tr>',
-    '<tr><td style="padding:20px 38px;background:#f8fafc;border-top:1px solid #e5eaf0;font-family:Arial,Helvetica,sans-serif;color:#64748b;font-size:13px;line-height:1.5;">',
-    '<strong style="color:#334155;font-weight:700;">Tensor Lab for Computational Medicine</strong><br>',
-    '<a href="https://thetensorlab.org" style="color:#0f766e;text-decoration:none;">thetensorlab.org</a>',
+    '<tr><td style="padding:22px 38px;background:#f8fafc;border-top:1px solid #e2e8f0;font-family:Arial,Helvetica,sans-serif;color:#64748b;font-size:13px;line-height:1.55;">',
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>',
+    '<td style="font-family:Arial,Helvetica,sans-serif;color:#64748b;font-size:13px;line-height:1.55;">',
+    '<strong style="display:block;color:#1f2937;font-size:13.5px;font-weight:700;margin-bottom:2px;">Tensor Lab for Computational Medicine</strong>',
+    '<a href="https://thetensorlab.org" style="color:#0f766e;text-decoration:none;font-weight:700;">thetensorlab.org</a>',
+    '</td>',
+    '</tr></table>',
     '</td></tr>',
     '</table>',
     '</td></tr>',
@@ -536,28 +574,66 @@ function _plainTextToEmailHtml(body, message) {
   blocks.forEach(function (block) {
     var text = String(block || '').trim();
     if (!text) return;
+    if (text === TENSOR_LAB_LEGAL_FOOTER) {
+      out.push('<p style="margin:10px 0 0;padding-top:18px;border-top:1px solid #e2e8f0;color:#64748b;font-size:12.5px;line-height:1.55;">' + _linkifyEmailText(text) + '</p>');
+      return;
+    }
+
+    var projectLabel = _emailProjectLabelFromBlock(text, message);
+    if (projectLabel) {
+      out.push(
+        '<div style="margin:21px 0 23px;padding:18px 20px;background:#f8fafc;border:1px solid #d8e1ec;border-left:4px solid ' + _emailAccentColor(message) + ';border-radius:12px;">' +
+        '<div style="font-size:11px;line-height:1.2;text-transform:uppercase;letter-spacing:.10em;color:#64748b;font-weight:700;margin-bottom:8px;">Project</div>' +
+        '<div style="font-size:16px;line-height:1.45;color:#111827;font-weight:700;">' + _escapeHtml(projectLabel) + '</div>' +
+        '</div>'
+      );
+      return;
+    }
+
     var url = _normalizeSchedulingUrl(text);
     if (/^(?:https?:\/\/)?[^\s]+\.[^\s]+$/i.test(text) && /^https?:\/\/[^\s]+$/i.test(url)) {
       out.push(_emailButtonHtml(url, message));
       return;
     }
-    if (/^Project:\s*/i.test(text)) {
-      var label = _displayProjectLabel(text.replace(/^Project:\s*/i, ''));
-      out.push(
-        '<div style="margin:20px 0 22px;padding:17px 19px;background:#f8fafc;border:1px solid #d7e0eb;border-left:4px solid #0f766e;border-radius:12px;">' +
-        '<div style="font-size:11px;line-height:1.2;text-transform:uppercase;letter-spacing:.12em;color:#64748b;font-weight:700;margin-bottom:7px;">Project</div>' +
-        '<div style="font-size:16px;line-height:1.45;color:#111827;font-weight:700;">' + _escapeHtml(label) + '</div>' +
-        '</div>'
-      );
+    var promotedUrl = _promotedEmailUrl(text, message);
+    if (promotedUrl) {
+      out.push('<p style="margin:0 0 12px;">' + _linkifyEmailText(text).replace(/\n/g, '<br>') + '</p>');
+      out.push(_emailButtonHtml(promotedUrl, message));
       return;
     }
-    if (text === TENSOR_LAB_LEGAL_FOOTER) {
-      out.push('<p style="margin:8px 0 0;padding-top:16px;border-top:1px solid #e5eaf0;color:#64748b;font-size:12.5px;line-height:1.5;">' + _linkifyEmailText(text) + '</p>');
-      return;
-    }
-    out.push('<p style="margin:0 0 17px;">' + _linkifyEmailText(text).replace(/\n/g, '<br>') + '</p>');
+    out.push('<p style="margin:0 0 18px;">' + _linkifyEmailText(text).replace(/\n/g, '<br>') + '</p>');
   });
   return out.join('');
+}
+
+function _emailProjectLabelFromBlock(text, message) {
+  var value = String(text || '').trim();
+  if (/^Project:\s*/i.test(value)) {
+    return _displayProjectLabel(value.replace(/^Project:\s*/i, ''));
+  }
+  var projectLabel = _displayProjectLabel((message && message.project_label) || '');
+  return projectLabel && _displayProjectLabel(value) === projectLabel ? projectLabel : '';
+}
+
+function _promotedEmailUrl(text, message) {
+  var action = String((message && message.action) || '').trim();
+  if (action !== 'interview' && action !== 'interview_test' && action !== 'reselection') return '';
+  var value = String(text || '');
+  if (action === 'interview' || action === 'interview_test') {
+    if (!/schedul|interview/i.test(value)) return '';
+  }
+  if (action === 'reselection') {
+    if (!/update|choice|application|select/i.test(value)) return '';
+  }
+  return _firstEmailUrl(value);
+}
+
+function _firstEmailUrl(text) {
+  var match = String(text || '').match(/https?:\/\/[^\s<]+/i);
+  if (!match) return '';
+  var url = match[0];
+  while (/[.,;:!?)]$/.test(url)) url = url.slice(0, -1);
+  return url;
 }
 
 function _emailButtonHtml(url, message) {
@@ -568,14 +644,14 @@ function _emailButtonHtml(url, message) {
     : (action === 'interview' || action === 'interview_test')
       ? 'Choose an interview time'
       : 'Open link';
-  var color = action === 'reselection' ? '#0f766e' : '#2563eb';
-  var hoverless = 'display:inline-block;background:' + color + ';color:#ffffff;text-decoration:none;font-weight:700;padding:13px 20px;border-radius:9px;';
+  var color = _emailAccentColor(message);
+  var buttonStyle = 'display:inline-block;background:' + color + ';color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;line-height:1.2;padding:14px 21px;border-radius:9px;';
   return [
-    '<div style="margin:24px 0 22px;">',
-    '<a href="' + safe + '" style="' + hoverless + '">' + _escapeHtml(label) + '</a>',
-    '<div style="margin-top:11px;font-size:12.5px;line-height:1.45;color:#64748b;">',
+    '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:23px 0 22px;"><tr><td style="border-radius:9px;background:' + color + ';">',
+    '<a href="' + safe + '" style="' + buttonStyle + '">' + _escapeHtml(label) + '</a>',
+    '</td></tr></table>',
+    '<div style="margin:-12px 0 22px;font-size:12.5px;line-height:1.45;color:#64748b;">',
     '<a href="' + safe + '" style="color:#475569;text-decoration:none;word-break:break-all;">' + safe + '</a>',
-    '</div>',
     '</div>'
   ].join('');
 }
