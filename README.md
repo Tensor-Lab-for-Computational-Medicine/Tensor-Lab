@@ -399,7 +399,7 @@ Leadership calls markProjectFilled(project_id, selected_email)
 - `apps-script/api.gs` `doGet` router and `getProjectCounts`.
 - `apps-script/triggers.gs` `markProjectFilled`, `notifyDisplacedApplicants`, `onApplicationSubmit`, `handleReselectionSubmit`.
 - `apps-script/email.gs` prefilled URL builder and email sender.
-- `apps-script/setup.gs` `initialSetup`, `seedControlFromProjects`, `syncFormChoices`, `installTriggers`.
+- `apps-script/setup.gs` `initialSetup`, `seedControlFromProjects`, `reopenAllProjects`, `syncFormChoices`, `installTriggers`.
 - `apps-script/appsscript.json` manifest with OAuth scopes and web app settings.
 - `assets/js/applicantCounter.js` frontend polling module.
 - `projects-2026.html` project marketplace page with counter badges and form embed.

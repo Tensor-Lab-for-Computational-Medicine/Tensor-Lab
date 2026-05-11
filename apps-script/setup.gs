@@ -42,8 +42,7 @@ var RESELECTION_MINIMUM_COLUMNS = ['timestamp', 'email', 'redirect_token', 'new_
  * tab. Safe to rerun. Inputs: none. Output: void.
  */
 function initialSetup() {
-  var props = PropertiesService.getScriptProperties();
-  var spreadsheetId = props.getProperty('SPREADSHEET_ID');
+  var spreadsheetId = _scriptProperty('SPREADSHEET_ID');
   if (!spreadsheetId) throw new Error('Set SPREADSHEET_ID script property first.');
   var ss = SpreadsheetApp.openById(spreadsheetId);
 
@@ -99,6 +98,7 @@ function _ensureReselectionsTab(ss) {
 /**
  * Reconcile the control tab to projects_2026.json (add, keep, remove).
  * Preserves existing status and label values for retained project_ids.
+ * To deliberately reopen projects, run reopenAllProjects instead.
  * Inputs: none. Output: void.
  */
 function seedControlFromProjects() {
@@ -138,6 +138,65 @@ function seedControlFromProjects() {
 }
 
 /**
+ * Reopen every project in the control sheet and clear fill metadata.
+ * Use this before the real selection cycle starts, or after dummy testing
+ * leaves projects filled. It does not delete applications, logs, or applicant
+ * statuses.
+ *
+ * Inputs: none.
+ * Output: { ok, total, reopened }
+ */
+function reopenAllProjects() {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(15000);
+
+  var total = 0;
+  var reopened = 0;
+  try {
+    var control = _getSheet(SHEET_CONTROL);
+    if (!control || control.getLastRow() < 2) {
+      return { ok: true, total: 0, reopened: 0 };
+    }
+
+    var headers = control.getRange(1, 1, 1, control.getLastColumn()).getValues()[0];
+    var idCol = headers.indexOf('project_id');
+    var statusCol = headers.indexOf('status');
+    var filledAtCol = headers.indexOf('filled_at');
+    var selectedCol = headers.indexOf('selected_applicant');
+    if (idCol < 0 || statusCol < 0) {
+      throw new Error('control sheet missing project_id or status column');
+    }
+
+    var rowCount = control.getLastRow() - 1;
+    var values = control.getRange(2, 1, rowCount, control.getLastColumn()).getValues();
+    for (var i = 0; i < values.length; i++) {
+      var id = String(values[i][idCol] || '').trim();
+      if (!id) continue;
+      total++;
+      if (String(values[i][statusCol] || '').trim().toLowerCase() === 'filled') {
+        reopened++;
+      }
+      values[i][statusCol] = 'open';
+      if (filledAtCol >= 0) values[i][filledAtCol] = '';
+      if (selectedCol >= 0) values[i][selectedCol] = '';
+    }
+    control.getRange(2, 1, rowCount, control.getLastColumn()).setValues(values);
+  } finally {
+    lock.releaseLock();
+  }
+
+  _refreshProjectSurfaces();
+  try {
+    SpreadsheetApp.getActiveSpreadsheet().toast(
+      'Reopened ' + reopened + ' of ' + total + ' projects.',
+      'Tensor Lab',
+      5
+    );
+  } catch (_noUi) { /* running from editor, no active spreadsheet UI */ }
+  return { ok: true, total: total, reopened: reopened };
+}
+
+/**
  * Copy the current dropdown options from the application form into the
  * `label` column of the control sheet, matched positionally.
  *
@@ -151,8 +210,7 @@ function seedControlFromProjects() {
  * canonical `llm-ed-triage-simulation` id.
  */
 function captureFormLabels() {
-  var props = PropertiesService.getScriptProperties();
-  var formId = props.getProperty('APPLICATION_FORM_ID');
+  var formId = _scriptProperty('APPLICATION_FORM_ID');
   if (!formId) throw new Error('Set APPLICATION_FORM_ID script property first.');
 
   var form = FormApp.openById(formId);
@@ -190,8 +248,8 @@ function captureFormLabels() {
     if (id && rowById[id]) control.getRange(rowById[id], labelCol + 1).setValue(label);
   });
 
-  CacheService.getScriptCache().remove('project_id_lookup_v1');
-  CacheService.getScriptCache().remove(COUNTS_CACHE_KEY);
+  _cacheRemove('project_id_lookup_v1');
+  _cacheRemove(COUNTS_CACHE_KEY);
 }
 
 /**
@@ -201,8 +259,7 @@ function captureFormLabels() {
  * requires updating the alias list in api.gs. Safe to rerun.
  */
 function syncFormChoices() {
-  var props = PropertiesService.getScriptProperties();
-  var formId = props.getProperty('APPLICATION_FORM_ID');
+  var formId = _scriptProperty('APPLICATION_FORM_ID');
   if (!formId) throw new Error('Set APPLICATION_FORM_ID script property first.');
 
   var projects = _fetchProjects();
@@ -235,7 +292,7 @@ function syncFormChoices() {
     }
   });
 
-  var reselectionFormId = props.getProperty('RESELECTION_FORM_ID');
+  var reselectionFormId = _optionalScriptProperty('RESELECTION_FORM_ID');
   if (reselectionFormId) _setChoiceValuesOnForm(reselectionFormId, 'new_choice', choiceValues);
 }
 
@@ -272,7 +329,7 @@ function _syncControlLabelsFromProjects(projects) {
     return [labels[id] || r[labelCol] || id];
   });
   control.getRange(2, labelCol + 1, out.length, 1).setValues(out);
-  CacheService.getScriptCache().remove('project_id_lookup_v1');
+  _cacheRemove('project_id_lookup_v1');
 }
 
 /**
@@ -282,8 +339,7 @@ function _syncControlLabelsFromProjects(projects) {
  * Inputs: none. Output: void.
  */
 function enableApplicationEditing() {
-  var props = PropertiesService.getScriptProperties();
-  var formId = props.getProperty('APPLICATION_FORM_ID');
+  var formId = _scriptProperty('APPLICATION_FORM_ID');
   if (!formId) throw new Error('Set APPLICATION_FORM_ID script property first.');
   var form = FormApp.openById(formId);
   form.setAllowResponseEdits(true);
@@ -294,8 +350,7 @@ function enableApplicationEditing() {
  * Install form submit triggers. Idempotent. Inputs: none. Output: void.
  */
 function installTriggers() {
-  var props = PropertiesService.getScriptProperties();
-  var spreadsheetId = props.getProperty('SPREADSHEET_ID');
+  var spreadsheetId = _scriptProperty('SPREADSHEET_ID');
   if (!spreadsheetId) throw new Error('Set SPREADSHEET_ID script property first.');
   var ss = SpreadsheetApp.openById(spreadsheetId);
 
@@ -328,8 +383,8 @@ function refreshCatalogFromJson() {
   seedControlFromProjects();
   syncFormChoices();
   captureFormLabels();
-  CacheService.getScriptCache().remove(COUNTS_CACHE_KEY);
-  CacheService.getScriptCache().remove('project_id_lookup_v1');
+  _cacheRemove(COUNTS_CACHE_KEY);
+  _cacheRemove('project_id_lookup_v1');
 
   var control = _getSheet(SHEET_CONTROL);
   var projectCount = control && control.getLastRow() > 1 ? control.getLastRow() - 1 : 0;
@@ -343,8 +398,7 @@ function refreshCatalogFromJson() {
 
 /** Fetch the canonical project list from the configured URL or throw. */
 function _fetchProjects() {
-  var props = PropertiesService.getScriptProperties();
-  var url = props.getProperty('PROJECTS_JSON_URL');
+  var url = _scriptProperty('PROJECTS_JSON_URL');
   if (!url) throw new Error('Set PROJECTS_JSON_URL script property first.');
   var res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
   if (res.getResponseCode() !== 200) throw new Error('Failed to fetch projects JSON: ' + res.getResponseCode());

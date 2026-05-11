@@ -23,6 +23,21 @@ var SHEET_INTERVIEW_LOG = 'interview_log';
 var COUNTS_CACHE_KEY = 'project_counts_v1';
 var COUNTS_CACHE_TTL_SECONDS = 60;
 
+/**
+ * Non-secret deployment fallback values. Script Properties remain the preferred
+ * configuration surface, but shared-user management dialogs can hit Apps
+ * Script storage permission errors even when sheet access is correct. These
+ * values mirror config.json so core sheet/form operations can keep working.
+ */
+var FALLBACK_CONFIG = {
+  SPREADSHEET_ID: '190NlFv1Jh1Jz_h2xjid0rvxNKRDXAZVPSD3hb5trjW4',
+  APPLICATION_FORM_ID: '1hBeIrOlH_5PSxZJh1re16vggwas_bCQ132_whNQ6ty8',
+  RESELECTION_FORM_ID: '1hBeIrOlH_5PSxZJh1re16vggwas_bCQ132_whNQ6ty8',
+  PROJECTS_JSON_URL: 'https://thetensorlab.org/data/projects_2026.json',
+  PUBLIC_SITE_ORIGIN: 'https://thetensorlab.org',
+  SEND_FROM_EMAIL: 'tensorlabucsf@gmail.com'
+};
+
 /** Logical names used throughout the code. */
 var CHOICE_COLUMNS = ['choice_1', 'choice_2', 'choice_3'];
 
@@ -116,8 +131,7 @@ function doGet(e) {
  * via CacheService to stay well under sheet read quotas.
  */
 function getProjectCounts() {
-  var cache = CacheService.getScriptCache();
-  var cached = cache.get(COUNTS_CACHE_KEY);
+  var cached = _cacheGet(COUNTS_CACHE_KEY);
   if (cached) {
     return JSON.parse(cached);
   }
@@ -125,7 +139,7 @@ function getProjectCounts() {
   var sheet = _getSheet(SHEET_APPLICATIONS);
   var counts = {};
   if (!sheet || sheet.getLastRow() < 2) {
-    cache.put(COUNTS_CACHE_KEY, JSON.stringify(counts), COUNTS_CACHE_TTL_SECONDS);
+    _cachePut(COUNTS_CACHE_KEY, JSON.stringify(counts), COUNTS_CACHE_TTL_SECONDS);
     return counts;
   }
 
@@ -136,7 +150,7 @@ function getProjectCounts() {
   var statusCol = _col(headers, 'status');
 
   if (columnIndexes.length === 0) {
-    cache.put(COUNTS_CACHE_KEY, JSON.stringify(counts), COUNTS_CACHE_TTL_SECONDS);
+    _cachePut(COUNTS_CACHE_KEY, JSON.stringify(counts), COUNTS_CACHE_TTL_SECONDS);
     return counts;
   }
 
@@ -153,7 +167,7 @@ function getProjectCounts() {
     }
   }
 
-  cache.put(COUNTS_CACHE_KEY, JSON.stringify(counts), COUNTS_CACHE_TTL_SECONDS);
+  _cachePut(COUNTS_CACHE_KEY, JSON.stringify(counts), COUNTS_CACHE_TTL_SECONDS);
   return counts;
 }
 
@@ -234,8 +248,7 @@ function _extractProjectId(cellValue) {
  * Shape: { ids: { project_id: true, ... }, labels: { label_lowercase: project_id, ... } }
  */
 function _projectIdLookupTable() {
-  var cache = CacheService.getScriptCache();
-  var cached = cache.get('project_id_lookup_v1');
+  var cached = _cacheGet('project_id_lookup_v1');
   if (cached) return JSON.parse(cached);
 
   var out = { ids: {}, labels: {} };
@@ -258,19 +271,92 @@ function _projectIdLookupTable() {
     }
   });
 
-  cache.put('project_id_lookup_v1', JSON.stringify(out), 300);
+  _cachePut('project_id_lookup_v1', JSON.stringify(out), 300);
   return out;
 }
 
 /** Fetch a named sheet from the configured spreadsheet. Returns null if missing. */
 function _getSheet(name) {
-  var props = PropertiesService.getScriptProperties();
-  var spreadsheetId = props.getProperty('SPREADSHEET_ID');
+  var active = _activeSpreadsheet();
+  if (active) {
+    var activeSheet = active.getSheetByName(name);
+    if (activeSheet) return activeSheet;
+  }
+
+  var spreadsheetId = _scriptProperty('SPREADSHEET_ID');
   if (!spreadsheetId) {
-    throw new Error('SPREADSHEET_ID script property is not set. Run setup.gs:initialSetup first.');
+    throw new Error(
+      'SPREADSHEET_ID script property is not set, and no active spreadsheet was available. ' +
+      'Open this from the bound spreadsheet, or run setup.gs:initialSetup first.'
+    );
   }
   var ss = SpreadsheetApp.openById(spreadsheetId);
   return ss.getSheetByName(name);
+}
+
+/** Best-effort active spreadsheet lookup for spreadsheet-launched UI actions. */
+function _activeSpreadsheet() {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (ss) return ss;
+  } catch (_e1) {}
+  try {
+    var active = SpreadsheetApp.getActive();
+    if (active) return active;
+  } catch (_e2) {}
+  return null;
+}
+
+/** Read a script property. Throws only when a storage permission error occurs. */
+function _scriptProperty(name) {
+  try {
+    return PropertiesService.getScriptProperties().getProperty(name) || FALLBACK_CONFIG[name] || '';
+  } catch (err) {
+    if (FALLBACK_CONFIG[name]) return FALLBACK_CONFIG[name];
+    var msg = (err && err.message) ? String(err.message) : String(err);
+    throw new Error(
+      'This account could not read Apps Script storage while loading `' + name + '`: ' + msg +
+      '. Spreadsheet editor access is separate from Apps Script storage access. ' +
+      'For management-dialog actions, reopen the dialog from the bound spreadsheet. ' +
+      'For setup or form-sync actions, have the script owner rerun setup or re-save the script properties.'
+    );
+  }
+}
+
+/** Read a script property when missing or blocked storage can be tolerated. */
+function _optionalScriptProperty(name) {
+  try {
+    return PropertiesService.getScriptProperties().getProperty(name) || FALLBACK_CONFIG[name] || '';
+  } catch (err) {
+    _logError('_optionalScriptProperty.' + name, err);
+    return FALLBACK_CONFIG[name] || '';
+  }
+}
+
+/** Cache helpers. CacheService is a speedup, not a correctness dependency. */
+function _cacheGet(key) {
+  try {
+    return CacheService.getScriptCache().get(key);
+  } catch (err) {
+    _logError('_cacheGet.' + key, err);
+    return '';
+  }
+}
+
+function _cachePut(key, value, ttlSeconds) {
+  try {
+    CacheService.getScriptCache().put(key, value, ttlSeconds);
+  } catch (err) {
+    _logError('_cachePut.' + key, err);
+  }
+}
+
+function _cacheRemove(key) {
+  try {
+    CacheService.getScriptCache().remove(key);
+  } catch (err) {
+    _logError('_cacheRemove.' + key, err);
+  }
 }
 
 /** Wrap a JS object as a JSON ContentService response. */

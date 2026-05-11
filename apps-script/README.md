@@ -163,6 +163,13 @@ Under **Project Settings > Script properties**, add:
 | `PUBLIC_SITE_ORIGIN` | `https://thetensorlab.org` |
 | `SEND_FROM_EMAIL` | Default sender for non-dialog sends: `tensorlabucsf@gmail.com` or `tensorlabumsom@gmail.com` |
 
+The same non-secret IDs are mirrored in `FALLBACK_CONFIG` in `api.gs`. Script
+Properties are still the normal place to configure a deployment, but the
+fallback lets shared spreadsheet operators use the management dialog even if
+Apps Script refuses that account's access to its storage service. If you change
+the sheet, form, project JSON URL, or default sender, update both Script
+Properties and `FALLBACK_CONFIG`.
+
 ### **Who may send email (every operator must do this)**
 
 When leadership uses **Tensor Lab → Manage applicants** in the spreadsheet, Apps Script sends mail with Gmail’s **From** set to the address selected in the dialog (`tensorlabucsf@gmail.com` or `tensorlabumsom@gmail.com`). **Gmail only allows that if the Google account that is actually running the script is allowed to send as that address.**
@@ -185,8 +192,9 @@ From the Apps Script editor, pick each function from the dropdown and click
 
 1. `initialSetup` — creates `control`, `redirect_log`, `error_log` tabs and
    appends a `status` column to `applications` if missing. Safe to rerun.
-2. `seedControlFromProjects` — adds one row per `project_id` from the JSON
-   catalog into `control` with `status = open`.
+2. `seedControlFromProjects` — adds one row per missing `project_id` from the
+   JSON catalog into `control` with `status = open`. Existing rows keep their
+   current status.
 3. `syncFormChoices` — copies the project dropdown options from
    `projects_YYYY.json` into the three `choice_N` questions on the application
    form.
@@ -254,8 +262,9 @@ original application in edit mode.
 ### Filling a project and rejecting applicants
 
 Open the spreadsheet and click **Tensor Lab > Manage applicants…**. A modal
-dialog opens with four tabs: **Fill project**, **Invite to interview**,
-**Reject applicant**, and **Close cohort**.
+dialog opens with tabs for **Fill project**, **Invite to interview**,
+**Reject applicant**, **Test workflow**, **Remove test data**, and
+**Close cohort**.
 
 First time on a Google account, run **Tensor Lab > Authorize this account**
 and accept the OAuth prompt before opening the management dialog. This is per
@@ -324,6 +333,13 @@ trigger only fires on transitions *into* `filled`, so reopening is a no-op
 for triggers. Manually clear `filled_at` and `selected_applicant` if you want
 the row to look pristine.
 
+To reopen every project after dummy testing or an accidental all-filled state,
+use **Tensor Lab > Reopen all projects**, click **Reopen all projects and
+resync** on the management dialog's **Remove test data** tab, or run
+`reopenAllProjects` from the Apps Script editor. Do not use
+`seedControlFromProjects` for this, because it preserves existing filled
+statuses by design.
+
 ### Changing project list mid-cycle
 
 Edit `data/projects_YYYY.json`, push, then either:
@@ -365,14 +381,21 @@ Simple `onEdit` triggers do not fire, only installable ones do. Rerun
 `installTriggers`. If the trigger is installed but still silent, check the
 **Executions** tab in the Apps Script editor for permission errors.
 
-**`PERMISSION_DENIED` for a new user.**
+**`PERMISSION_DENIED` or `server error occurred while reading from storage`.**
 Each person who opens the shared spreadsheet with a different Google account
 must authorize the bound Apps Script once. First try **Tensor Lab > Authorize
 this account** from the spreadsheet menu, then accept the OAuth prompt and
 reopen **Tensor Lab > Manage applicants…**. If the menu item is not available
 yet, open **Extensions → Apps Script**, run `authorizeManagementUi`, and accept
-the prompt. This is separate from sheet sharing and from the Gmail `Send mail
-as` setup.
+the prompt.
+
+If the error specifically mentions **reading from storage**, that is Apps
+Script storage, not Gmail `Send mail as`. It can happen even when the user is
+an editor on both the spreadsheet and the script. Publish the latest Apps
+Script files so management reads the active spreadsheet first, treats
+CacheService as optional, and uses `FALLBACK_CONFIG` from `api.gs` when Script
+Properties are blocked. This is separate from sheet sharing and from Gmail
+`Send mail as` setup.
 
 **Counts endpoint returns `{"ok":false,"error":"unknown_action"}`.**
 That is the default response to a GET with no `?action=` param. Hit

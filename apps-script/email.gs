@@ -20,8 +20,7 @@
 function _buildEditApplicationUrl(applicantEmail) {
   var target = String(applicantEmail || '').trim().toLowerCase();
   if (!target) return '';
-  var props = PropertiesService.getScriptProperties();
-  var formId = props.getProperty('APPLICATION_FORM_ID');
+  var formId = _optionalScriptProperty('APPLICATION_FORM_ID');
   if (!formId) return '';
 
   var form;
@@ -50,8 +49,7 @@ function _buildEditApplicationUrl(applicantEmail) {
  * Output: URL string.
  */
 function _buildReselectionUrl(token, survivingChoices) {
-  var props = PropertiesService.getScriptProperties();
-  var formId = props.getProperty('RESELECTION_FORM_ID');
+  var formId = _scriptProperty('RESELECTION_FORM_ID');
   if (!formId) throw new Error('RESELECTION_FORM_ID script property is not set.');
 
   var form = FormApp.openById(formId);
@@ -297,6 +295,6 @@ function _gmailAccountEmail() {
 }
 
 function _normalizeSenderEmail(fromEmail) {
-  var props = PropertiesService.getScriptProperties();
-  return String(fromEmail || props.getProperty('SEND_FROM_EMAIL') || TENSOR_LAB_SENDERS[0]).trim().toLowerCase();
+  if (fromEmail) return String(fromEmail).trim().toLowerCase();
+  return String(_optionalScriptProperty('SEND_FROM_EMAIL') || TENSOR_LAB_SENDERS[0]).trim().toLowerCase();
 }

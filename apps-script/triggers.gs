@@ -178,7 +178,7 @@ function onApplicationSubmit(e) {
     }
     if (!get('status')) setLogical('status', 'submitted');
 
-    CacheService.getScriptCache().remove(COUNTS_CACHE_KEY);
+    _cacheRemove(COUNTS_CACHE_KEY);
   } catch (err) {
     _logError('onApplicationSubmit', err);
   } finally {
@@ -241,7 +241,7 @@ function handleReselectionSubmit(e) {
           }
         }
         _appendRedirectLog(_getEmailForRow(appsSheet, appsHeaders, targetRow), replacedProject, newChoice);
-        CacheService.getScriptCache().remove(COUNTS_CACHE_KEY);
+        _cacheRemove(COUNTS_CACHE_KEY);
         return;
       }
     }
@@ -452,6 +452,7 @@ function onOpenSpreadsheet() {
     .addItem('Manage applicants…', 'openManagementDialog')
     .addSeparator()
     .addItem('Sync project catalog from JSON', 'refreshCatalogFromJson')
+    .addItem('Reopen all projects', 'confirmReopenAllProjects')
     .addItem('Refresh applicant counts cache', 'clearCountsCache')
     .addToUi();
 }
@@ -462,18 +463,23 @@ function onOpenSpreadsheet() {
  * the storage, sheet, form, and Gmail scopes used by the management dialog.
  */
 function authorizeManagementUi() {
-  var props = PropertiesService.getScriptProperties();
-  var spreadsheetId = props.getProperty('SPREADSHEET_ID');
-  if (!spreadsheetId) throw new Error('SPREADSHEET_ID script property is not set.');
-
-  var ss = SpreadsheetApp.openById(spreadsheetId);
+  var ss = _activeSpreadsheet();
+  var spreadsheetId = _optionalScriptProperty('SPREADSHEET_ID');
+  if (!ss && spreadsheetId) ss = SpreadsheetApp.openById(spreadsheetId);
+  if (!ss) {
+    throw new Error(
+      'No active spreadsheet was available and SPREADSHEET_ID could not be read. ' +
+      'Open the bound spreadsheet first, then run Tensor Lab > Authorize this account.'
+    );
+  }
   ss.getSheetByName(SHEET_CONTROL);
-  CacheService.getScriptCache().get(COUNTS_CACHE_KEY);
+  var storageOk = !!spreadsheetId;
+  _cacheGet(COUNTS_CACHE_KEY);
 
-  var appFormId = props.getProperty('APPLICATION_FORM_ID');
+  var appFormId = _optionalScriptProperty('APPLICATION_FORM_ID');
   if (appFormId) FormApp.openById(appFormId).getTitle();
 
-  var reselectionFormId = props.getProperty('RESELECTION_FORM_ID');
+  var reselectionFormId = _optionalScriptProperty('RESELECTION_FORM_ID');
   if (reselectionFormId) FormApp.openById(reselectionFormId).getTitle();
 
   try {
@@ -484,24 +490,45 @@ function authorizeManagementUi() {
 
   try {
     SpreadsheetApp.getActiveSpreadsheet().toast(
-      'This Google account is authorized for Tensor Lab tools.',
+      storageOk
+        ? 'This Google account is authorized for Tensor Lab tools.'
+        : 'Authorized for sheet tools. Apps Script storage was not readable for this account, so setup-only properties were skipped.',
       'Tensor Lab',
       5
     );
   } catch (_noUi) { /* running from editor, no active spreadsheet UI */ }
 
-  return { ok: true };
+  return { ok: true, storageOk: storageOk };
 }
 
 /** Menu helper. Manually clear the 60 second counts cache. */
 function clearCountsCache() {
-  CacheService.getScriptCache().remove(COUNTS_CACHE_KEY);
+  _cacheRemove(COUNTS_CACHE_KEY);
   SpreadsheetApp.getActiveSpreadsheet().toast('Counts cache cleared.', 'Tensor Lab', 3);
+}
+
+/** Menu helper with confirmation around the explicit all-project reopen. */
+function confirmReopenAllProjects() {
+  var ui = SpreadsheetApp.getUi();
+  var response = ui.alert(
+    'Reopen all projects?',
+    'This sets every control.status cell to open and clears filled_at and selected_applicant. It does not delete applications, applicant statuses, or email logs.',
+    ui.ButtonSet.OK_CANCEL
+  );
+  if (response !== ui.Button.OK) return { ok: false, cancelled: true };
+
+  var result = reopenAllProjects();
+  ui.alert(
+    'Tensor Lab',
+    'Reopened ' + result.reopened + ' of ' + result.total + ' projects. The form choices and public caches were refreshed.',
+    ui.ButtonSet.OK
+  );
+  return result;
 }
 
 /** Refresh all public surfaces that depend on control.status. Never throws. */
 function _refreshProjectSurfaces() {
   try { syncFormChoices(); } catch (err) { _logError('_refreshProjectSurfaces.syncFormChoices', err); }
-  CacheService.getScriptCache().remove(COUNTS_CACHE_KEY);
-  CacheService.getScriptCache().remove('project_id_lookup_v1');
+  _cacheRemove(COUNTS_CACHE_KEY);
+  _cacheRemove('project_id_lookup_v1');
 }

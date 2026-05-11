@@ -257,21 +257,30 @@ function mgmtSendInterviewInvite(projectId, email, reviewerName, schedulingUrl, 
   _sendInterviewInviteEmail(email, firstName, reviewer, label, url, note, fromEmail);
   _logInterviewInvite(email, pid, reviewer, url, note);
 
-  PropertiesService.getUserProperties().setProperties({
-    tl_reviewer_name: reviewer,
-    tl_reviewer_url: url
-  });
+  try {
+    PropertiesService.getUserProperties().setProperties({
+      tl_reviewer_name: reviewer,
+      tl_reviewer_url: url
+    });
+  } catch (err) {
+    _logError('mgmtSendInterviewInvite.rememberDefaults', err);
+  }
 
   return { email: email, projectId: pid, projectLabel: label };
 }
 
 /** Return { name, url } from user-scoped properties for prefilling the form. */
 function mgmtRecallReviewerDefaults() {
-  var p = PropertiesService.getUserProperties();
-  return {
-    name: p.getProperty('tl_reviewer_name') || '',
-    url: p.getProperty('tl_reviewer_url') || ''
-  };
+  try {
+    var p = PropertiesService.getUserProperties();
+    return {
+      name: p.getProperty('tl_reviewer_name') || '',
+      url: p.getProperty('tl_reviewer_url') || ''
+    };
+  } catch (err) {
+    _logError('mgmtRecallReviewerDefaults', err);
+    return { name: '', url: '' };
+  }
 }
 
 /**
@@ -422,7 +431,7 @@ function rejectApplicant(email, personalNote, fromEmail) {
     _logError('rejectApplicant.sendEmail', err);
     throw err;
   }
-  CacheService.getScriptCache().remove(COUNTS_CACHE_KEY);
+  _cacheRemove(COUNTS_CACHE_KEY);
   return { email: email, rejected: true, skipped: false };
 }
 
@@ -722,6 +731,9 @@ function _managementDialogHtml() {
     '  <button id="cleanupBtn" class="danger" disabled>Remove test applications and resync</button>',
     '  <p class="meta">Separate emails with new lines, commas, semicolons, or spaces. Do not use slashes. Deletes matching rows from applications, reselections, redirect_log, and interview_log, then refreshes the form choices and public site cache.</p>',
     '  <div id="cleanupStatus"></div>',
+    '  <button id="reopenAllBtn" class="danger">Reopen all projects and resync</button>',
+    '  <p class="meta">Use this after dummy testing or an accidental all-filled state. It sets every control row back to open and clears filled_at and selected_applicant. Applications and email logs are unchanged.</p>',
+    '  <div id="reopenAllStatus"></div>',
     '</div>',
 
     '<div id="bulk" class="panel">',
@@ -739,7 +751,7 @@ function _managementDialogHtml() {
     'const sender=()=>$("#senderSelect").value;',
     'const setStatus=(el,msg,kind)=>{el.className="status "+(kind||"ok");el.textContent=msg};',
     'const clearStatus=el=>{el.className="";el.textContent=""};',
-    'const errMsg=e=>{const m=e&&e.message?e.message:String(e||"");return /PERMISSION_DENIED|reading from storage|permission/i.test(m)?m+" Run Tensor Lab > Authorize this account, then reopen this dialog.":m};',
+    'const errMsg=e=>{const m=e&&e.message?e.message:String(e||"");return /PERMISSION_DENIED|reading from storage|permission/i.test(m)?m+" Run Tensor Lab > Authorize this account, then reopen this dialog. If this persists, ask the script owner to publish the latest Apps Script files so storage fallbacks are available.":m};',
 
     '$$(".tab").forEach(t=>t.addEventListener("click",()=>{',
     '  $$(".tab").forEach(x=>x.classList.remove("active"));',
@@ -748,14 +760,20 @@ function _managementDialogHtml() {
     '  $("#"+t.dataset.panel).classList.add("active");',
     '}));',
 
-    'google.script.run.withSuccessHandler(projects=>{',
-    '  const sel=$("#projectSelect");sel.innerHTML="";',
-    '  if(!projects.length){sel.innerHTML="<option value=\\"\\">No open projects</option>";return}',
-    '  sel.insertAdjacentHTML("beforeend","<option value=\\"\\">Choose a project…</option>");',
-    '  projects.forEach(p=>sel.insertAdjacentHTML("beforeend",',
-    '    "<option value=\\""+esc(p.id)+"\\">"+esc(p.label)+" ("+p.count+" applicants)</option>"));',
-    '}).withFailureHandler(e=>setStatus($("#fillStatus"),"Could not load projects: "+errMsg(e),"err"))',
-    '.mgmtListOpenProjects();',
+    'function loadFillProjects(){',
+    '  const sel=$("#projectSelect");sel.innerHTML="<option value=\\"\\">Loading…</option>";',
+    '  $("#applicantSelect").innerHTML="<option value=\\"\\">Pick a project first</option>";$("#applicantSelect").disabled=true;$("#fillBtn").disabled=true;',
+    '  google.script.run.withSuccessHandler(projects=>{',
+    '    sel.innerHTML="";',
+    '    if(!projects.length){sel.innerHTML="<option value=\\"\\">No open projects</option>";setStatus($("#fillStatus"),"No open projects are available. Use Remove test data > Reopen all projects if this was a test reset.","warn");return}',
+    '    if($("#fillStatus").textContent.indexOf("No open projects")===0)clearStatus($("#fillStatus"));',
+    '    sel.insertAdjacentHTML("beforeend","<option value=\\"\\">Choose a project…</option>");',
+    '    projects.forEach(p=>sel.insertAdjacentHTML("beforeend",',
+    '      "<option value=\\""+esc(p.id)+"\\">"+esc(p.label)+" ("+p.count+" applicants)</option>"));',
+    '  }).withFailureHandler(e=>setStatus($("#fillStatus"),"Could not load projects: "+errMsg(e),"err"))',
+    '  .mgmtListOpenProjects();',
+    '}',
+    'loadFillProjects();',
 
     '$("#projectSelect").addEventListener("change",()=>{',
     '  const pid=$("#projectSelect").value;const as=$("#applicantSelect");const btn=$("#fillBtn");',
@@ -785,11 +803,7 @@ function _managementDialogHtml() {
     '  $("#fillBtn").disabled=true;setStatus(st,"Sending…","warn");',
     '  google.script.run',
     '    .withSuccessHandler(r=>{setStatus(st,"Filled. Congrats email sent to "+r.email+". "+r.notified+" reselection emails sent.","ok");',
-    '      google.script.run.withSuccessHandler(projects=>{',
-    '        const sel=$("#projectSelect");sel.innerHTML="";',
-    '        sel.insertAdjacentHTML("beforeend","<option value=\\"\\">Choose a project…</option>");',
-    '        projects.forEach(p=>sel.insertAdjacentHTML("beforeend","<option value=\\""+esc(p.id)+"\\">"+esc(p.label)+" ("+p.count+" applicants)</option>"));',
-    '      }).mgmtListOpenProjects();',
+    '      loadFillProjects();',
     '      $("#applicantSelect").innerHTML="<option value=\\"\\">Pick a project first</option>";$("#applicantSelect").disabled=true;',
     '      loadInterviewProjects();',
     '      refreshBulkGate();',
@@ -800,9 +814,11 @@ function _managementDialogHtml() {
 
     'function loadInterviewProjects(){',
     '  const sel=$("#ivProjectSelect");sel.innerHTML="<option value=\\"\\">Loading…</option>";',
+    '  $("#ivApplicantSelect").innerHTML="<option value=\\"\\">Pick a project first</option>";$("#ivApplicantSelect").disabled=true;ivRefreshBtn();',
     '  google.script.run.withSuccessHandler(projects=>{',
     '    sel.innerHTML="";',
-    '    if(!projects.length){sel.innerHTML="<option value=\\"\\">No open projects</option>";return}',
+    '    if(!projects.length){sel.innerHTML="<option value=\\"\\">No open projects</option>";setStatus($("#ivStatus"),"No open projects are available. Use Remove test data > Reopen all projects if this was a test reset.","warn");ivRefreshBtn();return}',
+    '    if($("#ivStatus").textContent.indexOf("No open projects")===0)clearStatus($("#ivStatus"));',
     '    sel.insertAdjacentHTML("beforeend","<option value=\\"\\">Choose a project…</option>");',
     '    projects.forEach(p=>sel.insertAdjacentHTML("beforeend",',
     '      "<option value=\\""+esc(p.id)+"\\">"+esc(p.label)+" ("+p.count+" applicants)</option>"));',
@@ -835,12 +851,25 @@ function _managementDialogHtml() {
     '  .mgmtListApplicantsForProject(pid);',
     '});',
 
+    'function ivDisabledReason(){',
+    '  if(!$("#ivProjectSelect").value)return "Pick a project first";',
+    '  if(!$("#ivApplicantSelect").value)return "Pick an applicant";',
+    '  if(!$("#ivReviewerName").value.trim())return "Enter your name";',
+    '  if(!/^https?:\\/\\//i.test($("#ivSchedulingUrl").value.trim()))return "Scheduling link must start with http:// or https://";',
+    '  return "";',
+    '}',
     'function ivRefreshBtn(){',
-    '  const ok=$("#ivProjectSelect").value&&$("#ivApplicantSelect").value&&$("#ivReviewerName").value.trim()&&/^https?:\\/\\//i.test($("#ivSchedulingUrl").value.trim());',
-    '  $("#ivSendBtn").disabled=!ok;',
+    '  const reason=ivDisabledReason();',
+    '  $("#ivSendBtn").disabled=!!reason;',
+    '  $("#ivSendBtn").title=reason;',
     '}',
     '["#ivApplicantSelect","#ivReviewerName","#ivSchedulingUrl"].forEach(q=>$(q).addEventListener("input",ivRefreshBtn));',
     '$("#ivApplicantSelect").addEventListener("change",ivRefreshBtn);',
+    '$("#ivSchedulingUrl").addEventListener("blur",()=>{',
+    '  const el=$("#ivSchedulingUrl");const v=el.value.trim();',
+    '  if(v&&!/^https?:\\/\\//i.test(v)&&/^[^\\s]+\\.[^\\s]+/.test(v))el.value="https://"+v;',
+    '  ivRefreshBtn();',
+    '});',
 
     '$("#ivSendBtn").addEventListener("click",()=>{',
     '  const pid=$("#ivProjectSelect").value;const email=$("#ivApplicantSelect").value;',
@@ -877,7 +906,8 @@ function _managementDialogHtml() {
     '  const sel=$("#testProjectSelect");sel.innerHTML="<option value=\\"\\">Loading…</option>";',
     '  google.script.run.withSuccessHandler(projects=>{',
     '    sel.innerHTML="";',
-    '    if(!projects.length){sel.innerHTML="<option value=\\"\\">No open projects</option>";testRefreshBtn();return}',
+    '    if(!projects.length){sel.innerHTML="<option value=\\"\\">No open projects</option>";setStatus($("#testStatus"),"No open projects are available. Use Remove test data > Reopen all projects if this was a test reset.","warn");testRefreshBtn();return}',
+    '    if($("#testStatus").textContent.indexOf("No open projects")===0)clearStatus($("#testStatus"));',
     '    sel.insertAdjacentHTML("beforeend","<option value=\\"\\">Choose a project…</option>");',
     '    projects.forEach(p=>sel.insertAdjacentHTML("beforeend","<option value=\\""+esc(p.id)+"\\">"+esc(p.label)+" ("+p.count+" applicants)</option>"));',
     '    testRefreshBtn();',
@@ -936,15 +966,26 @@ function _managementDialogHtml() {
     '      const total=r.applicationsDeleted+r.reselectionsDeleted+r.redirectLogsDeleted+r.interviewLogsDeleted+r.projectsReset.length;',
     '      const msg=total?("Removed "+r.applicationsDeleted+" application rows, "+r.reselectionsDeleted+" reselection rows, "+r.redirectLogsDeleted+" redirect log rows, and "+r.interviewLogsDeleted+" interview log rows."+(r.projectsReset.length?" Reopened: "+r.projectsReset.join(", ")+".":"")):"No matching rows or selected projects found for those emails. Check spelling or run the dummy workflow first."; ',
     '      setStatus(st,msg,total?"ok":"warn");if(total)$("#cleanupEmails").value="";cleanupRefreshBtn();',
-    '      google.script.run.withSuccessHandler(projects=>{',
-    '        const sel=$("#projectSelect");sel.innerHTML="<option value=\\"\\">Choose a project…</option>";',
-    '        projects.forEach(p=>sel.insertAdjacentHTML("beforeend","<option value=\\""+esc(p.id)+"\\">"+esc(p.label)+" ("+p.count+" applicants)</option>"));',
-    '      }).mgmtListOpenProjects();',
+    '      loadFillProjects();',
     '      loadInterviewProjects();loadPending();refreshBulkGate();',
     '      loadTestProjects();',
     '    })',
     '    .withFailureHandler(e=>{setStatus(st,"Error: "+errMsg(e),"err");cleanupRefreshBtn();})',
     '    .mgmtRemoveTestApplications(emails,reset);',
+    '});',
+
+    '$("#reopenAllBtn").addEventListener("click",()=>{',
+    '  const st=$("#reopenAllStatus");',
+    '  if(!confirm("Reopen every project?\\n\\nThis sets all control rows to open and clears filled_at and selected_applicant. Applications, applicant statuses, and email logs are unchanged."))return;',
+    '  $("#reopenAllBtn").disabled=true;setStatus(st,"Reopening projects and resyncing form choices…","warn");',
+    '  google.script.run',
+    '    .withSuccessHandler(r=>{',
+    '      setStatus(st,"Reopened "+r.reopened+" of "+r.total+" projects. Project dropdowns refreshed.","ok");',
+    '      $("#reopenAllBtn").disabled=false;',
+    '      loadFillProjects();loadInterviewProjects();loadTestProjects();refreshBulkGate();',
+    '    })',
+    '    .withFailureHandler(e=>{setStatus(st,"Error: "+errMsg(e),"err");$("#reopenAllBtn").disabled=false;})',
+    '    .reopenAllProjects();',
     '});',
 
     'function refreshBulkGate(){',
