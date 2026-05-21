@@ -5,8 +5,9 @@
  * Exposes a single modal dialog with workflow tabs:
  *   - Setup: first-time readiness checklist and account authorization.
  *   - Interviews: send an applicant your scheduling link.
- *   - Match projects: pick a winner, edit winner and reselection emails, fill.
- *   - Closeout and tools: edit decline emails, test, clean up, and close out.
+ *   - Match projects: record selected fellows without emailing applicants.
+ *   - Closeout and tools: send acceptance notices, decline emails, test,
+ *     clean up, and close out.
  *
  * All user-facing text avoids dashes per the house style. All mutations run
  * through functions in triggers.gs and email.gs, this file is only wiring.
@@ -118,126 +119,42 @@ function mgmtListPendingApplicants() {
 function mgmtFillProject(projectId, email, fromEmail, expectedRecipients, emailTemplates) {
   if (!projectId || !email) throw new Error('Pick both a project and an applicant.');
   if (expectedRecipients && expectedRecipients.length !== undefined) {
-    var preview = mgmtPreviewFillProject(projectId, email, emailTemplates);
+    var preview = mgmtPreviewFillProject(projectId, email);
     _assertPreviewEmailsUnchanged(preview.recipients, expectedRecipients);
   }
-  var result = markProjectFilled(projectId, email, fromEmail, emailTemplates);
-  return { projectId: projectId, email: email, notified: result.notified };
+  markProjectFilled(projectId, email, fromEmail, emailTemplates);
+  return { projectId: projectId, email: email, notified: 0, queued: true };
 }
 
-/** Dry run for Fill project. Returns exactly who would receive email. */
+/** Dry run for Fill project. Returns the selected applicant who would be recorded. */
 function mgmtPreviewFillProject(projectId, selectedApplicantEmail, emailTemplates) {
   var pid = String(projectId || '').trim();
   var selected = String(selectedApplicantEmail || '').trim().toLowerCase();
   if (!pid || !selected) throw new Error('Pick both a project and an applicant.');
 
   var projectLabel = _lookupProjectLabel(pid) || pid;
-  var templateSet = _normalizeFillEmailTemplates(emailTemplates, projectLabel);
-  if (templateSet.reselection) _assertReselectionTemplateHasLink(templateSet.reselection);
-  var alreadyNotified = _alreadyNotifiedSet(pid);
-  var recipients = [];
-  var skipped = [];
-  var seen = {};
   var winnerName = _applicantNameForEmail(selected) || selected;
-  var congratsSubject = _templateSubject(
-    templateSet.congratulations,
-    _buildCongratulationsDraft(projectLabel).subject,
-    {
-      first_name: _firstNameFromName(winnerName),
-      applicant_name: winnerName,
-      project: projectLabel,
-      project_label: projectLabel
-    }
-  );
-  var reselectionSubject = _templateSubject(
-    templateSet.reselection,
-    _buildReselectionDraft(projectLabel).subject,
-    {
-      first_name: 'Applicant',
-      applicant_name: 'Applicant',
-      project: projectLabel,
-      project_label: projectLabel,
-      reselection_link: 'https://example.com/reselection-preview',
-      link: 'https://example.com/reselection-preview'
-    }
-  );
-
-  if (_alreadyCongratulated(selected, pid)) {
-    skipped.push({
-      action: 'Congratulations',
-      email: selected,
-      name: winnerName,
-      reason: 'already congratulated for this project',
-      subject: congratsSubject
-    });
-  } else {
-    recipients.push({
-      action: 'Congratulations',
-      email: selected,
-      name: winnerName,
-      rank: 'selected',
-      project: projectLabel,
-      subject: congratsSubject,
-      cc: _ccForProjectEmail(pid, projectLabel, templateSet.congratulations && templateSet.congratulations.cc)
-    });
-  }
-
-  var rows = _readApplicationRows();
-  if (rows && rows.items) {
-    for (var i = 0; i < rows.items.length; i++) {
-      var r = rows.items[i];
-      var email = String(r.email || '').trim().toLowerCase();
-      if (!email || email === selected) continue;
-      var rank = r.choices.indexOf(pid);
-      if (rank === -1) continue;
-      if (_isTerminalStatus(r.status)) {
-        skipped.push({
-          action: 'Reselection',
-          email: email,
-          name: r.name || email,
-          rank: rank + 1,
-          project: projectLabel,
-          reason: 'already selected, rejected, or test-only',
-          subject: reselectionSubject
-        });
-        continue;
-      }
-      if (alreadyNotified[email] || seen[email]) {
-        skipped.push({
-          action: 'Reselection',
-          email: email,
-          name: r.name || email,
-          rank: rank + 1,
-          project: projectLabel,
-          reason: alreadyNotified[email] ? 'already sent reselection for this project' : 'duplicate application row',
-          subject: reselectionSubject
-        });
-        continue;
-      }
-      recipients.push({
-        action: 'Reselection',
-        email: email,
-        name: r.name || email,
-        rank: rank + 1,
-        project: projectLabel,
-        subject: reselectionSubject,
-        cc: _ccForProjectEmail(pid, projectLabel, templateSet.reselection && templateSet.reselection.cc)
-      });
-      seen[email] = true;
-    }
-  }
+  var recipients = [{
+    action: 'Record selection',
+    email: selected,
+    name: winnerName,
+    rank: 'selected',
+    project: projectLabel,
+    subject: '',
+    cc: ''
+  }];
 
   return {
     projectId: pid,
     projectLabel: projectLabel,
     selectedEmail: selected,
     recipients: recipients,
-    skipped: skipped,
-    totalToEmail: recipients.length
+    skipped: [],
+    totalToEmail: 0
   };
 }
 
-/** Build editable winner and reselection drafts for the Fill project tab. */
+/** Build the editable acceptance draft used by legacy Fill project clients. */
 function mgmtBuildFillEmailDrafts(projectId, selectedApplicantEmail) {
   var pid = String(projectId || '').trim();
   var selected = String(selectedApplicantEmail || '').trim().toLowerCase();
@@ -246,7 +163,6 @@ function mgmtBuildFillEmailDrafts(projectId, selectedApplicantEmail) {
   var projectLabel = _lookupProjectLabel(pid) || pid;
   var winnerName = _applicantNameForEmail(selected) || '';
   var congrats = _buildCongratulationsDraft(projectLabel);
-  var reselection = _buildReselectionDraft(projectLabel);
   return {
     projectId: pid,
     projectLabel: projectLabel,
@@ -260,11 +176,117 @@ function mgmtBuildFillEmailDrafts(projectId, selectedApplicantEmail) {
         project_label: projectLabel
       }),
       body: congrats.body
-    },
-    reselection: {
-      subject: reselection.subject,
-      body: reselection.body
     }
+  };
+}
+
+/** Build the editable acceptance draft for the all-at-once fellow notice. */
+function mgmtBuildAcceptanceEmailDraft() {
+  var draft = _buildCongratulationsDraft('');
+  return {
+    subject: draft.subject,
+    body: draft.body
+  };
+}
+
+/** Dry run for the all-at-once acceptance send. */
+function mgmtPreviewAcceptanceRecipients(emailTemplate) {
+  var selected = _selectedAcceptanceRows();
+  var fallback = _buildCongratulationsDraft('');
+  var template = _normalizeEmailTemplate(emailTemplate, fallback);
+  if (!template.subject) template.subject = fallback.subject;
+  if (!template.body) template.body = fallback.body;
+  var cc = _normalizeCcEmails(template.cc || '');
+  var recipients = [];
+  var skipped = [];
+  var seen = {};
+
+  selected.forEach(function (row) {
+    var ctx = {
+      first_name: _firstNameFromName(row.name),
+      applicant_name: row.name || 'Fellow'
+    };
+    var subject = _applyEmailTemplate(template.subject || fallback.subject, ctx);
+    var item = {
+      action: 'Acceptance',
+      email: row.email,
+      name: row.name || row.email,
+      applicantName: row.name || '',
+      project: row.projectLabel || row.projectId,
+      projectId: row.projectId,
+      subject: subject,
+      cc: cc
+    };
+    var emailKey = String(row.email || '').trim().toLowerCase();
+    if (seen[emailKey]) {
+      item.reason = 'duplicate selected applicant';
+      skipped.push(item);
+      return;
+    }
+    seen[emailKey] = true;
+    if (_alreadyCongratulatedAnyProject(emailKey)) {
+      item.reason = 'already sent an acceptance notice';
+      skipped.push(item);
+      return;
+    }
+    recipients.push(item);
+  });
+
+  return {
+    ok: true,
+    recipients: recipients,
+    skipped: skipped,
+    totalToEmail: recipients.length,
+    selectedCount: selected.length,
+    progress: mgmtProjectFillProgress()
+  };
+}
+
+/** Send acceptance notices to every selected fellow after preview. */
+function mgmtSendAcceptanceNotices(fromEmail, expectedRecipients, emailTemplate) {
+  var preview = mgmtPreviewAcceptanceRecipients(emailTemplate);
+  if (expectedRecipients && expectedRecipients.length !== undefined) {
+    _assertPreviewEmailsUnchanged(preview.recipients, expectedRecipients);
+  }
+
+  var fallback = _buildCongratulationsDraft('');
+  var template = _normalizeEmailTemplate(emailTemplate, fallback);
+  if (!template.subject) template.subject = fallback.subject;
+  if (!template.body) template.body = fallback.body;
+  var sent = 0;
+  var errors = 0;
+  for (var i = 0; i < preview.recipients.length; i++) {
+    var r = preview.recipients[i];
+    try {
+      var ctx = {
+        first_name: _firstNameFromName(r.applicantName || ''),
+        applicant_name: r.applicantName || 'Fellow'
+      };
+      var subject = _applyEmailTemplate(template.subject || fallback.subject, ctx);
+      var body = _applyEmailTemplate(template.body || fallback.body, ctx);
+      var cc = _applyEmailTemplate(template.cc || '', ctx);
+      if (!subject) throw new Error('Enter an email subject.');
+      if (!body) throw new Error('Enter an email body.');
+      _sendTensorLabEmail({
+        to: r.email,
+        cc: cc,
+        subject: subject,
+        body: body,
+        action: 'congratulations',
+        project_id: '',
+        project_label: ''
+      }, fromEmail);
+      _appendRedirectLog(r.email, '', r.projectId || 'accepted_fellowship');
+      sent++;
+    } catch (err) {
+      errors++;
+      _logError('mgmtSendAcceptanceNotices', err);
+    }
+  }
+  return {
+    sent: sent,
+    errors: errors,
+    skipped: preview.skipped.length
   };
 }
 
@@ -328,8 +350,6 @@ function mgmtRunDummyWorkflowTest(projectId, winnerEmail, displacedEmail, fromEm
   emailSet[displaced] = true;
   var backup = _controlSnapshot(pid);
   var projectLabel = _lookupProjectLabel(pid);
-  var displacedToken = '';
-  var survivingChoices = [];
 
   var lock = LockService.getScriptLock();
   lock.waitLock(15000);
@@ -341,8 +361,7 @@ function mgmtRunDummyWorkflowTest(projectId, winnerEmail, displacedEmail, fromEm
 
     var filler = _fallbackProjectChoices(pid);
     _appendSyntheticApplication(winner, 'Test Winner', [pid, filler[0], filler[1]], 'test_selected');
-    displacedToken = _appendSyntheticApplication(displaced, 'Test Displaced', [pid, filler[0], filler[1]], 'test_submitted');
-    survivingChoices = filler;
+    _appendSyntheticApplication(displaced, 'Test Pending', [pid, filler[0], filler[1]], 'test_submitted');
     _setProjectFilledForTest(pid, winner);
   } finally {
     lock.releaseLock();
@@ -351,8 +370,6 @@ function mgmtRunDummyWorkflowTest(projectId, winnerEmail, displacedEmail, fromEm
   _refreshProjectSurfaces();
   _sendCongratulationsEmail(winner, projectLabel, fromEmail);
   _appendRedirectLog(winner, '', pid);
-  _sendReselectionEmail(displaced, _buildReselectionUrl(displacedToken, survivingChoices), 'reselect', projectLabel, fromEmail);
-  _appendRedirectLog(displaced, pid, '');
 
   if (!keepFilled) {
     _restoreControlSnapshot(backup);
@@ -855,7 +872,7 @@ function mgmtSetupStatus() {
         : 'Required triggers found.',
       missing.length
         ? 'If form submissions, control sheet edits, or the Tensor Lab menu do not work, ask the owner to open Apps Script and run installTriggers.'
-        : 'No action needed. Triggers handle form validation, reselections, control edits, and the Tensor Lab menu.'
+        : 'No action needed. Triggers handle form validation, control edits, and the Tensor Lab menu.'
     );
   } catch (errTriggers) {
     add(
@@ -1255,6 +1272,38 @@ function _isTerminalStatus(status) {
   return s === 'selected' || s === 'rejected' || s.indexOf('rejected_') === 0 || s.indexOf('test_') === 0;
 }
 
+function _selectedAcceptanceRows() {
+  var sheet = _getSheet(SHEET_CONTROL);
+  if (!sheet || sheet.getLastRow() < 2) return [];
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var idCol = headers.indexOf('project_id');
+  var labelCol = headers.indexOf('label');
+  var statusCol = headers.indexOf('status');
+  var selectedCol = headers.indexOf('selected_applicant');
+  if (idCol < 0 || selectedCol < 0) return [];
+
+  var rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+  var out = [];
+  for (var i = 0; i < rows.length; i++) {
+    var email = String(rows[i][selectedCol] || '').trim().toLowerCase();
+    if (!email) continue;
+    var status = statusCol >= 0 ? String(rows[i][statusCol] || '').trim().toLowerCase() : '';
+    if (status !== 'filled') continue;
+    var pid = String(rows[i][idCol] || '').trim();
+    var label = labelCol >= 0 ? String(rows[i][labelCol] || '').trim() : '';
+    out.push({
+      email: email,
+      name: _applicantNameForEmail(email) || '',
+      projectId: pid,
+      projectLabel: _displayProjectLabel(label || pid)
+    });
+  }
+  out.sort(function (a, b) {
+    return (a.name || a.email).localeCompare(b.name || b.email);
+  });
+  return out;
+}
+
 /** Pull counts from the shared cache if present, else compute. */
 function _currentProjectCounts() {
   try {
@@ -1281,7 +1330,7 @@ function _managementDialogHtml() {
     'label{display:block;font-size:13px;color:#333;margin:12px 0 4px;font-weight:500}',
     'select,textarea,input[type="text"],input[type="url"]{width:100%;padding:8px;border:1px solid #c4c9d1;border-radius:4px;font-size:13px;box-sizing:border-box;font-family:inherit}',
     'textarea{resize:vertical;min-height:72px}',
-    '#ivBody,#fillCongratsBody,#fillReselectBody,#rejectBody,#bulkBody{min-height:180px}',
+    '#ivBody,#acceptBody,#rejectBody,#bulkBody{min-height:180px}',
     'button{margin-top:16px;padding:9px 16px;font-size:13px;border:none;border-radius:4px;cursor:pointer;font-weight:500}',
     'button.primary{background:#0b6bcb;color:#fff}',
     'button.primary:hover:not(:disabled){background:#0957a8}',
@@ -1347,7 +1396,7 @@ function _managementDialogHtml() {
     '  <ol class="setup-steps">',
     '    <li>Run the authorization check once for each Google account that will use this dialog.</li>',
     '    <li>Confirm the sender you need is available. If not, open the operator&apos;s personal Gmail account and add the Tensor Lab addresses under Settings &gt; Accounts and Import &gt; Send mail as.</li>',
-    '    <li>Edit the email drafts in each workflow before sending. Placeholders such as {{first_name}}, {{project}}, and {{reselection_link}} are replaced at send time.</li>',
+    '    <li>Edit the email drafts in each workflow before sending. Placeholders such as {{first_name}} and {{applicant_name}} are replaced at send time.</li>',
     '    <li>Preview recipients before any bulk send. The real send is blocked if the list changes after preview.</li>',
     '    <li>After sending, check email_log for sent or error rows if anything looks off.</li>',
     '  </ol>',
@@ -1359,31 +1408,13 @@ function _managementDialogHtml() {
     '  <label for="applicantSelect">Selected applicant</label>',
     '  <select id="applicantSelect" disabled><option value="">Pick a project first</option></select>',
     '  <div class="section">',
-    '    <h2>Email drafts</h2>',
-    '    <p class="placeholder-note">You can edit these before sending. Available placeholders: {{first_name}}, {{project}}, and {{reselection_link}}. Keep {{reselection_link}} in the reselection email.</p>',
-    '    <label for="fillCc">Additional CC for project emails</label>',
-    '    <input id="fillCc" type="text" placeholder="Optional, comma separated email addresses" />',
-    '    <p class="meta">The project med mentor is added to CC automatically when a mentor email is listed in the catalog.</p>',
-    '    <button id="fillDraftBtn" class="secondary" disabled>Generate email drafts</button>',
-    '    <div id="fillDraftStatus"></div>',
-    '    <label for="fillCongratsSubject">Winner email subject</label>',
-    '    <input id="fillCongratsSubject" type="text" placeholder="Generate drafts after selecting a project and applicant" />',
-    '    <label for="fillCongratsBody">Winner email body</label>',
-    '    <textarea id="fillCongratsBody" placeholder="The selected applicant receives this email."></textarea>',
-    '    <label for="fillReselectSubject">Reselection email subject</label>',
-    '    <input id="fillReselectSubject" type="text" placeholder="Generate drafts after selecting a project and applicant" />',
-    '    <label for="fillReselectBody">Reselection email body</label>',
-    '    <textarea id="fillReselectBody" placeholder="Applicants who ranked the filled project receive this email. Keep {{reselection_link}} where the update link should appear."></textarea>',
-    '    <div class="inline-row">',
-    '      <div style="flex:1"><label for="fillTestEmail">Test recipient email</label><input id="fillTestEmail" type="text" placeholder="your.email@example.com" /></div>',
-    '      <button id="fillTestCongratsBtn" class="secondary" disabled>Test winner email</button>',
-    '      <button id="fillTestReselectBtn" class="secondary" disabled>Test reselection email</button>',
-    '    </div>',
+    '    <h2>Record selection</h2>',
+    '    <p class="hint">This only marks the project as filled and records the fellow in the applications sheet. No applicant email is sent from this tab.</p>',
     '  </div>',
-    '  <button id="fillPreviewBtn" class="secondary" disabled>Preview recipients</button>',
+    '  <button id="fillPreviewBtn" class="secondary" disabled>Preview selection</button>',
     '  <div id="fillPreview"></div>',
-    '  <button id="fillBtn" class="primary" disabled>Fill project and send emails</button>',
-    '  <p class="meta">Winner receives the winner email above. Every other applicant who ranked this project receives the reselection email above so they can swap in a new choice. Non-winners are not rejected, they remain pending on their other two choices. Safe to rerun, congrats emails are deduped.</p>',
+    '  <button id="fillBtn" class="primary" disabled>Record selected fellow</button>',
+    '  <p class="meta">Use this for each final match. When all selections are ready, send every acceptance notice together from Closeout and tools.</p>',
     '  <div id="fillStatus"></div>',
     '</div>',
 
@@ -1414,6 +1445,28 @@ function _managementDialogHtml() {
     '</div>',
 
     '<div id="closeout" class="panel">',
+    '  <div class="section">',
+    '  <h2>Send acceptance notices</h2>',
+    '  <p class="hint">Use this after all project selections have been recorded. It sends the congratulations email to every selected fellow in one batch.</p>',
+    '  <button id="acceptDraftBtn" class="secondary">Generate acceptance draft</button>',
+    '  <div id="acceptDraftStatus"></div>',
+    '  <label for="acceptSubject">Acceptance email subject</label>',
+    '  <input id="acceptSubject" type="text" placeholder="Generate the acceptance draft before previewing recipients" />',
+    '  <label for="acceptBody">Acceptance email body</label>',
+    '  <textarea id="acceptBody" placeholder="Edit this email before sending to selected fellows. {{applicant_name}} and {{first_name}} are replaced for each recipient."></textarea>',
+    '  <label for="acceptCc">CC</label>',
+    '  <input id="acceptCc" type="text" placeholder="Optional, comma separated email addresses" />',
+    '  <div class="inline-row">',
+    '    <div style="flex:1"><label for="acceptTestEmail">Test recipient email</label><input id="acceptTestEmail" type="text" placeholder="your.email@example.com" /></div>',
+    '    <button id="acceptTestBtn" class="secondary" disabled>Send acceptance test</button>',
+    '  </div>',
+    '  <button id="acceptPreviewBtn" class="secondary" disabled>Preview selected fellows</button>',
+    '  <div id="acceptPreview"></div>',
+    '  <button id="acceptBtn" class="primary" disabled>Send acceptance notices now</button>',
+    '  <p class="meta">No reselection emails are sent. Applicants who are not selected remain pending until you send decline notices.</p>',
+    '  <div id="acceptStatus"></div>',
+    '  </div>',
+
     '  <div class="section">',
     '  <h2>Decline one applicant</h2>',
     '  <p class="hint">Use this after technical screening or any explicit decision not to move an applicant forward. Do not reject people just because one of their three choices was filled by someone else, they may still match their other choices.</p>',
@@ -1446,11 +1499,11 @@ function _managementDialogHtml() {
     '  <select id="testProjectSelect"><option value="">Loading…</option></select>',
     '  <label for="testWinnerEmail">Winner test email (gets congratulations)</label>',
     '  <input id="testWinnerEmail" type="text" value="aaronge2016@gmail.com" />',
-    '  <label for="testDisplacedEmail">Displaced test email (gets reselection)</label>',
+    '  <label for="testDisplacedEmail">Pending test email (no email sent)</label>',
     '  <input id="testDisplacedEmail" type="text" value="aaronge2020@gmail.com" />',
     '  <label><input id="testKeepFilled" type="checkbox" checked style="width:auto;margin-right:6px">Leave project filled after the test so I can inspect the website and form</label>',
     '  <button id="testRunBtn" class="primary" disabled>Run dummy fill test</button>',
-    '  <p class="meta">This deletes prior rows for those two test emails, creates fresh synthetic applications, sends the two test emails from the selected sender above, and refreshes the form/site state. Use Remove test data afterward to delete the rows and reopen the project.</p>',
+    '  <p class="meta">This deletes prior rows for those two test emails, creates fresh synthetic applications, sends only the selected fellow test email from the sender above, and refreshes the form/site state. Use Remove test data afterward to delete the rows and reopen the project.</p>',
     '  <div id="testStatus"></div>',
     '  </div>',
     '</details>',
@@ -1506,16 +1559,15 @@ function _managementDialogHtml() {
     'let ivDraftDirty=false;',
     'let ivDraftTimer=null;',
     'let fillPreviewOk=false;',
+    'let acceptPreviewOk=false;',
     'let bulkPreviewOk=false;',
     'let fillPreviewRows=[];',
+    'let acceptPreviewRows=[];',
     'let bulkPreviewRows=[];',
     'let bulkGateOpen=false;',
     'const validEmail=v=>/.+@.+\\..+/.test(String(v||"").trim());',
-    'const fillEmailTemplates=()=>{const cc=$("#fillCc").value.trim();return {',
-    '  cc,',
-    '  congratulations:{subject:$("#fillCongratsSubject").value.trim(),body:$("#fillCongratsBody").value.trim(),cc},',
-    '  reselection:{subject:$("#fillReselectSubject").value.trim(),body:$("#fillReselectBody").value.trim(),cc}',
-    '}};',
+    'const fillEmailTemplates=()=>({});',
+    'const acceptEmailTemplate=()=>({subject:$("#acceptSubject").value.trim(),body:$("#acceptBody").value.trim(),cc:$("#acceptCc").value.trim()});',
     'const rejectEmailTemplate=()=>({subject:$("#rejectSubject").value.trim(),body:$("#rejectBody").value.trim(),cc:$("#rejectCc").value.trim()});',
     'const bulkEmailTemplate=()=>({subject:$("#bulkSubject").value.trim(),body:$("#bulkBody").value.trim(),cc:$("#bulkCc").value.trim()});',
     'const templateReady=t=>!!(t&&t.subject&&t.body);',
@@ -1617,46 +1669,22 @@ function _managementDialogHtml() {
     '  return opt?opt.text.replace(/\\s+\\(\\d+ applicants\\)$/,""):"";',
     '}',
     'function clearFillDrafts(){',
-    '  ["#fillCc","#fillCongratsSubject","#fillCongratsBody","#fillReselectSubject","#fillReselectBody"].forEach(q=>$(q).value="");',
-    '  clearStatus($("#fillDraftStatus"));',
+    '  return;',
     '}',
     'function fillDraftsReady(){',
-    '  const t=fillEmailTemplates();',
-    '  return templateReady(t.congratulations)&&templateReady(t.reselection)&&/\\{\\{\\s*(reselection_link|link)\\s*\\}\\}/i.test(t.reselection.body);',
+    '  return true;',
     '}',
     'function fillRefreshButtons(){',
     '  const hasChoice=!!($("#projectSelect").value&&$("#applicantSelect").value);',
-    '  const ready=fillDraftsReady();',
-    '  const hasTest=validEmail($("#fillTestEmail").value);',
-    '  $("#fillDraftBtn").disabled=!hasChoice;',
-    '  $("#fillPreviewBtn").disabled=!(hasChoice&&ready);',
-    '  $("#fillTestCongratsBtn").disabled=!(ready&&hasTest);',
-    '  $("#fillTestReselectBtn").disabled=!(ready&&hasTest);',
-    '  $("#fillBtn").disabled=!(fillPreviewOk&&ready);',
+    '  $("#fillPreviewBtn").disabled=!hasChoice;',
+    '  $("#fillBtn").disabled=!(fillPreviewOk&&hasChoice);',
     '}',
     'function loadFillDrafts(force){',
-    '  const pid=$("#projectSelect").value;const email=$("#applicantSelect").value;',
-    '  if(!pid||!email){if(force)setStatus($("#fillDraftStatus"),"Pick a project and selected applicant first.","warn");fillRefreshButtons();return}',
-    '  $("#fillDraftBtn").disabled=true;setStatus($("#fillDraftStatus"),"Generating drafts…","warn");',
-    '  google.script.run.withSuccessHandler(d=>{',
-    '    $("#fillCongratsSubject").value=d.congratulations.subject||"";$("#fillCongratsBody").value=d.congratulations.body||"";',
-    '    $("#fillReselectSubject").value=d.reselection.subject||"";$("#fillReselectBody").value=d.reselection.body||"";',
-    '    fillPreviewOk=false;fillPreviewRows=[];$("#fillPreview").innerHTML="";setStatus($("#fillDraftStatus"),"Drafts generated. Edit them before previewing recipients.","ok");fillRefreshButtons();',
-    '  }).withFailureHandler(e=>{setStatus($("#fillDraftStatus"),"Could not generate drafts: "+errMsg(e),"err");fillRefreshButtons();})',
-    '  .mgmtBuildFillEmailDrafts(pid,email);',
+    '  fillRefreshButtons();',
     '}',
-    '$("#fillDraftBtn").addEventListener("click",()=>loadFillDrafts(true));',
-    '["#fillCc","#fillCongratsSubject","#fillCongratsBody","#fillReselectSubject","#fillReselectBody","#fillTestEmail"].forEach(q=>$(q).addEventListener("input",()=>{fillPreviewOk=false;fillPreviewRows=[];$("#fillPreview").innerHTML="";fillRefreshButtons()}));',
     'function sendFillDraftTest(kind){',
-    '  const to=$("#fillTestEmail").value.trim();const t=fillEmailTemplates();const draft=kind==="congratulations"?t.congratulations:t.reselection;const st=$("#fillDraftStatus");',
-    '  if(!validEmail(to)||!templateReady(draft))return;',
-    '  setStatus(st,"Sending test email…","warn");$("#fillTestCongratsBtn").disabled=true;$("#fillTestReselectBtn").disabled=true;',
-    '  google.script.run.withSuccessHandler(r=>{setStatus(st,"Test email sent to "+r.email+".","ok");fillRefreshButtons();})',
-    '    .withFailureHandler(e=>{setStatus(st,"Test send error: "+errMsg(e),"err");fillRefreshButtons();})',
-    '    .mgmtSendDraftTestEmail(draft.subject,draft.body,sender(),to,kind+"_test",selectedProjectLabel("#projectSelect"),t.cc);',
+    '  return;',
     '}',
-    '$("#fillTestCongratsBtn").addEventListener("click",()=>sendFillDraftTest("congratulations"));',
-    '$("#fillTestReselectBtn").addEventListener("click",()=>sendFillDraftTest("reselection"));',
 
     '$("#projectSelect").addEventListener("change",()=>{',
     '  const pid=$("#projectSelect").value;const as=$("#applicantSelect");const btn=$("#fillBtn");',
@@ -1685,13 +1713,13 @@ function _managementDialogHtml() {
     '$("#fillPreviewBtn").addEventListener("click",()=>{',
     '  const pid=$("#projectSelect").value;const email=$("#applicantSelect").value;const st=$("#fillStatus");',
     '  if(!pid||!email)return;',
-    '  $("#fillPreviewBtn").disabled=true;$("#fillBtn").disabled=true;setStatus(st,"Previewing recipients…","warn");',
+    '  $("#fillPreviewBtn").disabled=true;$("#fillBtn").disabled=true;setStatus(st,"Previewing selection...","warn");',
     '  google.script.run',
     '    .withSuccessHandler(p=>{',
     '      fillPreviewOk=true;',
     '      fillPreviewRows=p.recipients||[];',
     '      renderPreview($("#fillPreview"),p.recipients,p.skipped);',
-    '      setStatus(st,"Preview ready: "+p.totalToEmail+" email(s) would be sent.","ok");',
+    '      setStatus(st,"Preview ready. This selected fellow will be recorded, with no email sent from this tab.","ok");',
     '      $("#fillPreviewBtn").disabled=false;$("#fillBtn").disabled=false;',
     '    })',
     '    .withFailureHandler(e=>{fillPreviewOk=false;setStatus(st,"Preview error: "+errMsg(e),"err");fillRefreshButtons();})',
@@ -1702,14 +1730,15 @@ function _managementDialogHtml() {
     '  const pid=$("#projectSelect").value;const email=$("#applicantSelect").value;',
     '  const projectLabel=$("#projectSelect").selectedOptions[0].text;',
     '  const st=$("#fillStatus");if(!pid||!email)return;',
-    '  if(!fillPreviewOk){setStatus(st,"Preview recipients before sending.","warn");return}',
-    '  if(!confirm("Fill "+projectLabel+" with "+email+"?\\n\\nEmails will send from "+sender()+"."))return;',
-    '  $("#fillBtn").disabled=true;setStatus(st,"Sending…","warn");',
+    '  if(!fillPreviewOk){setStatus(st,"Preview the selection before recording it.","warn");return}',
+    '  if(!confirm("Record "+email+" as the selected fellow for "+projectLabel+"?\\n\\nNo applicant email will be sent."))return;',
+    '  $("#fillBtn").disabled=true;setStatus(st,"Recording selection...","warn");',
     '  google.script.run',
-    '    .withSuccessHandler(r=>{setStatus(st,"Filled. Congrats email sent to "+r.email+". "+r.notified+" reselection emails sent.","ok");',
+    '    .withSuccessHandler(r=>{setStatus(st,"Selection recorded for "+r.email+". Acceptance notices are still queued for the batch send.","ok");',
     '      loadFillProjects();',
     '      $("#applicantSelect").innerHTML="<option value=\\"\\">Pick a project first</option>";$("#applicantSelect").disabled=true;',
     '      loadInterviewProjects();',
+    '      clearAcceptancePreview();acceptRefreshButtons();',
     '      refreshBulkGate();',
     '    })',
     '    .withFailureHandler(e=>{setStatus(st,"Error: "+errMsg(e),"err");fillRefreshButtons();})',
@@ -1730,6 +1759,58 @@ function _managementDialogHtml() {
     '  .mgmtListOpenProjects();',
     '}',
     'loadInterviewProjects();',
+
+    'function clearAcceptancePreview(){',
+    '  acceptPreviewOk=false;acceptPreviewRows=[];',
+    '  const box=$("#acceptPreview");if(box)box.innerHTML="";',
+    '}',
+    'function acceptReady(){return templateReady(acceptEmailTemplate())}',
+    'function acceptRefreshButtons(){',
+    '  const ready=acceptReady();',
+    '  if(!ready)clearAcceptancePreview();',
+    '  $("#acceptTestBtn").disabled=!(ready&&validEmail($("#acceptTestEmail").value));',
+    '  $("#acceptPreviewBtn").disabled=!ready;',
+    '  $("#acceptBtn").disabled=!(acceptPreviewOk&&ready&&acceptPreviewRows.length);',
+    '}',
+    'function loadAcceptanceDraft(force){',
+    '  $("#acceptDraftBtn").disabled=true;setStatus($("#acceptDraftStatus"),"Generating acceptance draft...","warn");',
+    '  google.script.run.withSuccessHandler(d=>{',
+    '    $("#acceptSubject").value=d.subject||"";$("#acceptBody").value=d.body||"";clearAcceptancePreview();setStatus($("#acceptDraftStatus"),"Draft generated. Edit it before previewing selected fellows.","ok");$("#acceptDraftBtn").disabled=false;acceptRefreshButtons();',
+    '  }).withFailureHandler(e=>{setStatus($("#acceptDraftStatus"),"Could not generate acceptance draft: "+errMsg(e),"err");$("#acceptDraftBtn").disabled=false;acceptRefreshButtons();})',
+    '  .mgmtBuildAcceptanceEmailDraft();',
+    '}',
+    '$("#acceptDraftBtn").addEventListener("click",()=>loadAcceptanceDraft(true));',
+    '["#acceptSubject","#acceptBody","#acceptCc","#acceptTestEmail"].forEach(q=>$(q).addEventListener("input",()=>{clearAcceptancePreview();acceptRefreshButtons()}));',
+    '$("#acceptTestBtn").addEventListener("click",()=>{',
+    '  const t=acceptEmailTemplate();const to=$("#acceptTestEmail").value.trim();const st=$("#acceptDraftStatus");',
+    '  if(!validEmail(to)||!templateReady(t))return;',
+    '  $("#acceptTestBtn").disabled=true;setStatus(st,"Sending acceptance test...","warn");',
+    '  google.script.run.withSuccessHandler(r=>{setStatus(st,"Test email sent to "+r.email+".","ok");acceptRefreshButtons();})',
+    '    .withFailureHandler(e=>{setStatus(st,"Test send error: "+errMsg(e),"err");acceptRefreshButtons();})',
+    '    .mgmtSendDraftTestEmail(t.subject,t.body,sender(),to,"congratulations_test","",t.cc);',
+    '});',
+    '$("#acceptPreviewBtn").addEventListener("click",()=>{',
+    '  const st=$("#acceptStatus");$("#acceptPreviewBtn").disabled=true;$("#acceptBtn").disabled=true;setStatus(st,"Previewing selected fellows...","warn");',
+    '  google.script.run.withSuccessHandler(p=>{',
+    '    acceptPreviewRows=p.recipients||[];acceptPreviewOk=true;renderPreview($("#acceptPreview"),p.recipients,p.skipped);',
+    '    const openCount=p.progress&&p.progress.openProjectCount?p.progress.openProjectCount:0;',
+    '    const open=openCount?(" "+openCount+" project(s) are still open."): "";',
+    '    setStatus(st,"Preview ready: "+p.totalToEmail+" acceptance notice(s) would be sent."+open,openCount?"warn":"ok");acceptRefreshButtons();',
+    '  }).withFailureHandler(e=>{acceptPreviewOk=false;setStatus(st,"Preview error: "+errMsg(e),"err");acceptRefreshButtons();})',
+    '  .mgmtPreviewAcceptanceRecipients(acceptEmailTemplate());',
+    '});',
+    '$("#acceptBtn").addEventListener("click",()=>{',
+    '  const st=$("#acceptStatus");const n=acceptPreviewRows.length;',
+    '  if(!acceptPreviewOk||!acceptReady()){setStatus(st,"Preview selected fellows after reviewing the acceptance draft.","warn");return}',
+    '  if(n<1){setStatus(st,"No acceptance notices to send.","warn");return}',
+    '  if(!confirm("Send acceptance notices to "+n+" selected fellow(s) now?\\n\\nThis is the batch acceptance send and emails will send from "+sender()+"."))return;',
+    '  $("#acceptBtn").disabled=true;setStatus(st,"Sending "+n+" acceptance notice(s)...","warn");',
+    '  google.script.run.withSuccessHandler(r=>{',
+    '    setStatus(st,"Sent "+r.sent+" acceptance notice(s)."+(r.errors?" "+r.errors+" error(s), see error_log.":"")+(r.skipped?" "+r.skipped+" already skipped.":""),"ok");clearAcceptancePreview();acceptRefreshButtons();',
+    '  }).withFailureHandler(e=>{setStatus(st,"Error: "+errMsg(e),"err");acceptRefreshButtons();})',
+    '  .mgmtSendAcceptanceNotices(sender(),acceptPreviewRows,acceptEmailTemplate());',
+    '});',
+    'loadAcceptanceDraft(false);',
 
     'google.script.run.withSuccessHandler(d=>{',
     '  if(d.name)$("#ivReviewerName").value=d.name;',
@@ -1935,11 +2016,11 @@ function _managementDialogHtml() {
     '  const pid=$("#testProjectSelect").value;const win=$("#testWinnerEmail").value.trim();const lose=$("#testDisplacedEmail").value.trim();',
     '  const keep=$("#testKeepFilled").checked;const st=$("#testStatus");const label=$("#testProjectSelect").selectedOptions[0].text;',
     '  if(!pid||!win||!lose)return;',
-    '  if(!confirm("Run dummy fill test for "+label+"?\\n\\n"+win+" gets the congratulations email. "+lose+" gets the reselection email. No real applicants will be emailed.\\n\\nEmails send from "+sender()+"."))return;',
-    '  $("#testRunBtn").disabled=true;setStatus(st,"Creating synthetic applications and sending test emails…","warn");',
+    '  if(!confirm("Run dummy fill test for "+label+"?\\n\\n"+win+" gets the selected fellow test email. "+lose+" is created as a pending test applicant and receives no email. No real applicants will be emailed.\\n\\nEmail sends from "+sender()+"."))return;',
+    '  $("#testRunBtn").disabled=true;setStatus(st,"Creating synthetic applications and sending the selected fellow test email...","warn");',
     '  google.script.run',
     '    .withSuccessHandler(r=>{',
-    '      setStatus(st,"Test complete for "+r.projectLabel+". Sent congrats to "+r.winnerEmail+" and reselection to "+r.displacedEmail+"."+(r.keptFilled?" Project left filled for inspection. Use Remove test data to reset it.":" Project control state restored."),"ok");',
+    '      setStatus(st,"Test complete for "+r.projectLabel+". Sent the selected fellow test email to "+r.winnerEmail+". No email was sent to "+r.displacedEmail+"."+(r.keptFilled?" Project left filled for inspection. Use Remove test data to reset it.":" Project control state restored."),"ok");',
     '      loadPending();loadInterviewProjects();loadTestProjects();refreshBulkGate();',
     '    })',
     '    .withFailureHandler(e=>{setStatus(st,"Error: "+errMsg(e),"err");testRefreshBtn();})',

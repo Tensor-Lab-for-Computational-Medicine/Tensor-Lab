@@ -49,6 +49,11 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
+body.home-page {
+    background: var(--paper);
+    color: var(--ink);
+}
+
 a {
     text-decoration: none;
     color: inherit;
@@ -144,9 +149,16 @@ a {
     z-index: 5;
     /* Ensure it stays above watermark */
     position: relative;
-    background-color: transparent;
+    background: transparent;
     /* Remove flat black override */
     padding-bottom: 4rem;
+}
+
+body.home-page .surge-hero {
+    background:
+        radial-gradient(circle at 50% 45%, rgba(39, 39, 42, 0.58), transparent 34%),
+        linear-gradient(180deg, #0b0b0c 0%, #111113 100%);
+    color: var(--text-light);
 }
 
 /* Vine Removed */
@@ -2630,6 +2642,11 @@ summary::marker {
    ========================================================================== */
 
 /* --- Catalog hero (shorter than the home hero so projects are above the fold) */
+body.catalog-page {
+    background: #f8fafc;
+    color: #0f172a;
+}
+
 .catalog-hero {
     background: linear-gradient(180deg, #0b0f1a 0%, #111827 100%);
     color: #f8fafc;

@@ -135,30 +135,36 @@ function _assertValidSchedulingUrl(url) {
 }
 
 /**
- * Editable default draft for the selected applicant when a project is filled.
+ * Editable default draft for accepted fellows.
  * Dialog users may edit this before sending. Placeholders are replaced at
  * send time so the same draft can still personalize per applicant.
  */
 function _buildCongratulationsDraft(projectLabel) {
-  var label = _displayProjectLabel(projectLabel) || 'your Tensor Lab project';
-  var subject = 'Welcome to Tensor Lab';
+  var subject = 'Congratulations: Tensor Lab 2026 Summer Fellowship';
   var body = [
-    'Hi {{first_name}},',
+    'Dear {{applicant_name}},',
     '',
-    'Congratulations. We are delighted to offer you a place in the Tensor Lab fellowship for this project:',
+    'Congratulations! It is my pleasure to share some incredible news: you have been selected to join The Tensor Lab for Computational Medicine 2026 Summer Fellowship. This year, we received an exceptionally competitive pool of applications, and with an acceptance rate of just 5%, your selection is a testament to the outstanding talent, drive, and potential we saw in you.',
     '',
-    'Project: {{project}}',
+    'This is an exciting opportunity to embark on a 10-week remote, part-time, project-based fellowship running from June 16, 2026 to August 25, 2026. As a fellow, you will lead an independent machine learning research project (with the option of working in small teams if you\'d prefer), grounded in real clinical needs. Successful projects have the potential for academic outputs to make a tangible impact on patient care. While this is an unpaid fellowship, it offers unparalleled mentorship from medical students, physicians, and scientists from institutions like UCSF School of Medicine, NIH, and University of Maryland School of Medicine, alongside a collaborative cohort of equally ambitious peers.',
     '',
-    'Your application stood out to the review team, and we are excited about the perspective and energy you would bring to the work.',
+    'We\'re incredibly excited about the groundbreaking contributions you and your cohort will make.',
     '',
-    'A project lead will follow up soon with next steps, including introductions, background reading, and scheduling for kickoff. In the meantime, no action is needed from you.',
+    'To formally accept your place in this highly selective program, please reply to this email within 2 business days. In your acceptance, kindly confirm your availability and commitment to the full 10-week fellowship period. This entails a minimum of 10 hours of remote engagement per week with 1-2 hours per week being on Zoom synchronously with your team/cohort.',
     '',
-    'If anything about your availability, time zone, or start date has changed since you applied, please reply to this email so we can plan around it.',
+    'Upon your acceptance, we\'ll send a comprehensive onboarding package. This will include everything you need to get started: a detailed program schedule, introductions to the medical student leadership team, access to our collaborative platforms, and initial guidance for how you can start diving into your research. Your medical mentors will also reach out about onboarding, IRBs, and any documentation you need to complete to get data access. We\'ll begin the summer with a virtual Launch Week starting June 16, 2026, where you\'ll meet your cohort, learn about the program structure, and begin brainstorming your project with guidance from mentors.',
     '',
-    'Warmly,',
-    'Tensor Lab Team'
+    'If you have any questions before accepting this unique opportunity, please don\'t hesitate to reach out to me directly.',
+    '',
+    'Congratulations once again on this truly exceptional achievement. We can\'t wait to welcome you to The Tensor Lab and empower you to advance medicine through machine learning.',
+    '',
+    'Sincerely,',
+    '',
+    'Matt Allen',
+    '',
+    'Director, Tensor Lab for Computational Medicine'
   ].join('\n');
-  return _emailDraft(subject, body, { project: label });
+  return _emailDraft(subject, body, {});
 }
 
 /**
@@ -296,8 +302,11 @@ function _sendCongratulationsEmail(toEmail, projectLabel, fromEmail, projectId) 
   if (!toEmail) throw new Error('toEmail required');
   var label = _displayProjectLabel(projectLabel) || 'your Tensor Lab project';
   var draft = _buildCongratulationsDraft(label);
+  var applicantName = '';
+  try { applicantName = _applicantNameForEmail(toEmail) || ''; } catch (_e) {}
   _sendEmailFromTemplate(toEmail, draft, {
-    first_name: '',
+    first_name: _firstNameFromName(applicantName),
+    applicant_name: applicantName || 'Fellow',
     project: label,
     project_label: label,
     project_id: projectId || ''

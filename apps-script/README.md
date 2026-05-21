@@ -410,7 +410,7 @@ and the exact draft shown in the dialog goes out. Do not use this just because
 a single choice got filled by someone else.
 
 **Close cohort.** Under **Closeout and tools**, this is only enabled after every project in `control` has status
-`filled`. The tab shows live progress (e.g. `8 of 14 projects filled`) and
+`filled`. The tab shows live progress (e.g. `8 of 15 projects filled`) and
 lists remaining open projects. When all projects are closed, generate and edit
 the closeout decline draft, send a test if needed, then click **Preview
 rejection recipients** to review exactly who will receive it. The real send

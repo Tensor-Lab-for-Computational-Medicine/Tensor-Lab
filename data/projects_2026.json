@@ -1,11 +1,11 @@
 {
   "cohort": "2026",
-  "version": 2,
+  "version": 3,
   "schema": {
-    "notes": "All user facing text is scrubbed of dashes per Tensor Lab copy rules. Proper dataset and tool names keep their original form. `availability` is the only field the applicant counter footer reads (open or filled). Everything else is descriptive context for the applicant.",
+    "notes": "All user facing text is scrubbed of dashes per Tensor Lab copy rules. Proper dataset and tool names keep their original form. `availability` is retained for operational compatibility, but the public catalog no longer displays application status.",
     "fields": {
-      "project_id": "Stable slug, used as the key in the applications sheet and the applicant counter.",
-      "availability": "open or filled. Drives the footer availability chip on each card.",
+      "project_id": "Stable slug, used as the key in the applications sheet.",
+      "availability": "open or filled. Retained for operational compatibility.",
       "progress_note": "Optional. Work the team has already completed before the fellow arrives.",
       "access_note": "Optional. IRB, data access, or de identification status.",
       "mentor_note": "Optional. A plain language heads up from the leadership team."
@@ -122,11 +122,6 @@
       "institution": "UMSOM",
       "email": "Peter.Lukish@som.umaryland.edu"
     },
-    "komal-gandhi": {
-      "name": "Komal Gandhi",
-      "institution": "UMSOM",
-      "email": "komalgandhi@som.umaryland.edu"
-    },
     "makenzie-higgins": {
       "name": "Makenzie Higgins",
       "institution": "UMSOM",
@@ -236,31 +231,6 @@
       "access_note": "IRB is in progress but not yet approved. Data access is not yet confirmed. The onramp phase needs to move quickly to avoid delaying the summer sprint.",
       "progress_note": null,
       "mentor_note": "Strong fit for fellows who care about fairness and want to pair ML with rigorous disparity analysis."
-    },
-    {
-      "project_id": "psychiatric-hypoglycemia-causal-t2d",
-      "title": "Causal Inference of Psychiatric Disorders on Hypoglycemia Risk in Type 2 Diabetes",
-      "specialty": "Endocrinology, Psychiatry",
-      "institution": "University of Maryland School of Medicine",
-      "faculty_pi": "Dr. Alexandria Ratzki-Leewing, PhD",
-      "faculty_pi_url": "https://www.medschool.umaryland.edu/profiles/Ratzki-Leewing-Alexandria/",
-      "med_student_lead": "Komal Gandhi",
-      "med_student_mentor_key": "komal-gandhi",
-      "clinical_problem": "Patients with common psychiatric disorders, including depression, anxiety, bipolar disorder, and schizophrenia, are two to three times more likely to develop type 2 diabetes, yet we do not know how the presence and severity of these conditions affect real world hypoglycemia burden, including frequency, severity, and impaired awareness of hypoglycemia. This gap matters because hypoglycemia is a serious, potentially life threatening complication of diabetes management that is linked to cardiovascular events, cognitive impairment, reduced quality of life, and mortality, but prior work has relied largely on self report and has not rigorously characterized risk across specific psychiatric diagnoses.",
-      "technical_approach": "Assemble a retrospective cohort of adults with type 2 diabetes from institutional EHR data, requiring at least 6 to 12 months of prior data for confounder assessment and 12 months of follow up for hypoglycemia outcomes. Define exposure by classifying patients into mutually exclusive groups based on EHR documented diagnoses of depression, anxiety, bipolar disorder, and schizophrenia, plus a reference group without these diagnoses, and build a pharmacoepidemiologic severity algorithm that integrates psychotropic medication class such as SSRIs, antipsychotics, and mood stabilizers, dose trajectory, number of treatment trials, augmentation strategies, psychotherapy utilization, and mental health related health care utilization as a proxy for psychiatric illness severity. Define outcomes by operationalizing ADA hypoglycemia levels using fingerstick and laboratory glucose values, for example glucose under 70 mg per dL and under 54 mg per dL, ICD codes for hypoglycemia, emergency department visits and hospital admissions with hypoglycemia codes, and administration of rescue therapies including oral glucose, IV dextrose, and glucagon. Construct 12 month outcomes capturing any hypoglycemia, severe hypoglycemia requiring medical assistance or documented level 2 or 3, recurrent hypoglycemia such as three or more events, and exploratory indicators of impaired awareness like severe events in the absence of preceding documented biochemical hypoglycemia or discordance between low glucose and symptom coding. Adjust for baseline covariates including age, sex, race and ethnicity, socioeconomic indicators such as insurance type and neighborhood deprivation proxies where available, HbA1c, duration of diabetes, comorbidity burden, renal function, polypharmacy, prior hypoglycemia, current diabetes treatment regimen including insulin, sulfonylureas, and other glucose lowering medications, glucose monitoring modality such as fingerstick versus continuous glucose monitoring, and concurrent psychotropic medication use. Apply Targeted Maximum Likelihood Estimation, or TMLE, to estimate the causal effect of baseline mental health status and severity on 12 month hypoglycemia outcomes, using flexible machine learning models such as Super Learner ensembles for both the outcome and exposure mechanisms, yielding marginal risk differences and risk ratios across the four psychiatric diagnoses and severity strata. As a secondary analysis, use causal forests to explore treatment effect heterogeneity by diabetes regimen, for example insulin versus non insulin, sulfonylurea use, GLP 1 and SGLT2 use, and by glucose monitoring modality.",
-      "deliverable": "A fully adjusted causal inference analysis quantifying the 12 month absolute and relative risk of severe and recurrent hypoglycemia associated with specific psychiatric diagnoses and graded severity, accompanied by subgroup estimates across major diabetes treatment regimens. Includes detailed phenotyping definitions, severity algorithms, and sensitivity analyses covering alternative exposure definitions, alternative hypoglycemia phenotypes, and propensity score truncation. Suitable for submission to a diabetes or clinical informatics journal.",
-      "data_type": "Institutional EHR data including structured laboratory results, ICD diagnosis and procedure codes, medication ordering and administration records covering psychotropic and glucose lowering agents, glucose monitoring data from fingerstick and, where available, continuous glucose monitoring, and encounter level utilization data. Identifiable clinical data. Requires IRB approval and formal data access provisioning prior to cohort construction.",
-      "preferred_skills": [
-        "Python or R, for EHR scale data wrangling and analysis",
-        "Causal inference methods, including TMLE, propensity score based methods, and causal forests or other heterogeneous treatment effect approaches",
-        "Experience with epidemiologic study design and large observational health care datasets is preferred",
-        "Comfort with automated extraction and phenotyping of EHR data, and with machine learning components inside TMLE such as Super Learner"
-      ],
-      "availability": "open",
-      "capacity": 1,
-      "access_note": "IRB approval and data access provisioning required before work begins. Plan for an administrative runway.",
-      "progress_note": null,
-      "mentor_note": "Best fit for fellows who want rigorous causal inference practice on real clinical data."
     },
     {
       "project_id": "llm-radiology-detection-method",

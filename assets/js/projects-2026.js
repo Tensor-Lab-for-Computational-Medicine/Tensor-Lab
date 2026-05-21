@@ -3,16 +3,15 @@
  *
  * Hydrates the 2026 project catalog from data/projects_2026.json into a compact,
  * searchable grid. Each card is scannable by default (specialty, institution,
- * title, problem preview, mentorship, counter, status). Clicking "View full
+ * title, problem preview, mentorship). Clicking "View full
  * details" opens a slide-in drawer modal with the full brief so the grid stays
  * visually uniform.
  *
  * Features:
  *   - Text search across title, problem, approach, deliverable, skills, people
- *   - Multi-facet filter chips: specialty, institution, availability
+ *   - Multi-facet filter chips: specialty and institution
  *   - Slide-in drawer modal for full project details (keyboard + backdrop close)
  *   - Deep link: #<project-id> opens that project's drawer + pulses the card
- *   - Applicant counter contract preserved (data-applicant-counter)
  *
  * No framework, no globals. ES5 safe.
  */
@@ -27,10 +26,8 @@
     search: '',
     specialty: 'all',
     institution: 'all',
-    availability: 'all',
     activeProjectId: null,
-    lastFocused: null,
-    pendingStatuses: null
+    lastFocused: null
   };
 
   // ------------------------------ utilities ---------------------------------
@@ -81,10 +78,6 @@
   function matchesState(p) {
     if (state.specialty !== 'all' && primarySpecialty(p.specialty) !== state.specialty) return false;
     if (state.institution !== 'all' && shortInstitution(p.institution) !== state.institution) return false;
-    if (state.availability !== 'all') {
-      var avail = p.availability || 'open';
-      if (state.availability !== avail) return false;
-    }
     if (state.search) {
       var q = state.search.trim().toLowerCase();
       if (q && p._search.indexOf(q) === -1) return false;
@@ -99,54 +92,11 @@
     if (el) el.textContent = value || '';
   }
 
-  function renderAvailability(node, availability) {
-    var chip = node.querySelector('.pc2-availability');
-    if (!chip) return;
-    node.classList.remove('card-filled');
-    if (availability === 'filled') {
-      chip.textContent = 'Filled';
-      chip.setAttribute('data-availability', 'filled');
-      node.classList.add('card-filled');
-    } else {
-      chip.textContent = 'Open';
-      chip.setAttribute('data-availability', 'open');
-    }
-  }
-
-  function applyLiveStatuses(statuses) {
-    if (!statuses) return;
-    if (!state.projects.length) {
-      state.pendingStatuses = statuses;
-      return;
-    }
-    state.projects.forEach(function (p) {
-      if (statuses[p.project_id]) p.availability = statuses[p.project_id];
-    });
-    Array.prototype.forEach.call(document.querySelectorAll('.project-card-2026'), function (card) {
-      var p = findProject(card.dataset.projectId);
-      if (!p) return;
-      card.dataset.availability = p.availability || 'open';
-      renderAvailability(card, p.availability || 'open');
-    });
-    if (state.activeProjectId) {
-      var modal = document.getElementById('project-modal');
-      var active = findProject(state.activeProjectId);
-      var chip = modal && modal.querySelector('.pm-availability');
-      if (chip && active) {
-        var a = active.availability || 'open';
-        chip.textContent = a === 'filled' ? 'Filled' : 'Open';
-        chip.setAttribute('data-availability', a);
-      }
-    }
-    applyFilters();
-  }
-
   function renderCard(project, template) {
     var frag = template.content.cloneNode(true);
     var article = frag.querySelector('.project-card-2026');
     article.dataset.specialty = primarySpecialty(project.specialty);
     article.dataset.institution = shortInstitution(project.institution);
-    article.dataset.availability = project.availability || 'open';
     article.dataset.projectId = project.project_id;
 
     setText(frag, '.pc2-specialty', project.specialty);
@@ -155,10 +105,6 @@
     setText(frag, '.pc2-clinical-preview', truncate(project.clinical_problem, CLINICAL_PREVIEW_CHARS));
     setText(frag, '.pc2-pi', project.faculty_pi || 'To be confirmed');
     setText(frag, '.pc2-mentor', project.med_student_lead || 'To be confirmed');
-    renderAvailability(article, project.availability || 'open');
-
-    var counter = frag.querySelector('[data-applicant-counter]');
-    if (counter) counter.setAttribute('data-applicant-counter', project.project_id);
 
     var btn = frag.querySelector('.pc2-expand-btn');
     if (btn) {
@@ -202,20 +148,6 @@
     });
   }
 
-  function wireAvailabilityBar() {
-    var bar = document.getElementById('availability-filter');
-    if (!bar) return;
-    bar.addEventListener('click', function (ev) {
-      var chip = ev.target.closest('.filter-chip');
-      if (!chip) return;
-      state.availability = chip.dataset.value;
-      Array.prototype.forEach.call(bar.querySelectorAll('.filter-chip'), function (c) {
-        c.classList.toggle('active', c === chip);
-      });
-      applyFilters();
-    });
-  }
-
   function wireSearch() {
     var input = document.getElementById('catalog-search-input');
     if (!input) return;
@@ -236,10 +168,9 @@
       state.search = '';
       state.specialty = 'all';
       state.institution = 'all';
-      state.availability = 'all';
       var input = document.getElementById('catalog-search-input');
       if (input) input.value = '';
-      ['specialty-filter', 'institution-filter', 'availability-filter'].forEach(function (id) {
+      ['specialty-filter', 'institution-filter'].forEach(function (id) {
         var bar = document.getElementById(id);
         if (!bar) return;
         Array.prototype.forEach.call(bar.querySelectorAll('.filter-chip'), function (c) {
@@ -288,7 +219,7 @@
     if (emptyEl) emptyEl.hidden = visible !== 0;
 
     var dirty = state.search !== '' || state.specialty !== 'all'
-      || state.institution !== 'all' || state.availability !== 'all';
+      || state.institution !== 'all';
     if (resetBtn) resetBtn.hidden = !dirty;
   }
 
@@ -374,13 +305,6 @@
     var skillsUl = modal.querySelector('.pm-skills');
     if (skillsUl) fillSkills(skillsUl, project.preferred_skills);
 
-    var availChip = modal.querySelector('.pm-availability');
-    if (availChip) {
-      var a = project.availability || 'open';
-      availChip.textContent = a === 'filled' ? 'Filled' : 'Open';
-      availChip.setAttribute('data-availability', a);
-    }
-
     modal.hidden = false;
     modal.setAttribute('aria-hidden', 'false');
     document.body.classList.add('modal-open');
@@ -430,10 +354,6 @@
     if (!modal) return;
     modal.addEventListener('click', function (ev) {
       if (ev.target.closest('[data-modal-close]')) { closeModal(); return; }
-      // Apply button should close modal before navigating so hash #apply resolves cleanly
-      if (ev.target.closest('[data-modal-apply]')) {
-        closeModal();
-      }
     });
     document.addEventListener('keydown', function (ev) {
       if (ev.key === 'Escape' && !modal.hidden) closeModal();
@@ -486,16 +406,11 @@
         buildChipBar('institution-filter',
           uniqueSorted(projects.map(function (p) { return shortInstitution(p.institution); })),
           'institution');
-        wireAvailabilityBar();
         wireSearch();
         wireReset();
         wireFilterToggle();
         wireModal();
         applyFilters();
-        if (state.pendingStatuses) {
-          applyLiveStatuses(state.pendingStatuses);
-          state.pendingStatuses = null;
-        }
 
         openFromHash();
       })
@@ -503,11 +418,6 @@
         grid.innerHTML = '<p style="color:var(--ink-light);">Project list is temporarily unavailable. Please refresh.</p>';
       });
   }
-
-  document.addEventListener('tensorlab:project-statuses', function (ev) {
-    applyLiveStatuses(ev.detail);
-  });
-
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {

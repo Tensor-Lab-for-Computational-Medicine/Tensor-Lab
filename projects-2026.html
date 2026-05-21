@@ -6,20 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2026 Projects, The Tensor Lab</title>
     <meta name="description"
-        content="Browse the 14 projects in the Tensor Lab Summer 2026 cohort. Rank your top three and apply.">
+        content="Browse the 15 projects in the Tensor Lab Summer 2026 cohort. Fellow applications for this cycle are closed.">
     <meta property="og:title" content="2026 Projects, The Tensor Lab">
     <meta property="og:description"
-        content="Browse the 14 projects in the Tensor Lab Summer 2026 cohort. Rank your top three and apply.">
+        content="Browse the 15 projects in the Tensor Lab Summer 2026 cohort. Fellow applications for this cycle are closed.">
     <meta property="og:url" content="https://thetensorlab.org/projects-2026.html">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://thetensorlab.org/assets/images/logo2.png">
-
-    <!--
-        Apps Script web app URL. Overwrite this at deploy time or edit config.json.
-        Example: <meta name="tensor-lab-api" content="https://script.google.com/macros/s/AKfycb.../exec">
-    -->
-    <meta name="tensor-lab-api"
-        content="https://script.google.com/macros/s/AKfycbxXPK0odvJqsrUqftHJKGosC0odVyk3vDnDw2nghA_yzhi48gMh8dIlO-X2cyyoMY50/exec">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -29,7 +22,7 @@
     <link rel="stylesheet" href="assets/css/styles.css?v=2026-5">
 </head>
 
-<body>
+<body class="catalog-page">
 
     <nav class="surge-nav" style="justify-content: space-between; padding: 2rem;">
         <a href="index.html" aria-label="Tensor Lab home">
@@ -44,7 +37,7 @@
                 <a href="team.html">OUR TEAM</a>
                 <a href="projects-2026.html">PROJECT CATALOGUE</a>
                 <a href="cohort-2025.html">2025 COHORT</a>
-                <a href="projects-2026.html#apply" style="color: var(--alert);">JOIN US</a>
+                <a href="projects-2026.html#apply" style="color: var(--alert);">APPLICATIONS CLOSED</a>
             </div>
         </div>
     </nav>
@@ -53,13 +46,13 @@
         <div class="catalog-hero-inner">
             <h1 class="catalog-title">2026 Project Catalog</h1>
             <p class="catalog-subtext">
-                Research projects across emergency medicine, cardiology, oncology, psychiatry,
-                and more. Search, filter, and scan the cards below, then pick any three and rank them on
-                your application. Live applicant counts refresh every thirty seconds so you can gauge how
-                competitive each project is before you commit.
+                Research projects across emergency medicine, cardiology, oncology, radiology,
+                and more. Search, filter, and scan the cards below to explore the Summer 2026 cohort.
+                Fellow applications for this cycle are now closed, and we are no longer accepting new
+                fellows.
             </p>
             <div class="catalog-cta-row">
-                <a href="#apply" class="btn btn-primary btn-lg">Apply now →</a>
+                <a href="#apply" class="btn btn-primary btn-lg">Applications closed</a>
                 <a href="#projects" class="btn btn-ghost btn-lg">Browse the catalog</a>
             </div>
         </div>
@@ -90,17 +83,10 @@
                         <span class="catalog-filter-label">Institution</span>
                         <div class="catalog-filter-chips" id="institution-filter"></div>
                     </div>
-                    <div class="catalog-filter-group" data-facet="availability">
-                        <span class="catalog-filter-label">Status</span>
-                        <div class="catalog-filter-chips" id="availability-filter">
-                            <button class="filter-chip active" data-value="all" type="button">All</button>
-                            <button class="filter-chip" data-value="open" type="button">Open only</button>
-                        </div>
-                    </div>
                 </div>
 
                 <div class="catalog-meta">
-                    <span id="catalog-count" aria-live="polite">Showing all 14 projects</span>
+                    <span id="catalog-count" aria-live="polite">Showing all 15 projects</span>
                     <button type="button" id="catalog-reset" class="catalog-reset-btn" hidden>Reset filters</button>
                 </div>
             </div>
@@ -113,17 +99,11 @@
 
             <!-- Compact card. Full detail opens in a slide-in drawer modal. -->
             <template id="project-card-template">
-                <article class="project-card-2026 pc2-compact" data-specialty="" data-institution=""
-                    data-availability="open">
+                <article class="project-card-2026 pc2-compact" data-specialty="" data-institution="">
                     <header class="pc2-compact-head">
                         <div class="pc2-tags">
                             <span class="pc2-tag pc2-specialty"></span>
                             <span class="pc2-tag pc2-institution"></span>
-                        </div>
-                        <div class="pc2-footer-meta">
-                            <span class="applicant-counter counter-hidden" data-applicant-counter=""
-                                aria-live="polite"></span>
-                            <span class="pc2-availability" data-availability="open">Open</span>
                         </div>
                     </header>
 
@@ -162,7 +142,6 @@
                     <div class="pm-tags">
                         <span class="pc2-tag pm-specialty"></span>
                         <span class="pc2-tag pm-institution"></span>
-                        <span class="pc2-availability pm-availability" data-availability="open">Open</span>
                     </div>
                     <button type="button" class="project-modal-close" data-modal-close aria-label="Close">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -217,37 +196,22 @@
                         <p class="pm-note-text"></p>
                     </aside>
                 </div>
-
-                <footer class="pm-footer">
-                    <a class="btn btn-primary btn-lg" href="#apply" data-modal-apply>Apply to this project →</a>
-                </footer>
             </div>
         </div>
 
         <section id="apply" class="catalog-section apply-section">
             <div class="apply-card">
                 <div class="apply-card-copy">
-                    <h2>Become a Tensor ML Fellow</h2>
+                    <span class="apply-card-kicker">Summer 2026 Fellowship</span>
+                    <h2>Fellow Applications Are Closed</h2>
                     <p>
-                        To join our team, please submit an application via our Google Forms link. The application will
-                        ask you to rank the three projects you are most interested in. Interviews for projects are sent
-                        out on a rolling basis. When projects are filled, we will let you know and give you the
-                        opportunity to switch your top choices.
+                        The Summer 2026 application cycle has closed, and we are no longer accepting new fellows for
+                        this cohort. The project catalog remains available for reference while selected teams move
+                        through onboarding and the summer research sprint.
                     </p>
-                    <p style="margin-bottom: 0.5rem; color: #fff; font-weight: 500;">We are looking for:</p>
-                    <ul class="apply-card-checklist">
-                        <li>Strong technical skills</li>
-                        <li>Track record of successful independent projects</li>
-                        <li>Desire to solve complex problems within medicine</li>
-                    </ul>
                 </div>
                 <div class="apply-card-actions">
-                    <a class="btn btn-primary btn-lg apply-card-btn"
-                        href="https://docs.google.com/forms/d/e/1FAIpQLSeSaV9tziI6pzsyJCENK4uxtl92bme1ikiQ8umYujCo-hVm6w/viewform"
-                        target="_blank" rel="noopener">
-                        Apply here
-                    </a>
-
+                    <a class="btn btn-primary btn-lg apply-card-btn" href="#projects">Browse the catalog</a>
                 </div>
             </div>
         </section>
@@ -263,7 +227,6 @@
 
     <script src="assets/js/script.js"></script>
     <script src="assets/js/projects-2026.js"></script>
-    <script src="assets/js/applicantCounter.js"></script>
 </body>
 
 </html>

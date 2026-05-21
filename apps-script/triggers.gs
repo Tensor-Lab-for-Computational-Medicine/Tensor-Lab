@@ -1,8 +1,8 @@
 /**
  * triggers.gs
  *
- * Feature 2 (F2) Applicant Redirection System and the onFormSubmit validator
- * for Feature 3 (F3). All sheet writes run under LockService to avoid race
+ * Applicant selection triggers and the onFormSubmit validator. All sheet writes
+ * run under LockService to avoid race
  * conditions when the counts poller and the form triggers fire at once.
  *
  * All column lookups go through _col(headers, logicalName) which consults
@@ -10,17 +10,23 @@
  */
 
 /**
- * Flip a project to filled and kick off the redirection flow.
+ * Flip a project to filled and record the selected applicant.
  * Inputs: projectId string, selectedApplicantEmail string.
- * Output: { ok: true, notified: number } or throws on invalid input.
+ * Output: { ok: true, notified: 0 } or throws on invalid input.
  *
- * This function must only be invoked by leadership from the Apps Script editor
- * or from a leadership-only menu. It is not exposed through doGet.
+ * This no longer sends applicant email. Selection and acceptance email are
+ * deliberately separate so every accepted fellow can be notified together.
  */
 function markProjectFilled(projectId, selectedApplicantEmail, fromEmail, emailTemplates) {
   if (!projectId || !selectedApplicantEmail) {
     throw new Error('markProjectFilled requires projectId and selectedApplicantEmail.');
   }
+  _recordProjectSelection(projectId, selectedApplicantEmail);
+  _refreshProjectSurfaces();
+  return { ok: true, notified: 0 };
+}
+
+function _recordProjectSelection(projectId, selectedApplicantEmail) {
   var lock = LockService.getScriptLock();
   lock.waitLock(15000);
   try {
@@ -60,17 +66,15 @@ function markProjectFilled(projectId, selectedApplicantEmail, fromEmail, emailTe
   } finally {
     lock.releaseLock();
   }
-
-  var notified = notifyDisplacedApplicants(projectId, selectedApplicantEmail, fromEmail, emailTemplates);
-  _refreshProjectSurfaces();
-  return { ok: true, notified: notified };
 }
 
 /**
- * Email every applicant who ranked projectId but was not selected.
+ * Legacy compatibility wrapper for the old fill workflow.
  * Inputs: projectId string, selectedApplicantEmail string.
- * Output: number of emails sent this run.
- * Skips applicants already logged for this project in redirect_log.
+ * Output: number of congratulations emails sent this run.
+ *
+ * Reselection notices are retired because acceptances are now sent together
+ * after selection is complete.
  */
 function notifyDisplacedApplicants(projectId, selectedApplicantEmail, fromEmail, emailTemplates) {
   var apps = _getSheet(SHEET_APPLICATIONS);
@@ -78,24 +82,18 @@ function notifyDisplacedApplicants(projectId, selectedApplicantEmail, fromEmail,
 
   var headers = apps.getRange(1, 1, 1, apps.getLastColumn()).getValues()[0];
   var emailCol = _col(headers, 'email');
-  var tokenCol = _col(headers, 'redirect_token');
-  var statusCol = _col(headers, 'status');
   var preferredNameCol = _col(headers, 'preferred_name');
   var fullNameCol = _col(headers, 'name');
-  var choiceCols = CHOICE_COLUMNS.map(function (c) { return _col(headers, c); });
-  if (emailCol < 0 || tokenCol < 0 || choiceCols.indexOf(-1) !== -1) {
-    throw new Error('applications sheet missing required columns, check FIELD_ALIASES in api.gs');
+  if (emailCol < 0) {
+    throw new Error('applications sheet missing email column, check FIELD_ALIASES in api.gs');
   }
 
   var rows = apps.getRange(2, 1, apps.getLastRow() - 1, apps.getLastColumn()).getValues();
-  var alreadyNotified = _alreadyNotifiedSet(projectId);
   var sent = 0;
-  var BATCH_LIMIT = 100;
 
   var selectedEmail = String(selectedApplicantEmail || '').trim().toLowerCase();
   var projectLabel = _lookupProjectLabel(projectId);
   var templateSet = _normalizeFillEmailTemplates(emailTemplates, projectLabel);
-  if (templateSet.reselection) _assertReselectionTemplateHasLink(templateSet.reselection);
   if (selectedEmail && !_alreadyCongratulated(selectedEmail, projectId)) {
     try {
       if (templateSet.congratulations) {
@@ -110,46 +108,10 @@ function notifyDisplacedApplicants(projectId, selectedApplicantEmail, fromEmail,
         _sendCongratulationsEmail(selectedEmail, projectLabel, fromEmail, projectId);
       }
       _appendRedirectLog(selectedEmail, '', projectId);
+      sent = 1;
     } catch (err) {
       _logError('notifyDisplacedApplicants.congrats', err);
     }
-  }
-
-  for (var i = 0; i < rows.length && sent < BATCH_LIMIT; i++) {
-    var row = rows[i];
-    var email = String(row[emailCol]).trim().toLowerCase();
-    if (!email || email === String(selectedApplicantEmail).trim().toLowerCase()) continue;
-    if (statusCol >= 0 && _isTerminalStatus(row[statusCol])) continue;
-    var ranks = choiceCols.map(function (c) { return _extractProjectId(row[c]); });
-    if (ranks.indexOf(projectId) === -1) continue;
-    if (alreadyNotified[email]) continue;
-
-    var survivingChoices = ranks.filter(function (r) { return r && r !== projectId; });
-    var token = String(row[tokenCol] || '').trim();
-    if (!token) {
-      token = Utilities.getUuid();
-      apps.getRange(i + 2, tokenCol + 1).setValue(token);
-    }
-
-    var editUrl = _buildEditApplicationUrl(email);
-    var linkUrl = editUrl || _buildReselectionUrl(token, survivingChoices);
-    if (templateSet.reselection) {
-      var displayName = _rowDisplayName(row, preferredNameCol, fullNameCol);
-      _sendEmailFromTemplate(email, templateSet.reselection, {
-        first_name: _firstNameFromName(displayName),
-        applicant_name: displayName,
-        project: projectLabel,
-        project_label: projectLabel,
-        project_id: projectId,
-        reselection_link: linkUrl,
-        link: linkUrl
-      }, 'reselection', projectLabel, fromEmail, projectId);
-    } else {
-      _sendReselectionEmail(email, linkUrl, editUrl ? 'edit' : 'reselect', projectLabel, fromEmail, projectId);
-    }
-    _appendRedirectLog(email, projectId, '');
-    alreadyNotified[email] = true;
-    sent++;
   }
   return sent;
 }
@@ -412,6 +374,25 @@ function _alreadyCongratulated(email, projectId) {
   return false;
 }
 
+function _alreadyCongratulatedAnyProject(email) {
+  var sheet = _getSheet(SHEET_REDIRECT_LOG);
+  if (!sheet || sheet.getLastRow() < 2) return false;
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var emailCol = headers.indexOf('applicant_email');
+  var removedCol = headers.indexOf('project_removed');
+  var addedCol = headers.indexOf('project_added');
+  if (emailCol < 0 || removedCol < 0 || addedCol < 0) return false;
+  var rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+  var target = String(email || '').trim().toLowerCase();
+  for (var i = 0; i < rows.length; i++) {
+    if (String(rows[i][emailCol]).trim().toLowerCase() !== target) continue;
+    if (String(rows[i][removedCol]).trim() !== '') continue;
+    if (!String(rows[i][addedCol]).trim()) continue;
+    return true;
+  }
+  return false;
+}
+
 /**
  * Return the human readable label for a project id from the control sheet,
  * falling back to the id itself if no label is set.
@@ -452,13 +433,13 @@ function _sanitize(s) {
 
 /**
  * onEdit trigger. Watches the control sheet for status changes to `filled`
- * and kicks off the redirection flow automatically. Leadership can mark a
+ * and records the selected fellow automatically. Leadership can mark a
  * project filled by typing `filled` in the status column and putting the
  * selected applicant's email in the selected_applicant column on the same
- * row. No function call needed.
+ * row. Acceptance email is sent later from the batch acceptance workflow.
  *
  * Installed via setup.gs:installTriggers. Must be an INSTALLABLE edit
- * trigger, not a simple onEdit, because it calls MailApp.
+ * trigger, not a simple onEdit, because it uses services that need auth.
  */
 function onControlEdit(e) {
   try {
@@ -493,11 +474,7 @@ function onControlEdit(e) {
       return;
     }
 
-    var filledAtCol = headers.indexOf('filled_at');
-    if (filledAtCol >= 0 && !sheet.getRange(row, filledAtCol + 1).getValue()) {
-      sheet.getRange(row, filledAtCol + 1).setValue(new Date());
-    }
-    notifyDisplacedApplicants(projectId, selectedEmail);
+    _recordProjectSelection(projectId, selectedEmail);
     _refreshProjectSurfaces();
   } catch (err) {
     _logError('onControlEdit', err);
