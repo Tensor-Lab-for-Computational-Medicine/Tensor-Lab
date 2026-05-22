@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="assets/css/styles.css?v=2026-6">
 </head>
 
-<body class="catalog-page">
+<body>
 
     <nav class="surge-nav" style="justify-content: space-between; padding: 2rem;">
         <a href="index.html" aria-label="Tensor Lab home">
@@ -45,13 +45,8 @@
         <div class="catalog-hero-inner">
             <h1 class="catalog-title">2026 Research Portfolio</h1>
             <p class="catalog-subtext">
-                Fifteen research projects across emergency medicine, cardiology, oncology, radiology,
-                and more. Search, filter, and explore the Summer 2026 cohort below.
+                These are the fifteen research projects for the Summer 2026 cohort.
             </p>
-            <div class="catalog-cta-row">
-                <a href="#projects" class="btn btn-primary btn-lg">Browse the portfolio</a>
-                <a href="team.html" class="btn btn-ghost btn-lg">Meet the team</a>
-            </div>
         </div>
     </header>
 
@@ -118,83 +113,11 @@
                         </div>
                     </dl>
 
-                    <button type="button" class="pc2-expand-btn" aria-haspopup="dialog" aria-expanded="false">
-                        <span class="pc2-expand-label">View full details</span>
-                        <svg class="pc2-expand-icon" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
-                            aria-hidden="true">
-                            <polyline points="9 18 15 12 9 6"></polyline>
-                        </svg>
-                    </button>
                 </article>
             </template>
         </section>
 
-        <!-- Slide-in drawer modal for full project details. -->
-        <div id="project-modal" class="project-modal" hidden aria-hidden="true" role="dialog" aria-modal="true"
-            aria-labelledby="project-modal-title">
-            <div class="project-modal-backdrop" data-modal-close></div>
-            <div class="project-modal-panel" role="document" tabindex="-1">
-                <header class="project-modal-head">
-                    <div class="pm-tags">
-                        <span class="pc2-tag pm-specialty"></span>
-                        <span class="pc2-tag pm-institution"></span>
-                    </div>
-                    <button type="button" class="project-modal-close" data-modal-close aria-label="Close">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                    </button>
-                </header>
 
-                <h2 id="project-modal-title" class="pm-title"></h2>
-
-                <dl class="pm-meta">
-                    <div>
-                        <dt>Faculty PI</dt>
-                        <dd class="pm-pi"></dd>
-                    </div>
-                    <div>
-                        <dt>Medical Student Lead</dt>
-                        <dd class="pm-mentor"></dd>
-                    </div>
-                </dl>
-
-                <div class="pm-body">
-                    <section class="pm-section">
-                        <h3>The Clinical Problem</h3>
-                        <p class="pm-clinical"></p>
-                    </section>
-                    <section class="pm-section">
-                        <h3>Technical Approach</h3>
-                        <p class="pm-technical"></p>
-                    </section>
-                    <section class="pm-section">
-                        <h3>Expected Deliverable</h3>
-                        <p class="pm-deliverable"></p>
-                    </section>
-                    <section class="pm-section">
-                        <h3>Data and Access</h3>
-                        <p class="pm-data"></p>
-                        <p class="pm-access pm-sub"></p>
-                    </section>
-                    <section class="pm-section pm-progress">
-                        <h3>Already Done</h3>
-                        <p class="pm-progress-text"></p>
-                    </section>
-                    <section class="pm-section">
-                        <h3>Preferred Skills</h3>
-                        <ul class="pm-skills"></ul>
-                    </section>
-                    <aside class="pm-note">
-                        <span class="pm-note-label">Heads up</span>
-                        <p class="pm-note-text"></p>
-                    </aside>
-                </div>
-            </div>
-        </div>
 
         <section id="future" class="catalog-section" style="text-align: center; padding: 3rem 2rem;">
             <p style="font-size: 0.95rem; color: var(--ink-light); max-width: 520px; margin: 0 auto 1.5rem;">

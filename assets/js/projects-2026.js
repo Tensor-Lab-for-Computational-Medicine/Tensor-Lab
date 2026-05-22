@@ -381,7 +381,6 @@
       target.classList.add('project-card-2026--highlight');
       setTimeout(function () { target.classList.remove('project-card-2026--highlight'); }, 2400);
     }
-    openModal(id);
   }
 
   // --------------------------------- init ----------------------------------
