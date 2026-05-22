@@ -32,11 +32,13 @@ function _recordProjectSelection(projectId, selectedApplicantEmail) {
   try {
     var control = _getSheet(SHEET_CONTROL);
     if (!control) throw new Error('control sheet missing');
-    var headers = control.getRange(1, 1, 1, control.getLastColumn()).getValues()[0];
+    var headers = _ensureControlAcceptanceColumns(control);
     var idCol = headers.indexOf('project_id');
     var statusCol = headers.indexOf('status');
     var filledAtCol = headers.indexOf('filled_at');
     var selectedCol = headers.indexOf('selected_applicant');
+    var acceptanceStatusCol = headers.indexOf('acceptance_status');
+    var acceptedAtCol = headers.indexOf('accepted_at');
     if (idCol < 0 || statusCol < 0) throw new Error('control sheet missing required columns');
 
     var lastRow = control.getLastRow();
@@ -55,17 +57,47 @@ function _recordProjectSelection(projectId, selectedApplicantEmail) {
         project_id: projectId,
         status: 'filled',
         filled_at: new Date(),
-        selected_applicant: selectedApplicantEmail
+        selected_applicant: selectedApplicantEmail,
+        acceptance_status: 'pending',
+        accepted_at: ''
       }));
     } else {
+      var existingSelected = selectedCol >= 0
+        ? String(control.getRange(targetRow, selectedCol + 1).getValue() || '').trim().toLowerCase()
+        : '';
+      var currentAcceptanceStatus = acceptanceStatusCol >= 0
+        ? String(control.getRange(targetRow, acceptanceStatusCol + 1).getValue() || '').trim().toLowerCase()
+        : '';
+      var incomingSelected = String(selectedApplicantEmail || '').trim().toLowerCase();
+      var selectedChanged = existingSelected && incomingSelected && existingSelected !== incomingSelected;
       control.getRange(targetRow, statusCol + 1).setValue('filled');
       if (filledAtCol >= 0) control.getRange(targetRow, filledAtCol + 1).setValue(new Date());
       if (selectedCol >= 0) control.getRange(targetRow, selectedCol + 1).setValue(selectedApplicantEmail);
+      if (acceptanceStatusCol >= 0 && (selectedChanged || !currentAcceptanceStatus)) {
+        control.getRange(targetRow, acceptanceStatusCol + 1).setValue('pending');
+      }
+      if (acceptedAtCol >= 0 && selectedChanged) {
+        control.getRange(targetRow, acceptedAtCol + 1).clearContent();
+      }
     }
     _stampApplicationStatus(selectedApplicantEmail, 'selected');
   } finally {
     lock.releaseLock();
   }
+}
+
+function _ensureControlAcceptanceColumns(controlSheet) {
+  var sheet = controlSheet || _getSheet(SHEET_CONTROL);
+  if (!sheet) return [];
+  var lastCol = sheet.getLastColumn();
+  var headers = lastCol > 0 ? sheet.getRange(1, 1, 1, lastCol).getValues()[0] : [];
+  ['acceptance_status', 'accepted_at'].forEach(function (name) {
+    if (headers.indexOf(name) !== -1) return;
+    headers.push(name);
+    sheet.getRange(1, headers.length).setValue(name).setFontWeight('bold');
+  });
+  if (sheet.getFrozenRows() < 1) sheet.setFrozenRows(1);
+  return headers;
 }
 
 /**
@@ -577,7 +609,7 @@ function confirmReopenAllProjects() {
   var ui = SpreadsheetApp.getUi();
   var response = ui.alert(
     'Reopen all projects?',
-    'This sets every control.status cell to open and clears filled_at and selected_applicant. It does not delete applications, applicant statuses, or email logs.',
+    'This sets every control.status cell to open and clears filled_at, selected_applicant, acceptance_status, and accepted_at. It does not delete applications, applicant statuses, or email logs.',
     ui.ButtonSet.OK_CANCEL
   );
   if (response !== ui.Button.OK) return { ok: false, cancelled: true };

@@ -290,16 +290,63 @@ function mgmtSendAcceptanceNotices(fromEmail, expectedRecipients, emailTemplate)
   };
 }
 
+function mgmtListMatchedFellows() {
+  return _selectedAcceptanceRows().map(function (row) {
+    return {
+      projectId: row.projectId,
+      projectLabel: row.projectLabel,
+      email: row.email,
+      name: row.name || row.email,
+      acceptanceStatus: row.acceptanceStatus || 'pending',
+      acceptedAt: row.acceptedAt || ''
+    };
+  });
+}
+
+function mgmtMarkFellowAcceptanceConfirmed(projectId, email) {
+  var pid = String(projectId || '').trim();
+  var target = String(email || '').trim().toLowerCase();
+  if (!pid || !target) throw new Error('Choose a matched fellow to confirm.');
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(15000);
+  try {
+    var sheet = _getSheet(SHEET_CONTROL);
+    if (!sheet || sheet.getLastRow() < 2) throw new Error('No matched projects found.');
+    var headers = _ensureControlAcceptanceColumns(sheet);
+    var idCol = headers.indexOf('project_id');
+    var selectedCol = headers.indexOf('selected_applicant');
+    var statusCol = headers.indexOf('acceptance_status');
+    var acceptedAtCol = headers.indexOf('accepted_at');
+    if (idCol < 0 || selectedCol < 0 || statusCol < 0 || acceptedAtCol < 0) {
+      throw new Error('control sheet is missing acceptance tracking columns.');
+    }
+
+    var rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+    for (var i = 0; i < rows.length; i++) {
+      var rowProject = String(rows[i][idCol] || '').trim();
+      var rowEmail = String(rows[i][selectedCol] || '').trim().toLowerCase();
+      if (rowProject !== pid || rowEmail !== target) continue;
+      var sheetRow = i + 2;
+      var now = new Date();
+      sheet.getRange(sheetRow, statusCol + 1).setValue('confirmed');
+      sheet.getRange(sheetRow, acceptedAtCol + 1).setValue(now);
+      _stampApplicationStatus(target, 'accepted');
+      return {
+        projectId: pid,
+        email: target,
+        acceptedAt: now.toISOString()
+      };
+    }
+  } finally {
+    lock.releaseLock();
+  }
+  throw new Error('No matching selected fellow found for ' + target + ' on ' + pid + '.');
+}
+
 /** Dialog-facing wrapper for rejectApplicant. */
 function mgmtRejectApplicant(email, subjectOrPersonalNote, bodyOrFromEmail, maybeFromEmail) {
-  if (arguments.length >= 4) {
-    return rejectApplicant(email, '', maybeFromEmail, {
-      subject: subjectOrPersonalNote,
-      body: bodyOrFromEmail,
-      cc: arguments.length >= 5 ? arguments[4] : ''
-    });
-  }
-  return rejectApplicant(email, subjectOrPersonalNote || '', bodyOrFromEmail);
+  throw new Error('Individual rejection emails are disabled for this workflow. Use final closeout after every matched fellow has confirmed acceptance.');
 }
 
 /**
@@ -406,6 +453,25 @@ function mgmtBuildInterviewInviteDraft(projectId, email, reviewerName, schedulin
   };
 }
 
+function mgmtPreviewInterviewInvite(projectId, email, subject, ccText) {
+  var ctx = _interviewInviteContext(projectId, email);
+  var cc = _normalizeCcEmails(ccText || '');
+  return {
+    ok: true,
+    recipients: [{
+      action: 'Interview',
+      email: ctx.email,
+      name: ctx.applicantName || ctx.email,
+      project: ctx.projectLabel,
+      projectId: ctx.projectId,
+      subject: String(subject || '').trim(),
+      cc: cc
+    }],
+    skipped: [],
+    totalToEmail: 1
+  };
+}
+
 /** Build an editable decline draft for one applicant or for the bulk closeout. */
 function mgmtBuildRejectionEmailDraft(email, personalNote) {
   var target = String(email || '').trim().toLowerCase();
@@ -464,7 +530,7 @@ function mgmtSendDraftTestEmail(subject, body, fromEmail, testToEmail, action, p
  * failure or send failure. Not idempotent, sending twice will deliver two
  * emails, so the dialog confirms before calling.
  */
-function mgmtSendInterviewInvite(projectId, email, reviewerName, schedulingUrl, subjectOrPersonalNote, bodyOrFromEmail, maybeFromEmail, maybeCc) {
+function mgmtSendInterviewInvite(projectId, email, reviewerName, schedulingUrl, subjectOrPersonalNote, bodyOrFromEmail, maybeFromEmail, maybeCc, maybeExpectedRecipients) {
   var ctx = _interviewInviteContext(projectId, email);
   var reviewer = String(reviewerName || '').trim();
   var url = _assertValidSchedulingUrl(schedulingUrl);
@@ -489,6 +555,10 @@ function mgmtSendInterviewInvite(projectId, email, reviewerName, schedulingUrl, 
   }
   if (!subject) throw new Error('Enter an email subject.');
   if (!body) throw new Error('Enter an email body.');
+  if (maybeExpectedRecipients && maybeExpectedRecipients.length !== undefined) {
+    var preview = mgmtPreviewInterviewInvite(projectId, email, subject, cc);
+    _assertPreviewEmailsUnchanged(preview.recipients, maybeExpectedRecipients);
+  }
 
   _sendTensorLabEmail({
     to: ctx.email,
@@ -530,7 +600,7 @@ function _interviewInviteContext(projectId, email) {
     }
   }
   var label = _displayProjectLabel(_lookupProjectLabel(pid) || pid);
-  return { email: target, projectId: pid, firstName: applicantName, projectLabel: label };
+  return { email: target, projectId: pid, firstName: applicantName, applicantName: applicantName, projectLabel: label };
 }
 
 /** Return user-scoped properties for prefilling the interview form. */
@@ -592,9 +662,10 @@ function _logInterviewInvite(email, projectId, reviewer, url, subject, body) {
 /**
  * Reject every applicant currently in pending state. Returns { rejected, errors }.
  *
- * Refuses to run if any project in `control` is still `open`. Losing a single
- * choice is not a rejection, applicants can still match via their other
- * choices, so we only bulk reject after every project has been filled.
+ * Refuses to run if any project in `control` is still `open`, or if any
+ * matched fellow has not confirmed acceptance. Losing a single choice is not a
+ * rejection, applicants can still match via their other choices, so we only
+ * bulk reject after the matched cohort is fully confirmed.
  *
  * Idempotent at the per-applicant level via rejectApplicant's own dedup.
  */
@@ -605,6 +676,13 @@ function mgmtRejectAllRemaining(fromEmail, expectedRecipients, emailTemplate) {
       'Cannot close the cohort yet. ' + progress.openProjectCount +
       ' project(s) are still open: ' + progress.openProjectIds.join(', ') + '. ' +
       'Fill every project first, then run this.'
+    );
+  }
+  if (progress.unconfirmedCount > 0) {
+    throw new Error(
+      'Cannot send final rejections yet. ' + progress.unconfirmedCount +
+      ' matched fellow(s) still need acceptance confirmation: ' +
+      progress.unconfirmedFellows.join(', ') + '.'
     );
   }
 
@@ -627,7 +705,7 @@ function mgmtRejectAllRemaining(fromEmail, expectedRecipients, emailTemplate) {
   return { rejected: rejected, errors: errors };
 }
 
-/** Dry run for Close cohort. Refuses while any project is still open. */
+/** Dry run for Close cohort. Refuses until all projects are matched and confirmed. */
 function mgmtPreviewRejectAllRemaining(emailTemplate) {
   var progress = mgmtProjectFillProgress();
   if (progress.openProjectCount > 0) {
@@ -635,6 +713,15 @@ function mgmtPreviewRejectAllRemaining(emailTemplate) {
       ok: false,
       reason: 'projects_open',
       message: progress.openProjectCount + ' project(s) are still open.',
+      progress: progress,
+      recipients: []
+    };
+  }
+  if (progress.unconfirmedCount > 0) {
+    return {
+      ok: false,
+      reason: 'fellows_unconfirmed',
+      message: progress.unconfirmedCount + ' matched fellow(s) still need acceptance confirmation.',
       progress: progress,
       recipients: []
     };
@@ -962,34 +1049,44 @@ function mgmtSendInterviewTestEmail(subject, body, fromEmail, testToEmail, ccTex
 }
 
 /**
- * Return { filled, total, openProjectCount, openProjectIds } describing
- * how far along the selection is. Powers the progress readout on the Close
- * cohort tab and gates mgmtRejectAllRemaining.
+ * Return selection and acceptance-confirmation progress. Powers the progress
+ * readout on the Close cohort tab and gates mgmtRejectAllRemaining.
  */
 function mgmtProjectFillProgress() {
   var sheet = _getSheet(SHEET_CONTROL);
   if (!sheet || sheet.getLastRow() < 2) {
-    return { filled: 0, total: 0, openProjectCount: 0, openProjectIds: [] };
+    return { filled: 0, total: 0, openProjectCount: 0, openProjectIds: [], confirmed: 0, unconfirmedCount: 0, unconfirmedFellows: [] };
   }
-  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var headers = _ensureControlAcceptanceColumns(sheet);
   var idCol = headers.indexOf('project_id');
   var statusCol = headers.indexOf('status');
   var labelCol = headers.indexOf('label');
+  var selectedCol = headers.indexOf('selected_applicant');
+  var acceptanceStatusCol = headers.indexOf('acceptance_status');
   if (idCol < 0 || statusCol < 0) {
-    return { filled: 0, total: 0, openProjectCount: 0, openProjectIds: [] };
+    return { filled: 0, total: 0, openProjectCount: 0, openProjectIds: [], confirmed: 0, unconfirmedCount: 0, unconfirmedFellows: [] };
   }
   var rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
   var filled = 0;
+  var confirmed = 0;
   var total = 0;
   var openIds = [];
+  var unconfirmed = [];
   for (var i = 0; i < rows.length; i++) {
     var id = String(rows[i][idCol] || '').trim();
     if (!id) continue;
     total++;
+    var label = labelCol >= 0 ? String(rows[i][labelCol] || '').trim() : '';
     if (String(rows[i][statusCol] || '').trim().toLowerCase() === 'filled') {
       filled++;
+      var selectedEmail = selectedCol >= 0 ? String(rows[i][selectedCol] || '').trim() : '';
+      var acceptanceStatus = acceptanceStatusCol >= 0 ? String(rows[i][acceptanceStatusCol] || '').trim().toLowerCase() : '';
+      if (acceptanceStatus === 'confirmed' || acceptanceStatus === 'accepted') {
+        confirmed++;
+      } else {
+        unconfirmed.push((label || id) + (selectedEmail ? ' (' + selectedEmail + ')' : ''));
+      }
     } else {
-      var label = labelCol >= 0 ? String(rows[i][labelCol] || '').trim() : '';
       openIds.push(label || id);
     }
   }
@@ -997,7 +1094,10 @@ function mgmtProjectFillProgress() {
     filled: filled,
     total: total,
     openProjectCount: total - filled,
-    openProjectIds: openIds
+    openProjectIds: openIds,
+    confirmed: confirmed,
+    unconfirmedCount: unconfirmed.length,
+    unconfirmedFellows: unconfirmed
   };
 }
 
@@ -1040,7 +1140,7 @@ function rejectApplicant(email, personalNote, fromEmail, emailTemplate) {
 
     if (statusCol >= 0) {
       var current = String(apps.getRange(targetRow, statusCol + 1).getValue() || '').trim().toLowerCase();
-      if (current === 'rejected' || current === 'selected') {
+      if (current === 'rejected' || current === 'selected' || current === 'accepted' || current === 'confirmed') {
         return { email: email, rejected: false, skipped: true, reason: 'already ' + current };
       }
       apps.getRange(targetRow, statusCol + 1).setValue('rejected');
@@ -1115,7 +1215,7 @@ function _appendSyntheticApplication(email, name, choices, status) {
 function _controlSnapshot(projectId) {
   var sheet = _getSheet(SHEET_CONTROL);
   if (!sheet || sheet.getLastRow() < 2) throw new Error('control sheet missing');
-  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var headers = _ensureControlAcceptanceColumns(sheet);
   var idCol = headers.indexOf('project_id');
   if (idCol < 0) throw new Error('control sheet missing project_id');
   var rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
@@ -1132,11 +1232,15 @@ function _setProjectFilledForTest(projectId, selectedEmail) {
   var statusCol = snap.headers.indexOf('status');
   var filledAtCol = snap.headers.indexOf('filled_at');
   var selectedCol = snap.headers.indexOf('selected_applicant');
+  var acceptanceStatusCol = snap.headers.indexOf('acceptance_status');
+  var acceptedAtCol = snap.headers.indexOf('accepted_at');
   if (statusCol < 0) throw new Error('control sheet missing status');
   var sheet = _getSheet(SHEET_CONTROL);
   sheet.getRange(snap.row, statusCol + 1).setValue('filled');
   if (filledAtCol >= 0) sheet.getRange(snap.row, filledAtCol + 1).setValue(new Date());
   if (selectedCol >= 0) sheet.getRange(snap.row, selectedCol + 1).setValue(selectedEmail);
+  if (acceptanceStatusCol >= 0) sheet.getRange(snap.row, acceptanceStatusCol + 1).setValue('pending');
+  if (acceptedAtCol >= 0) sheet.getRange(snap.row, acceptedAtCol + 1).clearContent();
 }
 
 function _restoreControlSnapshot(snap) {
@@ -1175,6 +1279,8 @@ function _resetProjectsSelectedBy(emailSet) {
   var statusCol = headers.indexOf('status');
   var filledAtCol = headers.indexOf('filled_at');
   var selectedCol = headers.indexOf('selected_applicant');
+  var acceptanceStatusCol = headers.indexOf('acceptance_status');
+  var acceptedAtCol = headers.indexOf('accepted_at');
   if (idCol < 0 || statusCol < 0 || selectedCol < 0) return [];
   var rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
   var reset = [];
@@ -1185,6 +1291,8 @@ function _resetProjectsSelectedBy(emailSet) {
     sheet.getRange(row, statusCol + 1).setValue('open');
     sheet.getRange(row, selectedCol + 1).clearContent();
     if (filledAtCol >= 0) sheet.getRange(row, filledAtCol + 1).clearContent();
+    if (acceptanceStatusCol >= 0) sheet.getRange(row, acceptanceStatusCol + 1).clearContent();
+    if (acceptedAtCol >= 0) sheet.getRange(row, acceptedAtCol + 1).clearContent();
     reset.push(String(rows[i][idCol] || '').trim());
   }
   return reset.filter(Boolean);
@@ -1269,17 +1377,19 @@ function _assertPreviewEmailsUnchanged(currentRows, expectedRows) {
 
 function _isTerminalStatus(status) {
   var s = String(status || '').trim().toLowerCase();
-  return s === 'selected' || s === 'rejected' || s.indexOf('rejected_') === 0 || s.indexOf('test_') === 0;
+  return s === 'selected' || s === 'accepted' || s === 'confirmed' || s === 'rejected' || s.indexOf('rejected_') === 0 || s.indexOf('test_') === 0;
 }
 
 function _selectedAcceptanceRows() {
   var sheet = _getSheet(SHEET_CONTROL);
   if (!sheet || sheet.getLastRow() < 2) return [];
-  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var headers = _ensureControlAcceptanceColumns(sheet);
   var idCol = headers.indexOf('project_id');
   var labelCol = headers.indexOf('label');
   var statusCol = headers.indexOf('status');
   var selectedCol = headers.indexOf('selected_applicant');
+  var acceptanceStatusCol = headers.indexOf('acceptance_status');
+  var acceptedAtCol = headers.indexOf('accepted_at');
   if (idCol < 0 || selectedCol < 0) return [];
 
   var rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
@@ -1295,13 +1405,23 @@ function _selectedAcceptanceRows() {
       email: email,
       name: _applicantNameForEmail(email) || '',
       projectId: pid,
-      projectLabel: _displayProjectLabel(label || pid)
+      projectLabel: _displayProjectLabel(label || pid),
+      acceptanceStatus: acceptanceStatusCol >= 0 ? String(rows[i][acceptanceStatusCol] || '').trim() : '',
+      acceptedAt: acceptedAtCol >= 0 ? _formatDialogDate(rows[i][acceptedAtCol]) : ''
     });
   }
   out.sort(function (a, b) {
     return (a.name || a.email).localeCompare(b.name || b.email);
   });
   return out;
+}
+
+function _formatDialogDate(value) {
+  if (!value) return '';
+  if (Object.prototype.toString.call(value) === '[object Date]' && !isNaN(value.getTime())) {
+    return value.toISOString();
+  }
+  return String(value || '').trim();
 }
 
 /** Pull counts from the shared cache if present, else compute. */
@@ -1439,6 +1559,8 @@ function _managementDialogHtml() {
     '  <label for="ivTestEmail">Test recipient email</label>',
     '  <input id="ivTestEmail" type="text" placeholder="your.email@example.com" />',
     '  <button id="ivTestBtn" class="secondary" disabled>Send test email</button>',
+    '  <button id="ivPreviewBtn" class="secondary" disabled>Preview invite recipient</button>',
+    '  <div id="ivPreview"></div>',
     '  <button id="ivSendBtn" class="primary" disabled>Send interview invite</button>',
     '  <p class="meta">The generated draft is only a starting point. The subject and body above are sent exactly as shown and logged to the interview_log tab. Your name, link, and test recipient are remembered for next time.</p>',
     '  <div id="ivStatus"></div>',
@@ -1468,8 +1590,19 @@ function _managementDialogHtml() {
     '  </div>',
 
     '  <div class="section">',
+    '  <h2>Confirm accepted fellows</h2>',
+    '  <p class="hint">After a matched fellow replies accepting their offer, mark them confirmed here. Final rejection emails stay locked until every matched fellow is confirmed.</p>',
+    '  <button id="confirmRefreshBtn" class="secondary">Refresh matched fellows</button>',
+    '  <label for="confirmSelect">Matched fellow</label>',
+    '  <select id="confirmSelect"><option value="">Loadingâ€¦</option></select>',
+    '  <button id="confirmBtn" class="primary" disabled>Mark acceptance confirmed</button>',
+    '  <div id="confirmPreview"></div>',
+    '  <div id="confirmStatus"></div>',
+    '  </div>',
+
+    '  <div class="section">',
     '  <h2>Decline one applicant</h2>',
-    '  <p class="hint">Use this after technical screening or any explicit decision not to move an applicant forward. Do not reject people just because one of their three choices was filled by someone else, they may still match their other choices.</p>',
+    '  <p class="hint">Individual rejection sends are disabled for this workflow. Use the final closeout after all projects are matched and all matched fellows have confirmed acceptance.</p>',
     '  <label for="rejectSelect">Applicant to reject</label>',
     '  <select id="rejectSelect"><option value="">Loading…</option></select>',
     '  <label for="rejectNote">Optional reviewer note</label>',
@@ -1486,8 +1619,8 @@ function _managementDialogHtml() {
     '    <div style="flex:1"><label for="rejectTestEmail">Test recipient email</label><input id="rejectTestEmail" type="text" placeholder="your.email@example.com" /></div>',
     '    <button id="rejectTestBtn" class="secondary" disabled>Send decline test</button>',
     '  </div>',
-    '  <button id="rejectBtn" class="danger" disabled>Reject and send decline email</button>',
-    '  <p class="meta">Applicants who have already been selected or rejected are hidden from this list.</p>',
+    '  <button id="rejectBtn" class="danger" disabled>Individual rejection disabled</button>',
+    '  <p class="meta">This section can still generate and test copy, but real rejection emails only send from the final closeout workflow.</p>',
     '  <div id="rejectStatus"></div>',
     '  </div>',
 
@@ -1519,14 +1652,14 @@ function _managementDialogHtml() {
     '  <p class="meta">Separate emails with new lines, commas, semicolons, or spaces. Do not use slashes. Deletes matching rows from applications, reselections, redirect_log, and interview_log, then refreshes the form choices and public site cache.</p>',
     '  <div id="cleanupStatus"></div>',
     '  <button id="reopenAllBtn" class="danger">Reopen all projects and resync</button>',
-    '  <p class="meta">Use this after dummy testing or an accidental all-filled state. It sets every control row back to open and clears filled_at and selected_applicant. Applications and email logs are unchanged.</p>',
+    '  <p class="meta">Use this after dummy testing or an accidental all-filled state. It sets every control row back to open and clears filled_at, selected_applicant, acceptance_status, and accepted_at. Applications and email logs are unchanged.</p>',
     '  <div id="reopenAllStatus"></div>',
     '  </div>',
     '</details>',
 
     '  <div class="section">',
     '  <h2>Close the cohort</h2>',
-    '  <p class="hint">Use this only at the end of the cohort, after every project has been filled. Losing a single choice does not count as a rejection, applicants stay pending on their other choices until selection closes.</p>',
+    '  <p class="hint">Use this only after every project has been matched and every matched fellow has confirmed acceptance. Losing a single choice does not count as a rejection, applicants stay pending until the final closeout.</p>',
     '  <div id="bulkProgress" class="status warn">Checking selection progress…</div>',
     '  <button id="bulkDraftBtn" class="secondary">Generate closeout draft</button>',
     '  <div id="bulkDraftStatus"></div>',
@@ -1542,8 +1675,8 @@ function _managementDialogHtml() {
     '  </div>',
     '  <button id="bulkPreviewBtn" class="secondary" disabled>Preview rejection recipients</button>',
     '  <div id="bulkPreview"></div>',
-    '  <button id="bulkBtn" class="danger" disabled>Reject all remaining pending applicants</button>',
-    '  <p class="meta">Sends the closeout email above to every applicant still pending. You will be shown the exact count and asked to confirm before any email is sent.</p>',
+    '  <button id="bulkBtn" class="danger" disabled>Send final rejection emails</button>',
+    '  <p class="meta">Sends the closeout email above to every applicant still pending after matching and fellow confirmation. You will be shown the exact count and asked to confirm before any email is sent.</p>',
     '  <div id="bulkStatus"></div>',
     '  </div>',
     '</div>',
@@ -1564,6 +1697,9 @@ function _managementDialogHtml() {
     'let fillPreviewRows=[];',
     'let acceptPreviewRows=[];',
     'let bulkPreviewRows=[];',
+    'let ivPreviewOk=false;',
+    'let ivPreviewRows=[];',
+    'let confirmRows=[];',
     'let bulkGateOpen=false;',
     'const validEmail=v=>/.+@.+\\..+/.test(String(v||"").trim());',
     'const fillEmailTemplates=()=>({});',
@@ -1738,7 +1874,7 @@ function _managementDialogHtml() {
     '      loadFillProjects();',
     '      $("#applicantSelect").innerHTML="<option value=\\"\\">Pick a project first</option>";$("#applicantSelect").disabled=true;',
     '      loadInterviewProjects();',
-    '      clearAcceptancePreview();acceptRefreshButtons();',
+    '      clearAcceptancePreview();acceptRefreshButtons();loadMatchedFellows();',
     '      refreshBulkGate();',
     '    })',
     '    .withFailureHandler(e=>{setStatus(st,"Error: "+errMsg(e),"err");fillRefreshButtons();})',
@@ -1812,6 +1948,43 @@ function _managementDialogHtml() {
     '});',
     'loadAcceptanceDraft(false);',
 
+    'function fellowConfirmed(r){const s=String((r&&r.acceptanceStatus)||"").toLowerCase();return s==="confirmed"||s==="accepted"}',
+    'function renderMatchedFellows(rows){',
+    '  const sel=$("#confirmSelect");sel.innerHTML="";confirmRows=rows||[];',
+    '  if(!confirmRows.length){sel.innerHTML="<option value=\\"\\">No matched fellows yet</option>";$("#confirmPreview").innerHTML="<p class=\\"meta\\">Record project matches first.</p>";confirmRefreshButtons();return}',
+    '  sel.insertAdjacentHTML("beforeend","<option value=\\"\\">Choose a matched fellow...</option>");',
+    '  const parts=["<div class=\\"preview\\"><table><thead><tr><th>Fellow</th><th>Project</th><th>Status</th></tr></thead><tbody>"];',
+    '  confirmRows.forEach((r,i)=>{',
+    '    const status=fellowConfirmed(r)?"Confirmed":"Pending confirmation";',
+    '    const stamp=r.acceptedAt?("<br><span class=\\"muted\\">"+esc(r.acceptedAt)+"</span>"):"";',
+    '    sel.insertAdjacentHTML("beforeend","<option value=\\""+i+"\\""+(fellowConfirmed(r)?" disabled":"")+">"+esc(r.name||r.email)+" - "+esc(r.projectLabel||r.projectId)+" - "+status+"</option>");',
+    '    parts.push("<tr><td>"+esc(r.name||r.email)+"<br><span class=\\"muted\\">"+esc(r.email||"")+"</span></td><td>"+esc(r.projectLabel||r.projectId||"")+"</td><td>"+status+stamp+"</td></tr>");',
+    '  });',
+    '  parts.push("</tbody></table></div>");$("#confirmPreview").innerHTML=parts.join("");confirmRefreshButtons();',
+    '}',
+    'function confirmRefreshButtons(){',
+    '  const idx=$("#confirmSelect").value;const row=idx!==""?confirmRows[Number(idx)]:null;',
+    '  $("#confirmBtn").disabled=!(row&&!fellowConfirmed(row));',
+    '}',
+    'function loadMatchedFellows(){',
+    '  $("#confirmSelect").innerHTML="<option value=\\"\\">Loading...</option>";$("#confirmBtn").disabled=true;',
+    '  google.script.run.withSuccessHandler(rows=>{renderMatchedFellows(rows);refreshBulkGate();})',
+    '    .withFailureHandler(e=>{setStatus($("#confirmStatus"),"Could not load matched fellows: "+errMsg(e),"err");confirmRefreshButtons();})',
+    '    .mgmtListMatchedFellows();',
+    '}',
+    '$("#confirmRefreshBtn").addEventListener("click",loadMatchedFellows);',
+    '$("#confirmSelect").addEventListener("change",confirmRefreshButtons);',
+    '$("#confirmBtn").addEventListener("click",()=>{',
+    '  const idx=$("#confirmSelect").value;const row=idx!==""?confirmRows[Number(idx)]:null;const st=$("#confirmStatus");',
+    '  if(!row||fellowConfirmed(row))return;',
+    '  if(!confirm("Mark "+(row.name||row.email)+" as having accepted their Tensor Lab fellowship position?"))return;',
+    '  $("#confirmBtn").disabled=true;setStatus(st,"Marking acceptance confirmed...","warn");',
+    '  google.script.run.withSuccessHandler(r=>{setStatus(st,"Acceptance confirmed for "+r.email+".","ok");loadMatchedFellows();})',
+    '    .withFailureHandler(e=>{setStatus(st,"Could not confirm acceptance: "+errMsg(e),"err");confirmRefreshButtons();})',
+    '    .mgmtMarkFellowAcceptanceConfirmed(row.projectId,row.email);',
+    '});',
+    'loadMatchedFellows();',
+
     'google.script.run.withSuccessHandler(d=>{',
     '  if(d.name)$("#ivReviewerName").value=d.name;',
     '  if(d.url)$("#ivSchedulingUrl").value=cleanUrlValue(d.url);',
@@ -1820,10 +1993,15 @@ function _managementDialogHtml() {
     '  scheduleIvDraft(false);',
     '}).mgmtRecallReviewerDefaults();',
 
+    'function clearIvPreview(){',
+    '  ivPreviewOk=false;ivPreviewRows=[];',
+    '  const box=$("#ivPreview");if(box)box.innerHTML="";',
+    '}',
+
     '$("#ivProjectSelect").addEventListener("change",()=>{',
     '  const pid=$("#ivProjectSelect").value;const as=$("#ivApplicantSelect");',
     '  ivDraftDirty=false;$("#ivSubject").value="";$("#ivBody").value="";$("#ivCc").value="";',
-    '  clearStatus($("#ivStatus"));clearStatus($("#ivDraftStatus"));',
+    '  clearStatus($("#ivStatus"));clearStatus($("#ivDraftStatus"));clearIvPreview();',
     '  if(!pid){as.innerHTML="<option value=\\"\\">Pick a project first</option>";as.disabled=true;ivRefreshBtn();return}',
     '  as.innerHTML="<option value=\\"\\">Loading…</option>";as.disabled=true;',
     '  google.script.run.withSuccessHandler(list=>{',
@@ -1889,7 +2067,7 @@ function _managementDialogHtml() {
     '    .withSuccessHandler(d=>{',
     '      $("#ivSubject").value=d.subject||"";',
     '      $("#ivBody").value=d.body||"";',
-    '      ivDraftDirty=false;btn.textContent="Regenerate email draft";setStatus(draftStatusEl(),"Draft generated. Review and edit before sending.","ok");ivRefreshBtn();',
+    '      ivDraftDirty=false;clearIvPreview();btn.textContent="Regenerate email draft";setStatus(draftStatusEl(),"Draft generated. Review and edit before sending.","ok");ivRefreshBtn();',
     '    })',
     '    .withFailureHandler(e=>{btn.textContent="Regenerate email draft";setStatus(draftStatusEl(),"Could not generate draft: "+errMsg(e),"err");ivRefreshBtn();})',
     '    .mgmtBuildInterviewInviteDraft(pid,email,reviewer,url);',
@@ -1913,23 +2091,27 @@ function _managementDialogHtml() {
     'function ivRefreshBtn(){',
     '  const sendReason=ivSendDisabledReason();',
     '  const testReason=ivTestDisabledReason();',
-    '  $("#ivSendBtn").disabled=!!sendReason;',
-    '  $("#ivSendBtn").title=sendReason;',
+    '  const previewReason=sendReason||(!ivPreviewOk||!ivPreviewRows.length?"Preview invite recipient before sending":"");',
+    '  $("#ivPreviewBtn").disabled=!!sendReason;',
+    '  $("#ivPreviewBtn").title=sendReason?sendReason:"Preview exactly who will receive this invite";',
+    '  $("#ivSendBtn").disabled=!!previewReason;',
+    '  $("#ivSendBtn").title=previewReason;',
     '  $("#ivTestBtn").disabled=!!testReason;',
     '  $("#ivTestBtn").title=testReason?testReason:"Send the current draft to the test recipient";',
     '  const draftReason=ivDraftMissingReason();',
     '  $("#ivDraftBtn").disabled=false;',
     '  $("#ivDraftBtn").title=draftReason?"To generate a draft, "+draftReason:"Regenerate the default draft from the current fields";',
     '}',
-    '["#ivReviewerName","#ivSchedulingUrl"].forEach(q=>$(q).addEventListener("input",()=>{ivRefreshBtn();scheduleIvDraft(false)}));',
-    '$("#ivApplicantSelect").addEventListener("change",()=>{ivDraftDirty=false;$("#ivSubject").value="";$("#ivBody").value="";$("#ivCc").value="";ivRefreshBtn();scheduleIvDraft(false)});',
-    '["#ivSubject","#ivBody","#ivCc","#ivTestEmail"].forEach(q=>$(q).addEventListener("input",()=>{if(q==="#ivSubject"||q==="#ivBody")ivDraftDirty=true;ivRefreshBtn()}));',
+    '["#ivReviewerName","#ivSchedulingUrl"].forEach(q=>$(q).addEventListener("input",()=>{clearIvPreview();ivRefreshBtn();scheduleIvDraft(false)}));',
+    '$("#ivApplicantSelect").addEventListener("change",()=>{ivDraftDirty=false;$("#ivSubject").value="";$("#ivBody").value="";$("#ivCc").value="";clearIvPreview();ivRefreshBtn();scheduleIvDraft(false)});',
+    '["#ivSubject","#ivBody","#ivCc"].forEach(q=>$(q).addEventListener("input",()=>{if(q==="#ivSubject"||q==="#ivBody")ivDraftDirty=true;clearIvPreview();ivRefreshBtn()}));',
+    '$("#ivTestEmail").addEventListener("input",ivRefreshBtn);',
     '// Draft button uses inline onclick so the visible status still works if later listeners fail.',
     '$("#ivSchedulingUrl").addEventListener("blur",()=>{',
     '  const el=$("#ivSchedulingUrl");el.value=cleanUrlValue(el.value);',
     '  const issue=schedulingUrlProblem(el.value);',
     '  if(issue&&el.value)setStatus(draftStatusEl(),issue.charAt(0).toUpperCase()+issue.slice(1)+".","warn");',
-    '  ivRefreshBtn();scheduleIvDraft(false);',
+    '  clearIvPreview();ivRefreshBtn();scheduleIvDraft(false);',
     '});',
 
     '$("#ivTestBtn").addEventListener("click",()=>{',
@@ -1942,20 +2124,32 @@ function _managementDialogHtml() {
     '    .mgmtSendInterviewTestEmail(subject,body,sender(),to,$("#ivCc").value.trim());',
     '});',
 
+    '$("#ivPreviewBtn").addEventListener("click",()=>{',
+    '  const pid=$("#ivProjectSelect").value;const email=$("#ivApplicantSelect").value;const subject=$("#ivSubject").value.trim();const cc=$("#ivCc").value.trim();const st=$("#ivStatus");',
+    '  const reason=ivSendDisabledReason();if(reason){setStatus(st,reason,"warn");ivRefreshBtn();return}',
+    '  $("#ivPreviewBtn").disabled=true;$("#ivSendBtn").disabled=true;setStatus(st,"Previewing invite recipient...","warn");',
+    '  google.script.run.withSuccessHandler(p=>{',
+    '    ivPreviewRows=p.recipients||[];ivPreviewOk=true;renderPreview($("#ivPreview"),p.recipients,p.skipped);',
+    '    setStatus(st,"Preview ready: interview invite will go to "+(ivPreviewRows[0]&&ivPreviewRows[0].email?ivPreviewRows[0].email:"the selected applicant")+".","ok");ivRefreshBtn();',
+    '  }).withFailureHandler(e=>{ivPreviewOk=false;setStatus(st,"Preview error: "+errMsg(e),"err");ivRefreshBtn();})',
+    '    .mgmtPreviewInterviewInvite(pid,email,subject,cc);',
+    '});',
+
     '$("#ivSendBtn").addEventListener("click",()=>{',
     '  const pid=$("#ivProjectSelect").value;const email=$("#ivApplicantSelect").value;',
     '  const reviewer=$("#ivReviewerName").value.trim();const url=cleanUrlValue($("#ivSchedulingUrl").value);$("#ivSchedulingUrl").value=url;',
     '  const subject=$("#ivSubject").value.trim();const body=$("#ivBody").value.trim();const cc=$("#ivCc").value.trim();const st=$("#ivStatus");',
     '  const projectLabel=$("#ivProjectSelect").selectedOptions[0].text;',
+    '  if(!ivPreviewOk||!ivPreviewRows.length){setStatus(st,"Preview invite recipient before sending.","warn");ivRefreshBtn();return}',
     '  if(!confirm("Send "+email+" an interview invite for "+projectLabel+"?\\n\\nSubject: "+subject+"\\n\\nEmail will send from "+sender()+"."))return;',
     '  $("#ivSendBtn").disabled=true;setStatus(st,"Sending invite…","warn");',
     '  google.script.run',
     '    .withSuccessHandler(r=>{',
     '      setStatus(st,"Invite sent to "+r.email+" for "+r.projectLabel+". Logged to interview_log.","ok");',
-    '      ivDraftDirty=false;ivRefreshBtn();',
+    '      ivDraftDirty=false;clearIvPreview();ivRefreshBtn();',
     '    })',
     '    .withFailureHandler(e=>{setStatus(st,"Error: "+errMsg(e),"err");ivRefreshBtn();})',
-    '    .mgmtSendInterviewInvite(pid,email,reviewer,url,subject,body,sender(),cc);',
+    '    .mgmtSendInterviewInvite(pid,email,reviewer,url,subject,body,sender(),cc,ivPreviewRows);',
     '});',
 
     'function loadPending(){',
@@ -1976,7 +2170,7 @@ function _managementDialogHtml() {
     'function rejectRefreshButtons(){',
     '  const hasApplicant=!!$("#rejectSelect").value;const ready=rejectReady();',
     '  $("#rejectDraftBtn").disabled=!hasApplicant;',
-    '  $("#rejectBtn").disabled=!ready;',
+    '  $("#rejectBtn").disabled=true;',
     '  $("#rejectTestBtn").disabled=!(ready&&validEmail($("#rejectTestEmail").value));',
     '}',
     'function clearRejectDraft(){',
@@ -2079,7 +2273,7 @@ function _managementDialogHtml() {
 
     '$("#reopenAllBtn").addEventListener("click",()=>{',
     '  const st=$("#reopenAllStatus");',
-    '  if(!confirm("Reopen every project?\\n\\nThis sets all control rows to open and clears filled_at and selected_applicant. Applications, applicant statuses, and email logs are unchanged."))return;',
+    '  if(!confirm("Reopen every project?\\n\\nThis sets all control rows to open and clears filled_at, selected_applicant, acceptance_status, and accepted_at. Applications, applicant statuses, and email logs are unchanged."))return;',
     '  $("#reopenAllBtn").disabled=true;setStatus(st,"Reopening projects and resyncing form choices…","warn");',
     '  google.script.run',
     '    .withSuccessHandler(r=>{',
@@ -2125,8 +2319,11 @@ function _managementDialogHtml() {
     '    if(p.openProjectCount>0){',
     '      setStatus(prog,p.filled+" of "+p.total+" projects filled. Still open: "+p.openProjectIds.join(", ")+". Close every project before rejecting everyone else.","warn");',
     '      bulkGateOpen=false;bulkRefreshButtons();',
+    '    }else if(p.unconfirmedCount>0){',
+    '      setStatus(prog,"All "+p.total+" projects are matched, but "+p.unconfirmedCount+" fellow(s) still need acceptance confirmation: "+p.unconfirmedFellows.join(", ")+". Confirm every accepted fellow before sending rejections.","warn");',
+    '      bulkGateOpen=false;bulkRefreshButtons();',
     '    }else{',
-    '      setStatus(prog,bulkReady()?"All "+p.total+" projects filled. Preview remaining recipients before sending rejections.":"All "+p.total+" projects filled. Generate and review the closeout draft before previewing recipients.","ok");',
+    '      setStatus(prog,bulkReady()?"All "+p.total+" projects are matched and confirmed. Preview remaining recipients before sending final rejections.":"All "+p.total+" projects are matched and confirmed. Generate and review the closeout draft before previewing recipients.","ok");',
     '      bulkGateOpen=true;bulkRefreshButtons();',
     '    }',
     '  }).withFailureHandler(e=>{setStatus(prog,"Could not read progress: "+errMsg(e),"err");bulkGateOpen=false;bulkRefreshButtons();})',
@@ -2155,7 +2352,7 @@ function _managementDialogHtml() {
     '  if(!bulkPreviewOk||!bulkReady()){setStatus(st,"Preview rejection recipients after reviewing the closeout draft.","warn");$("#bulkBtn").disabled=false;return}',
     '  google.script.run.withSuccessHandler(list=>{',
     '    if(!list.length){setStatus(st,"Nothing to do. No pending applicants.","ok");$("#bulkBtn").disabled=false;return}',
-    '    if(!confirm("Reject "+list.length+" pending applicants and send decline emails from "+sender()+" to each?\\n\\nThis cannot be undone from this dialog.")){',
+    '    if(!confirm("Send final rejection emails to "+list.length+" unmatched applicant(s) from "+sender()+"?\\n\\nThis should only happen after every matched fellow has confirmed acceptance.")){',
     '      $("#bulkBtn").disabled=false;clearStatus(st);return;',
     '    }',
     '    setStatus(st,"Processing "+list.length+" rejections. This can take a moment…","warn");',

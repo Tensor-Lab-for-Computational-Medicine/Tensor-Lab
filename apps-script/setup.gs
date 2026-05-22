@@ -21,7 +21,7 @@
 
 /** Headers for the tabs this code owns end to end. */
 var OWNED_TABS = {
-  control: ['project_id', 'label', 'status', 'filled_at', 'selected_applicant'],
+  control: ['project_id', 'label', 'status', 'filled_at', 'selected_applicant', 'acceptance_status', 'accepted_at'],
   redirect_log: ['timestamp', 'applicant_email', 'project_removed', 'project_added'],
   email_log: ['timestamp', 'action', 'to', 'cc', 'from', 'subject', 'status', 'project_id', 'project_label', 'run_id', 'error', 'body'],
   error_log: ['timestamp', 'function_name', 'message', 'stack']
@@ -105,7 +105,7 @@ function _ensureReselectionsTab(ss) {
 function seedControlFromProjects() {
   var projects = _fetchProjects();
   var control = _getSheet(SHEET_CONTROL);
-  var headers = control.getRange(1, 1, 1, control.getLastColumn()).getValues()[0];
+  var headers = _ensureControlAcceptanceColumns(control);
   var idCol = headers.indexOf('project_id');
   if (idCol < 0) throw new Error('control sheet missing project_id column');
 
@@ -126,7 +126,9 @@ function seedControlFromProjects() {
       label: '',
       status: 'open',
       filled_at: '',
-      selected_applicant: ''
+      selected_applicant: '',
+      acceptance_status: '',
+      accepted_at: ''
     });
   });
 
@@ -159,11 +161,13 @@ function reopenAllProjects() {
       return { ok: true, total: 0, reopened: 0 };
     }
 
-    var headers = control.getRange(1, 1, 1, control.getLastColumn()).getValues()[0];
+    var headers = _ensureControlAcceptanceColumns(control);
     var idCol = headers.indexOf('project_id');
     var statusCol = headers.indexOf('status');
     var filledAtCol = headers.indexOf('filled_at');
     var selectedCol = headers.indexOf('selected_applicant');
+    var acceptanceStatusCol = headers.indexOf('acceptance_status');
+    var acceptedAtCol = headers.indexOf('accepted_at');
     if (idCol < 0 || statusCol < 0) {
       throw new Error('control sheet missing project_id or status column');
     }
@@ -180,6 +184,8 @@ function reopenAllProjects() {
       values[i][statusCol] = 'open';
       if (filledAtCol >= 0) values[i][filledAtCol] = '';
       if (selectedCol >= 0) values[i][selectedCol] = '';
+      if (acceptanceStatusCol >= 0) values[i][acceptanceStatusCol] = '';
+      if (acceptedAtCol >= 0) values[i][acceptedAtCol] = '';
     }
     control.getRange(2, 1, rowCount, control.getLastColumn()).setValues(values);
   } finally {

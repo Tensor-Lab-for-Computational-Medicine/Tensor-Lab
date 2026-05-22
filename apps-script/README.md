@@ -5,11 +5,10 @@ This folder holds the Google Apps Script backend that powers three features on
 
 - **F1 Live applicant counter.** The projects page polls the web app every
   minute and shows how many applications each project has received.
-- **F2 Applicant redirection.** When leadership closes a project, the
-  selected applicant receives a warm congratulations email, and every other
-  applicant who ranked that project gets an email linking to their original
-  application in edit mode so they can swap in a new choice without retyping
-  anything.
+- **F2 Matching and closeout.** Leadership can match projects without sending
+  rejection email. Acceptance notices go out as a batch, matched fellows are
+  marked confirmed after they accept, and final rejection emails are locked
+  until every project is matched and every matched fellow has confirmed.
 - **F3 Google Forms integration.** The application form writes to a Google
   Sheet. An `onFormSubmit` trigger validates each row (known `project_id`,
   no duplicate emails, assigns a `redirect_token`) and stamps a status.
@@ -27,7 +26,7 @@ writes stay consistent.
 | `api.gs` | Public web app (`doGet`) endpoints plus shared constants and `FIELD_ALIASES` column lookup. |
 | `triggers.gs` | `onApplicationSubmit`, `handleReselectionSubmit`, `onControlEdit`, leadership menu, `markProjectFilled`, `notifyDisplacedApplicants`. |
 | `management.gs` | In-sheet dialog for leadership: setup checklist, editable email workflows, project matching, interviews, closeout, testing, and cleanup. |
-| `email.gs` | Outbound mail and edit-URL / prefilled-URL helpers. Congrats, reselection, and rejection emails. |
+| `email.gs` | Outbound mail and edit-URL / prefilled-URL helpers. Acceptance, interview, and rejection emails. |
 | `setup.gs` | One-time setup, annual migrations, trigger installation. |
 | `appsscript.json` | Runtime, OAuth scopes, web app access. |
 
@@ -54,8 +53,8 @@ Sheet tabs:
 
 - `applications` — form response destination, one row per application.
 - `reselections` — form response destination for the fallback reselection form.
-- `control` — one row per project. Columns: `project_id`, `label`, `status`, `filled_at`, `selected_applicant`.
-- `redirect_log` — audit trail of redirect emails sent.
+- `control` — one row per project. Columns: `project_id`, `label`, `status`, `filled_at`, `selected_applicant`, `acceptance_status`, `accepted_at`.
+- `redirect_log` — audit trail for deduping sent acceptance or legacy redirect emails.
 - `interview_log` — one row per interview invite with the final subject and body.
 - `email_log` — unified audit trail of every Apps Script email attempt, including sender, recipient, cc, subject, body, sent/error status, and error text.
 - `error_log` — captured exceptions from triggers.
@@ -148,7 +147,7 @@ disabled.
    then replace the manifest with the contents of `apps-script/appsscript.json`.
    The manifest declares every OAuth scope the backend needs, including
    `script.container.ui` for the leadership dialog and `script.send_mail`
-   for the congratulations, reselection, and rejection emails. Do not trim
+   for the acceptance, interview, and rejection emails. Do not trim
    the scope list, Apps Script will fail at runtime if any required scope
    is missing.
 
@@ -311,15 +310,15 @@ Submit one test application. Verify:
 
 Then test F2. Pick any project with at least two applicants, open the sheet,
 and in the `control` tab change that row's `status` to `filled` with a
-`selected_applicant` email. Every other applicant who ranked that project
-should receive an email within about one minute with a link that opens their
-original application in edit mode.
+`selected_applicant` email. The project should be marked filled, the selected
+applicant should be stamped `selected`, and no rejection or reselection emails
+should be sent.
 
 ---
 
 ## Operating the system during the cohort cycle
 
-### Filling a project and rejecting applicants
+### Matching, confirmations, and final rejections
 
 Open the spreadsheet and click **Tensor Lab > Manage applicants…**. A modal
 dialog opens with four top-level tabs: **Setup**, **Interviews**,
@@ -349,34 +348,26 @@ Script owner to run a setup function.
 **Match projects.** Pick a project from the dropdown (only unfilled projects
 appear, with their live applicant counts). The applicant dropdown then
 auto-populates with everyone who ranked that project, annotated with their
-rank (1st, 2nd, or 3rd choice). Pick one, review the generated winner and
-reselection email drafts, edit any wording you want, send test emails if
-needed, then click **Preview recipients**. After the preview looks right,
-click **Fill project and send emails**. The real send rechecks the recipient
-list and refuses to run if it changed after preview. Behind the scenes this
-calls `markProjectFilled`, which:
+rank (1st, 2nd, or 3rd choice). Pick one, click **Preview selection**, then
+click **Record selected fellow**. No applicant email is sent from this tab.
+Behind the scenes this calls `markProjectFilled`, which:
 
 1. Flips the `control` row to `filled`, stamps `filled_at`, writes
-   `selected_applicant`.
+   `selected_applicant`, and sets `acceptance_status = pending`.
 2. Stamps the winner's `applications.status` to `selected`.
-3. Sends the winner a congratulations email (deduped via `redirect_log`).
-4. Sends every other applicant who ranked this project a **reselection**
-   email (not a rejection) linking to their original application in edit
-   mode, so they can swap in a new choice if they want.
-5. Clears the counts cache so the public website flips the project to
+3. Clears the counts cache so the public website flips the project to
    `filled` within a minute.
 
-Non-winners keep `applications.status = submitted`. They are still eligible
-for their other two choices and for any later matching round. They are only
-rejected when leadership explicitly says so, either by **Decline one applicant**
-or by the **Close cohort** action after every project is filled.
+Non-winners keep `applications.status = submitted`. They are not rejected
+during matching. After all intended matches are recorded, use **Send acceptance
+notices** under **Closeout and tools** to edit, test, preview, and batch-send
+the offer email to selected fellows. Once a fellow replies accepting the offer,
+mark them under **Confirm accepted fellows**. Rejection emails remain locked
+until every project is matched and every matched fellow is confirmed.
 
-All management-dialog email communications are editable before send:
-winner congratulations, reselection requests, interview invites, individual
-declines, and bulk closeout declines. Placeholders such as `{{first_name}}`,
-`{{project}}`, and `{{reselection_link}}` are replaced at send time. Keep
-`{{reselection_link}}` in reselection emails so applicants receive their update
-link.
+All management-dialog email communications are editable before send: acceptance
+notices, interview invites, and bulk closeout declines. Placeholders such as
+`{{first_name}}` and `{{applicant_name}}` are replaced at send time.
 
 **Invite to interview.** Mentors use this tab to send an applicant a meeting
 scheduling link (Calendly, Cal.com, SavvyCal, Google Calendar appointment page,
@@ -387,6 +378,9 @@ word before clicking **Send interview invite**. Enter a test recipient and use
 **Send test email** to send the current draft there first. The applicant
 receives the subject and body shown in the dialog inside a formatted Tensor Lab
 email wrapper with the logo, a readable project card, and a scheduling button.
+Before the real invite can be sent, click **Preview invite recipient** to see
+the exact applicant, project, subject, and CC list. The send button stays
+locked if the preview is stale.
 Scheduling links are normalized automatically, so pasted links such as
 `https://https://calendly.com/...` are cleaned before sending. Links that still
 are not valid `http://` or `https://` URLs are rejected before an email can be
@@ -399,39 +393,35 @@ account, so repeat invites from the same mentor prefill automatically. Sending a
 applicant's status, they stay pending until you separately fill a project or
 reject them.
 
-**Decline one applicant.** Under **Closeout and tools**, use this for explicit
-decisions to drop an applicant,
-for example after a technical screening or when someone becomes unavailable.
-Pick a pending applicant from the dropdown (anyone with status `submitted`
-or empty, meaning not already selected or rejected). Generate the decline
-draft, edit the subject and body, optionally send a test, then click
-**Reject and send decline email**. The applicant's row is stamped `rejected`
-and the exact draft shown in the dialog goes out. Do not use this just because
-a single choice got filled by someone else.
+**Decline one applicant.** Individual rejection sends are disabled in the
+management dialog. The section can still generate and test rejection copy, but
+real rejection emails only send from the final cohort closeout.
 
-**Close cohort.** Under **Closeout and tools**, this is only enabled after every project in `control` has status
-`filled`. The tab shows live progress (e.g. `8 of 15 projects filled`) and
-lists remaining open projects. When all projects are closed, generate and edit
+**Close cohort.** Under **Closeout and tools**, this is only enabled after
+every project in `control` has status `filled` and every filled project has
+`acceptance_status = confirmed`. The tab shows live progress and lists either
+remaining open projects or matched fellows still awaiting acceptance
+confirmation. Once the cohort is fully matched and confirmed, generate and edit
 the closeout decline draft, send a test if needed, then click **Preview
 rejection recipients** to review exactly who will receive it. The real send
 rechecks the list and refuses to run if it changed after preview. Clicking the
 send button emails every applicant still in pending state and stamps each row
 as `rejected`. Server-side guard: the function refuses to run and throws an
-error if any project is still open, so even a motivated power user cannot
-accidentally bulk-reject the cohort early.
+error if any project is still open or any matched fellow remains unconfirmed.
 
 **Power users: direct sheet edit still works.** On the `control` tab you can
 paste the selected email into `selected_applicant` and change `status` to
 `filled`. The `onControlEdit` trigger runs the same flow as the dialog, but it
-uses the default email copy because there is no UI surface for editing drafts.
-Use the dialog when you want to customize the applicant emails.
+only records the match and sets acceptance confirmation to pending. Use the
+dialog to batch-send acceptance notices, mark fellows confirmed, and send final
+closeout rejections.
 
 ### Reopening a project
 
 Change `status` back to `open` on the `control` row. The `onControlEdit`
 trigger only fires on transitions *into* `filled`, so reopening is a no-op
-for triggers. Manually clear `filled_at` and `selected_applicant` if you want
-the row to look pristine.
+for triggers. Manually clear `filled_at`, `selected_applicant`,
+`acceptance_status`, and `accepted_at` if you want the row to look pristine.
 
 To reopen every project after dummy testing or an accidental all-filled state,
 use **Tensor Lab > Reopen all projects**, click **Reopen all projects and
@@ -554,5 +544,5 @@ Copy this into an issue at the start of each cycle.
 - [ ] Deploy web app as Anyone.
 - [ ] Update `config.json` and `projects-YYYY.html` with new URLs.
 - [ ] Smoke test submit, duplicate rejection, counter update.
-- [ ] Smoke test `control` edit triggers a redirect email.
+- [ ] Smoke test `control` edit records a selected fellow without sending rejection email.
 - [ ] Announce the form link publicly.
