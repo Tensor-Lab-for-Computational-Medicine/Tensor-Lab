@@ -3418,3 +3418,45 @@ body.modal-open { overflow: hidden; }
 
 /* Ensure the old stacked list layout doesn't bleed through on the new grid */
 .projects-grid-compact .project-card-2026 { width: auto; max-width: none; }
+
+/* --- STATS STRIP --- */
+.stats-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+    margin-top: 2rem;
+    padding: 2.5rem 0;
+    border-top: var(--hairline);
+    border-bottom: var(--hairline);
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.stat-number {
+    font-family: var(--font-mono);
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--alert);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-light);
+}
+
+@media (max-width: 640px) {
+    .stats-strip {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
