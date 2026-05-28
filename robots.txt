@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /archive/
+Disallow: /apps-script/
+
+Sitemap: https://thetensorlab.org/sitemap.xml

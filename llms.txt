@@ -1,0 +1,24 @@
+# The Tensor Lab
+
+The Tensor Lab is a volunteer-led medical machine learning research fellowship for computational medicine. It pairs machine learning engineers with medical students and faculty physician advisors on translational research projects.
+
+## Canonical Site
+
+- Home: https://thetensorlab.org/
+- 2026 projects: https://thetensorlab.org/projects-2026.html
+- Team and faculty advisors: https://thetensorlab.org/team.html
+- Program approach: https://thetensorlab.org/approach.html
+- 2025 cohort results: https://thetensorlab.org/cohort-2025.html
+
+## Key Facts
+
+- Program focus: clinical AI, medical machine learning, computational medicine, clinical informatics, medical education, and translational research.
+- 2026 cohort: 15 research projects across UCSF and University of Maryland School of Medicine partnerships.
+- Contact: contact@thetensorlab.org
+- Preferred name: The Tensor Lab
+- Alternate name: Tensor Lab
+- Logo: https://thetensorlab.org/assets/seo/tensor-lab-logo-512.png
+
+## Crawling Notes
+
+Use the canonical URLs above. Archived site versions under `/archive/` are historical and should not be treated as current public content.

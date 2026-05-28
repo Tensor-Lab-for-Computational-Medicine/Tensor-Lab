@@ -3,7 +3,7 @@
 Tensor Lab is a medical student fellowship program that pairs computer science
 students with physician mentors on clinical AI research projects.
 
-Live site: https://tensor-lab-for-computational-medicine.github.io/Tensor-Lab/
+Live site: https://thetensorlab.org/
 
 ## Start Here
 
@@ -135,8 +135,12 @@ For a new cohort or a rebuilt backend, follow the full guide in
 Tensor-Lab/
 |-- apps-script/              Google Apps Script backend
 |-- assets/                   CSS, JS, images, portraits, posters
+|-- assets/seo/               Search, logo, and social preview assets
 |-- data/projects_2026.json   Canonical 2026 project catalog
 |-- projects-2026.html        Project marketplace and application page
+|-- SEO_IMPROVEMENTS.md       SEO and search appearance change log
+|-- sitemap.xml               Canonical URLs for crawlers
+|-- robots.txt                Crawler guidance and sitemap location
 |-- config.json               Public frontend configuration
 |-- index.html                Main website
 `-- Documentation/            Supporting PDFs and guides
@@ -175,6 +179,23 @@ Common edits:
 - 2026 project page behavior: `assets/js/projects-2026.js`
 - Applicant counter: `assets/js/applicantCounter.js`
 
+## SEO and Search Appearance
+
+Search metadata, favicon/logo eligibility, crawl files, and structured data
+are documented in [SEO_IMPROVEMENTS.md](SEO_IMPROVEMENTS.md).
+
+Key search assets:
+
+- Organization logo: `assets/seo/tensor-lab-logo-512.png`
+- Social preview card: `assets/seo/tensor-lab-social-card.png`
+- Favicons: `favicon.ico`, `favicon-48x48.png`, `favicon-192x192.png`
+- Crawl files: `sitemap.xml`, `robots.txt`, `llms.txt`
+
+When changing the logo or public URLs, update the matching `<link>` tags,
+Open Graph metadata, JSON-LD, `site.webmanifest`, `sitemap.xml`, and the SEO
+change log together so search engines continue seeing one consistent brand
+entity.
+
 ## Deployment
 
 The site deploys from `main` through GitHub Pages. After pushing to `main`,
@@ -186,6 +207,7 @@ the Apps Script editor, save, and redeploy if the web app code changed.
 ## Useful Links
 
 - Backend guide: [apps-script/README.md](apps-script/README.md)
-- Live site: https://tensor-lab-for-computational-medicine.github.io/Tensor-Lab/
+- SEO changelog: [SEO_IMPROVEMENTS.md](SEO_IMPROVEMENTS.md)
+- Live site: https://thetensorlab.org/
 - GitHub Pages: https://pages.github.com/
 - License: [LICENSE](LICENSE)

@@ -288,6 +288,11 @@ body.home-page .surge-hero {
     /* Lower H1 even more */
 }
 
+.hero-title-subline {
+    display: inline-block;
+    font-size: 0.72em;
+}
+
 .hero-divider {
     display: flex;
     gap: 12px;
@@ -2742,6 +2747,60 @@ body.catalog-page {
 
 .catalog-section + .catalog-section {
     margin-top: 4.5rem;
+}
+
+.project-index {
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    padding-bottom: 3rem;
+}
+
+.project-index-title {
+    font-family: var(--font-serif, 'EB Garamond', serif);
+    font-size: clamp(1.8rem, 3vw, 2.5rem);
+    line-height: 1.1;
+    color: #0f172a;
+    margin-bottom: 0.75rem;
+}
+
+.project-index-lede {
+    max-width: 760px;
+    color: #475569;
+    font-family: var(--font-serif, 'EB Garamond', serif);
+    font-size: 1.1rem;
+    line-height: 1.55;
+    margin-bottom: 1.75rem;
+}
+
+.project-index-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0.75rem 1.25rem;
+    list-style-position: inside;
+}
+
+.project-index-list li {
+    color: #64748b;
+    font-size: 0.92rem;
+    line-height: 1.45;
+}
+
+.project-index-list a {
+    color: #0f172a;
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: rgba(220, 38, 38, 0.35);
+    text-underline-offset: 3px;
+}
+
+.project-index-list a:hover {
+    color: var(--alert, #dc2626);
+}
+
+.project-index-list span {
+    display: block;
+    margin-left: 1.35rem;
+    font-size: 0.78rem;
+    color: #64748b;
 }
 
 /* --- Search + filter toolbar (compact) ---------------------------------- */

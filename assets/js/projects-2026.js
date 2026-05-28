@@ -98,10 +98,16 @@
     article.dataset.specialty = primarySpecialty(project.specialty);
     article.dataset.institution = shortInstitution(project.institution);
     article.dataset.projectId = project.project_id;
+    article.id = project.project_id;
+    article.setAttribute('aria-labelledby', project.project_id + '-title');
 
     setText(frag, '.pc2-specialty', project.specialty);
     setText(frag, '.pc2-institution', shortInstitution(project.institution));
-    setText(frag, '.pc2-title', project.title);
+    var title = frag.querySelector('.pc2-title');
+    if (title) {
+      title.id = project.project_id + '-title';
+      title.textContent = project.title || '';
+    }
     setText(frag, '.pc2-clinical-preview', truncate(project.clinical_problem, CLINICAL_PREVIEW_CHARS));
     setText(frag, '.pc2-pi', project.faculty_pi || 'To be confirmed');
     setText(frag, '.pc2-mentor', project.med_student_lead || 'To be confirmed');
@@ -151,6 +157,7 @@
   function wireSearch() {
     var input = document.getElementById('catalog-search-input');
     if (!input) return;
+    if (state.search) input.value = state.search;
     var debounceTimer = null;
     input.addEventListener('input', function () {
       clearTimeout(debounceTimer);
@@ -396,6 +403,11 @@
         var projects = (data && data.projects) || [];
         projects.forEach(function (p) { p._search = buildSearchIndex(p); });
         state.projects = projects;
+
+        if (window.URLSearchParams) {
+          var params = new URLSearchParams(window.location.search || '');
+          state.search = params.get('search') || params.get('q') || state.search;
+        }
 
         projects.forEach(function (p) { grid.appendChild(renderCard(p, template)); });
 
