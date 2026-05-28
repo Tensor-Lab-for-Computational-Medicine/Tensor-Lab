@@ -56,6 +56,8 @@ Google can choose not to show a favicon or logo even when every requirement is m
 50. Added image width/height attributes: reduces layout shift, which supports user experience and technical SEO.
 51. Added `decoding="async"` and lazy loading where appropriate: reduces render blocking and improves perceived performance.
 52. Added a preload for the primary logo on the homepage: prioritizes the most important brand image.
+53. Added a `shortcut icon` fallback on every public page: gives Google and legacy crawlers another supported favicon hint.
+54. Added `TensorLab` as a no-space alternate brand name in metadata and Organization/WebSite schema: improves matching for searches typed as `tensorlab`.
 
 ## Google Search References
 
