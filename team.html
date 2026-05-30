@@ -231,6 +231,28 @@
             border: 1px solid #f2f2f0;
         }
 
+        .nd-photo-crop {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin: 0 auto;
+            border: 1px solid #f2f2f0;
+            background: #f8f8f6;
+        }
+
+        .nd-photo-crop .nd-photo {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            border: 0;
+        }
+
+        .nd-photo--aaron {
+            transform: scale(1.55);
+            transform-origin: 50% 0;
+        }
+
         .nd-body {
             padding: 1.1rem 1.25rem 1.25rem;
         }
@@ -521,8 +543,10 @@
                 </div>
             </div>
             <div class="nd-card">
-                <img src="assets/portrait-photos/Aaron Ge.jpeg" alt="Aaron Ge" class="nd-photo" width="120"
-                    height="120" loading="lazy" decoding="async">
+                <div class="nd-photo-crop">
+                    <img src="assets/portrait-photos/Aaron Ge.jpeg" alt="Aaron Ge" class="nd-photo nd-photo--aaron"
+                        width="120" height="120" loading="lazy" decoding="async">
+                </div>
                 <div class="nd-body">
                     <div class="nd-name">Aaron Ge</div>
                     <div class="nd-title">Technical Director, Co-Founder</div>
