@@ -47,12 +47,12 @@ Google can choose not to show a favicon or logo even when every requirement is m
 41. Blocked `/archive/` in `robots.txt`: prevents old duplicate pages from competing with current content.
 42. Blocked `/apps-script/` in `robots.txt`: keeps implementation source files out of search results.
 43. Added `llms.txt`: improves discoverability for AI assistants and answer engines that look for site summaries.
-44. Added a crawlable 2026 project index in HTML: exposes project names before JavaScript runs.
+44. Added project collection structured data: exposes 2026 project names to crawlers without changing visible page copy.
 45. Added stable project fragment URLs: lets each project have a shareable, crawlable in-page target.
 46. Added generated project card IDs and labels: improves accessibility and hash-link behavior after hydration.
-47. Updated the homepage H1 to include "The Tensor Lab": strengthens branded-query relevance.
+47. Preserved the original homepage H1 while moving brand disambiguation into metadata and Organization schema.
 48. Added semantic `<main>` landmarks to team, cohort, privacy, and terms pages: improves document structure for crawlers and assistive tech.
-49. Improved logo alt text: helps image search and accessibility understand that the image is the Tensor Lab logo.
+49. Preserved the original image alt text while identifying the preferred logo through structured data and the sitemap.
 50. Added image width/height attributes: reduces layout shift, which supports user experience and technical SEO.
 51. Added `decoding="async"` and lazy loading where appropriate: reduces render blocking and improves perceived performance.
 52. Added a preload for the primary logo on the homepage: prioritizes the most important brand image.
