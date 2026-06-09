@@ -374,6 +374,8 @@ scheduling link (Calendly, Cal.com, SavvyCal, Google Calendar appointment page,
 anything with a public link). Pick the project you are interviewing for, pick
 whether to list applicants who ranked the project or pending applicants who did
 not rank it, choose the applicant, enter your name, and paste your scheduling URL.
+For applicants who did not rank the project, type at least two characters in
+the search box first so the dialog does not load the full applicant pool.
 The dialog generates a draft subject and body, then the sender can edit every
 word before clicking **Send interview invite**. Enter a test recipient and use
 **Send test email** to send the current draft there first. The applicant

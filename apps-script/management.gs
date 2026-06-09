@@ -62,32 +62,53 @@ function mgmtListOpenProjects() {
  * Return [{email, name, rank, status}] for applicants who ranked projectId
  * and are not already selected or rejected. Sorted by rank then name.
  */
-function mgmtListApplicantsForProject(projectId) {
+function mgmtListApplicantsForProject(projectId, query, limit) {
   if (!projectId) return [];
   var rows = _readApplicationRows();
   if (!rows) return [];
   var seen = {};
   var out = [];
+  var needle = _normalizeApplicantSearch(query);
+  var max = _coerceApplicantResultLimit(limit, 0, 0);
   for (var i = 0; i < rows.items.length; i++) {
     var r = rows.items[i];
-    if (_isTerminalStatus(r.status)) continue;
+    if (!_isPendingApplicantStatus(r.status)) continue;
     var rank = r.choices.indexOf(projectId);
     if (rank === -1) continue;
     var key = r.email.toLowerCase();
     if (seen[key]) continue;
     seen[key] = true;
+    if (!_applicantMatchesSearch(r, [], needle)) continue;
     out.push({
       email: r.email,
       name: r.name || r.email,
       rank: rank + 1,
       status: r.status || 'submitted'
     });
+    if (max && out.length >= max) break;
   }
   out.sort(function (a, b) {
     if (a.rank !== b.rank) return a.rank - b.rank;
     return a.name.localeCompare(b.name);
   });
   return out;
+}
+
+function mgmtSearchInterviewApplicants(projectId, scope, query, limit) {
+  var max = _coerceApplicantResultLimit(limit, 75, 200);
+  var mode = String(scope || 'ranked').trim().toLowerCase();
+  var needle = _normalizeApplicantSearch(query);
+  var items = (mode === 'unranked' || mode === 'outside' || mode === 'not_ranked')
+    ? mgmtListApplicantsOutsideProject(projectId, needle, max + 1)
+    : mgmtListApplicantsForProject(projectId, needle, max + 1);
+  var truncated = items.length > max;
+  if (truncated) items = items.slice(0, max);
+  return {
+    items: items,
+    truncated: truncated,
+    limit: max,
+    query: needle
+  };
 }
 
 /**
@@ -103,17 +124,22 @@ function mgmtListInterviewApplicants(projectId, scope) {
 }
 
 /**
- * Return pending applicants who did not rank projectId. Sorted by name.
+ * Return pending applicants who did not rank projectId. Sorted by name when
+ * returning the full list. Optional query and limit keep the interview dialog
+ * responsive for large applicant pools.
  */
-function mgmtListApplicantsOutsideProject(projectId) {
+function mgmtListApplicantsOutsideProject(projectId, query, limit) {
   if (!projectId) return [];
   var rows = _readApplicationRows();
   if (!rows) return [];
   var seen = {};
   var out = [];
+  var needle = _normalizeApplicantSearch(query);
+  var max = _coerceApplicantResultLimit(limit, 0, 0);
+  var labels = _projectLabelByIdMap();
   for (var i = 0; i < rows.items.length; i++) {
     var r = rows.items[i];
-    if (_isTerminalStatus(r.status)) continue;
+    if (!_isPendingApplicantStatus(r.status)) continue;
     if (r.choices.indexOf(projectId) !== -1) continue;
     var key = r.email.toLowerCase();
     if (seen[key]) continue;
@@ -122,8 +148,9 @@ function mgmtListApplicantsOutsideProject(projectId) {
     var choiceLabels = [];
     for (var j = 0; j < r.choices.length; j++) {
       if (!r.choices[j]) continue;
-      choiceLabels.push(_lookupProjectLabel(r.choices[j]));
+      choiceLabels.push(_projectLabelFromMap(labels, r.choices[j]));
     }
+    if (!_applicantMatchesSearch(r, choiceLabels, needle)) continue;
 
     out.push({
       email: r.email,
@@ -133,8 +160,9 @@ function mgmtListApplicantsOutsideProject(projectId) {
       topChoice: choiceLabels[0] || '',
       choices: choiceLabels
     });
+    if (max && out.length >= max) break;
   }
-  out.sort(function (a, b) { return a.name.localeCompare(b.name); });
+  if (!max) out.sort(function (a, b) { return a.name.localeCompare(b.name); });
   return out;
 }
 
@@ -646,7 +674,7 @@ function _interviewInviteContext(projectId, email) {
       if (rows.items[i].email.toLowerCase() === target) {
         foundApplicant = true;
         if (!applicantName) applicantName = String(rows.items[i].name || '').trim();
-        if (!_isTerminalStatus(rows.items[i].status)) {
+        if (_isPendingApplicantStatus(rows.items[i].status)) {
           foundPending = true;
           applicantName = String(rows.items[i].name || '').trim();
           break;
@@ -1432,6 +1460,54 @@ function _assertPreviewEmailsUnchanged(currentRows, expectedRows) {
   }
 }
 
+function _normalizeApplicantSearch(query) {
+  return String(query || '').trim().toLowerCase();
+}
+
+function _coerceApplicantResultLimit(limit, fallback, maxAllowed) {
+  var value = parseInt(limit, 10);
+  if (!isFinite(value) || value < 1) value = fallback || 0;
+  if (maxAllowed && value > maxAllowed) value = maxAllowed;
+  return value;
+}
+
+function _applicantMatchesSearch(row, choiceLabels, needle) {
+  if (!needle) return true;
+  var haystack = [
+    row.name || '',
+    row.email || '',
+    row.status || ''
+  ].concat(row.choices || [], choiceLabels || []).join(' ').toLowerCase();
+  return haystack.indexOf(needle) !== -1;
+}
+
+function _projectLabelByIdMap() {
+  var out = {};
+  var sheet = _getSheet(SHEET_CONTROL);
+  if (!sheet || sheet.getLastRow() < 2) return out;
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var idCol = headers.indexOf('project_id');
+  var labelCol = headers.indexOf('label');
+  if (idCol < 0) return out;
+  var rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+  for (var i = 0; i < rows.length; i++) {
+    var id = String(rows[i][idCol] || '').trim();
+    if (!id) continue;
+    var label = labelCol >= 0 ? String(rows[i][labelCol] || '').trim() : '';
+    out[id] = _displayProjectLabel(label || id);
+  }
+  return out;
+}
+
+function _projectLabelFromMap(labels, projectId) {
+  var id = String(projectId || '').trim();
+  return (labels && labels[id]) || _displayProjectLabel(id);
+}
+
+function _isPendingApplicantStatus(status) {
+  return !_isTerminalStatus(status);
+}
+
 function _isTerminalStatus(status) {
   var s = String(status || '').trim().toLowerCase();
   return s === 'selected' || s === 'accepted' || s === 'confirmed' || s === 'rejected' || s.indexOf('rejected_') === 0 || s.indexOf('test_') === 0;
@@ -1604,6 +1680,8 @@ function _managementDialogHtml() {
     '    <option value="ranked">Applicants who ranked this project</option>',
     '    <option value="unranked">Applicants who did not rank this project</option>',
     '  </select>',
+    '  <label for="ivApplicantSearch">Search applicants</label>',
+    '  <input id="ivApplicantSearch" type="text" placeholder="Name, email, or current project choice" disabled />',
     '  <label for="ivApplicantSelect">Applicant</label>',
     '  <select id="ivApplicantSelect" disabled><option value="">Pick a project first</option></select>',
     '  <label for="ivReviewerName">Your name (shown to the applicant)</label>',
@@ -1753,6 +1831,7 @@ function _managementDialogHtml() {
     'const errMsg=e=>{const m=e&&e.message?e.message:String(e||"");return /PERMISSION_DENIED|reading from storage|permission/i.test(m)?m+" Run Tensor Lab > Authorize this account, then reopen this dialog. If this persists, ask the script owner to publish the latest Apps Script files so storage fallbacks are available.":m};',
     'let ivDraftDirty=false;',
     'let ivDraftTimer=null;',
+    'let ivSearchTimer=null;',
     'let fillPreviewOk=false;',
     'let acceptPreviewOk=false;',
     'let bulkPreviewOk=false;',
@@ -1946,6 +2025,7 @@ function _managementDialogHtml() {
     'function loadInterviewProjects(){',
     '  const sel=$("#ivProjectSelect");sel.innerHTML="<option value=\\"\\">Loading…</option>";',
     '  $("#ivApplicantScope").value="ranked";$("#ivApplicantScope").disabled=true;',
+    '  $("#ivApplicantSearch").value="";$("#ivApplicantSearch").disabled=true;',
     '  $("#ivApplicantSelect").innerHTML="<option value=\\"\\">Pick a project first</option>";$("#ivApplicantSelect").disabled=true;ivRefreshBtn();',
     '  google.script.run.withSuccessHandler(projects=>{',
     '    sel.innerHTML="";',
@@ -2076,28 +2156,44 @@ function _managementDialogHtml() {
     '  return esc(a.name||a.email)+" ("+esc(applicantRankText(a))+", "+esc(a.email)+")";',
     '}',
     'function loadInterviewApplicants(){',
-    '  const pid=$("#ivProjectSelect").value;const scope=$("#ivApplicantScope").value||"ranked";const as=$("#ivApplicantSelect");',
+    '  const pid=$("#ivProjectSelect").value;const scope=$("#ivApplicantScope").value||"ranked";const query=$("#ivApplicantSearch").value.trim();const as=$("#ivApplicantSelect");',
     '  resetIvDraftForApplicantChange();',
-    '  if(!pid){$("#ivApplicantScope").disabled=true;as.innerHTML="<option value=\\"\\">Pick a project first</option>";as.disabled=true;ivRefreshBtn();return}',
-    '  $("#ivApplicantScope").disabled=false;',
+    '  if(!pid){$("#ivApplicantScope").disabled=true;$("#ivApplicantSearch").disabled=true;as.innerHTML="<option value=\\"\\">Pick a project first</option>";as.disabled=true;ivRefreshBtn();return}',
+    '  $("#ivApplicantScope").disabled=false;$("#ivApplicantSearch").disabled=false;',
+    '  if(scope==="unranked"&&query.length<2){',
+    '    as.innerHTML="<option value=\\"\\">Type 2 or more characters to search unrejected applicants</option>";as.disabled=true;',
+    '    setStatus($("#ivStatus"),"Type at least 2 characters to search applicants who did not rank this project.","warn");ivRefreshBtn();return',
+    '  }',
     '  as.innerHTML="<option value=\\"\\">Loading…</option>";as.disabled=true;',
-    '  google.script.run.withSuccessHandler(list=>{',
+    '  google.script.run.withSuccessHandler(result=>{',
+    '    const list=(result&&result.items)||[];',
     '    as.innerHTML="";',
     '    if(!list.length){',
-    '      const none=scope==="unranked"?"No pending applicants who did not rank this project":"No pending applicants ranked this project";',
-    '      as.innerHTML="<option value=\\"\\">"+none+"</option>";ivRefreshBtn();return',
+    '      const none=scope==="unranked"?"No unrejected applicants who did not rank this project match that search":"No pending applicants ranked this project";',
+    '      as.innerHTML="<option value=\\"\\">"+none+"</option>";',
+    '      if(scope==="unranked")setStatus($("#ivStatus"),none+".","warn");',
+    '      else if($("#ivStatus").textContent.indexOf("Showing the first ")===0||$("#ivStatus").textContent.indexOf("Type at least ")===0)clearStatus($("#ivStatus"));',
+    '      ivRefreshBtn();return',
     '    }',
     '    as.insertAdjacentHTML("beforeend","<option value=\\"\\">Choose an applicant…</option>");',
     '    list.forEach(a=>as.insertAdjacentHTML("beforeend","<option value=\\""+esc(a.email)+"\\">"+interviewApplicantOptionLabel(a)+"</option>"));',
+    '    if(result&&result.truncated)as.insertAdjacentHTML("beforeend","<option value=\\"\\" disabled>Keep typing to narrow more matches</option>");',
     '    as.disabled=false;ivRefreshBtn();scheduleIvDraft(false);',
+    '    if(result&&result.truncated)setStatus($("#ivStatus"),"Showing the first "+result.limit+" matches. Keep typing to narrow the list.","warn");',
+    '    else if($("#ivStatus").textContent.indexOf("Showing the first ")===0||$("#ivStatus").textContent.indexOf("Type at least ")===0)clearStatus($("#ivStatus"));',
     '  }).withFailureHandler(e=>setStatus($("#ivStatus"),"Could not load applicants: "+errMsg(e),"err"))',
-    '  .mgmtListInterviewApplicants(pid,scope);',
+    '  .mgmtSearchInterviewApplicants(pid,scope,query,75);',
+    '}',
+    'function scheduleInterviewApplicantLoad(){',
+    '  clearTimeout(ivSearchTimer);',
+    '  ivSearchTimer=setTimeout(loadInterviewApplicants,300);',
     '}',
     '$("#ivProjectSelect").addEventListener("change",()=>{',
-    '  $("#ivApplicantScope").value="ranked";',
+    '  $("#ivApplicantScope").value="ranked";$("#ivApplicantSearch").value="";',
     '  loadInterviewApplicants();',
     '});',
-    '$("#ivApplicantScope").addEventListener("change",loadInterviewApplicants);',
+    '$("#ivApplicantScope").addEventListener("change",()=>{clearTimeout(ivSearchTimer);loadInterviewApplicants()});',
+    '$("#ivApplicantSearch").addEventListener("input",scheduleInterviewApplicantLoad);',
 
     'function cleanUrlValue(v){v=String(v||"").trim().replace(/\\s+/g,"");v=v.replace(/^(?:(?:https?:)?\\/\\/)+/i,"https://");if(v&&!/^https?:\\/\\//i.test(v)&&!/^[a-z][a-z0-9+.-]*:/i.test(v)&&/^[^\\s\\/]+\\.[^\\s]+/.test(v))v="https://"+v;return v}',
     'function schedulingUrlProblem(v){',

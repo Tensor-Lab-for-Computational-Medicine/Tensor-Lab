@@ -105,7 +105,8 @@ applicants**.
 - **Setup:** account, sheet, form, sender, and trigger readiness checks.
 - **Invite to interview:** generate an editable email, send a test, then send
   the real invite to either applicants who ranked the project or pending
-  applicants who did not rank it.
+  applicants who did not rank it. The outside-project list is searchable so
+  large applicant pools do not load all at once.
 - **Match projects:** choose a winner, edit the winner and reselection emails,
   test them, preview recipients, then send.
 - **Closeout and tools:** edit individual or bulk decline emails, preview
