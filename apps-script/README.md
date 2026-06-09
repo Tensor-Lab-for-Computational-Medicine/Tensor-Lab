@@ -372,7 +372,8 @@ notices, interview invites, and bulk closeout declines. Placeholders such as
 **Invite to interview.** Mentors use this tab to send an applicant a meeting
 scheduling link (Calendly, Cal.com, SavvyCal, Google Calendar appointment page,
 anything with a public link). Pick the project you are interviewing for, pick
-an applicant who ranked it, enter your name, and paste your scheduling URL.
+whether to list applicants who ranked the project or pending applicants who did
+not rank it, choose the applicant, enter your name, and paste your scheduling URL.
 The dialog generates a draft subject and body, then the sender can edit every
 word before clicking **Send interview invite**. Enter a test recipient and use
 **Send test email** to send the current draft there first. The applicant

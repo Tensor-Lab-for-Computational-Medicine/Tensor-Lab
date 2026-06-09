@@ -91,6 +91,54 @@ function mgmtListApplicantsForProject(projectId) {
 }
 
 /**
+ * Return interview candidates for projectId. Scope is intentionally limited
+ * to the Interviews tab so matching still uses applicants who ranked a project.
+ */
+function mgmtListInterviewApplicants(projectId, scope) {
+  var mode = String(scope || 'ranked').trim().toLowerCase();
+  if (mode === 'unranked' || mode === 'outside' || mode === 'not_ranked') {
+    return mgmtListApplicantsOutsideProject(projectId);
+  }
+  return mgmtListApplicantsForProject(projectId);
+}
+
+/**
+ * Return pending applicants who did not rank projectId. Sorted by name.
+ */
+function mgmtListApplicantsOutsideProject(projectId) {
+  if (!projectId) return [];
+  var rows = _readApplicationRows();
+  if (!rows) return [];
+  var seen = {};
+  var out = [];
+  for (var i = 0; i < rows.items.length; i++) {
+    var r = rows.items[i];
+    if (_isTerminalStatus(r.status)) continue;
+    if (r.choices.indexOf(projectId) !== -1) continue;
+    var key = r.email.toLowerCase();
+    if (seen[key]) continue;
+    seen[key] = true;
+
+    var choiceLabels = [];
+    for (var j = 0; j < r.choices.length; j++) {
+      if (!r.choices[j]) continue;
+      choiceLabels.push(_lookupProjectLabel(r.choices[j]));
+    }
+
+    out.push({
+      email: r.email,
+      name: r.name || r.email,
+      rank: '',
+      status: r.status || 'submitted',
+      topChoice: choiceLabels[0] || '',
+      choices: choiceLabels
+    });
+  }
+  out.sort(function (a, b) { return a.name.localeCompare(b.name); });
+  return out;
+}
+
+/**
  * Return [{email, name, topChoice}] for every pending applicant (not
  * selected, not rejected). Sorted by name.
  */
@@ -590,15 +638,24 @@ function _interviewInviteContext(projectId, email) {
   if (!target) throw new Error('Pick an applicant.');
 
   var applicantName = '';
+  var foundApplicant = false;
+  var foundPending = false;
   var rows = _readApplicationRows();
   if (rows && rows.items) {
     for (var i = 0; i < rows.items.length; i++) {
       if (rows.items[i].email.toLowerCase() === target) {
-        applicantName = String(rows.items[i].name || '').trim();
-        break;
+        foundApplicant = true;
+        if (!applicantName) applicantName = String(rows.items[i].name || '').trim();
+        if (!_isTerminalStatus(rows.items[i].status)) {
+          foundPending = true;
+          applicantName = String(rows.items[i].name || '').trim();
+          break;
+        }
       }
     }
   }
+  if (!foundApplicant) throw new Error('Pick an applicant from the applications sheet.');
+  if (!foundPending) throw new Error('This applicant is no longer pending.');
   var label = _displayProjectLabel(_lookupProjectLabel(pid) || pid);
   return { email: target, projectId: pid, firstName: applicantName, applicantName: applicantName, projectLabel: label };
 }
@@ -1542,6 +1599,11 @@ function _managementDialogHtml() {
     '  <p class="hint">Send an applicant your scheduling link so they can book an interview slot. Works with Calendly, Cal.com, SavvyCal, Google Calendar appointment pages, or any other service with a share link.</p>',
     '  <label for="ivProjectSelect">Project you are interviewing for</label>',
     '  <select id="ivProjectSelect"><option value="">Loading…</option></select>',
+    '  <label for="ivApplicantScope">Applicant list</label>',
+    '  <select id="ivApplicantScope" disabled>',
+    '    <option value="ranked">Applicants who ranked this project</option>',
+    '    <option value="unranked">Applicants who did not rank this project</option>',
+    '  </select>',
     '  <label for="ivApplicantSelect">Applicant</label>',
     '  <select id="ivApplicantSelect" disabled><option value="">Pick a project first</option></select>',
     '  <label for="ivReviewerName">Your name (shown to the applicant)</label>',
@@ -1883,6 +1945,7 @@ function _managementDialogHtml() {
 
     'function loadInterviewProjects(){',
     '  const sel=$("#ivProjectSelect");sel.innerHTML="<option value=\\"\\">Loading…</option>";',
+    '  $("#ivApplicantScope").value="ranked";$("#ivApplicantScope").disabled=true;',
     '  $("#ivApplicantSelect").innerHTML="<option value=\\"\\">Pick a project first</option>";$("#ivApplicantSelect").disabled=true;ivRefreshBtn();',
     '  google.script.run.withSuccessHandler(projects=>{',
     '    sel.innerHTML="";',
@@ -1998,24 +2061,43 @@ function _managementDialogHtml() {
     '  const box=$("#ivPreview");if(box)box.innerHTML="";',
     '}',
 
-    '$("#ivProjectSelect").addEventListener("change",()=>{',
-    '  const pid=$("#ivProjectSelect").value;const as=$("#ivApplicantSelect");',
+    'function resetIvDraftForApplicantChange(){',
     '  ivDraftDirty=false;$("#ivSubject").value="";$("#ivBody").value="";$("#ivCc").value="";',
     '  clearStatus($("#ivStatus"));clearStatus($("#ivDraftStatus"));clearIvPreview();',
-    '  if(!pid){as.innerHTML="<option value=\\"\\">Pick a project first</option>";as.disabled=true;ivRefreshBtn();return}',
+    '}',
+    'function applicantRankText(a){',
+    '  if(a.rank===1)return "1st choice";',
+    '  if(a.rank===2)return "2nd choice";',
+    '  if(a.rank===3)return "3rd choice";',
+    '  if(a.topChoice)return "did not rank this project, top choice: "+a.topChoice;',
+    '  return "did not rank this project";',
+    '}',
+    'function interviewApplicantOptionLabel(a){',
+    '  return esc(a.name||a.email)+" ("+esc(applicantRankText(a))+", "+esc(a.email)+")";',
+    '}',
+    'function loadInterviewApplicants(){',
+    '  const pid=$("#ivProjectSelect").value;const scope=$("#ivApplicantScope").value||"ranked";const as=$("#ivApplicantSelect");',
+    '  resetIvDraftForApplicantChange();',
+    '  if(!pid){$("#ivApplicantScope").disabled=true;as.innerHTML="<option value=\\"\\">Pick a project first</option>";as.disabled=true;ivRefreshBtn();return}',
+    '  $("#ivApplicantScope").disabled=false;',
     '  as.innerHTML="<option value=\\"\\">Loading…</option>";as.disabled=true;',
     '  google.script.run.withSuccessHandler(list=>{',
     '    as.innerHTML="";',
-    '    if(!list.length){as.innerHTML="<option value=\\"\\">No pending applicants ranked this project</option>";ivRefreshBtn();return}',
+    '    if(!list.length){',
+    '      const none=scope==="unranked"?"No pending applicants who did not rank this project":"No pending applicants ranked this project";',
+    '      as.innerHTML="<option value=\\"\\">"+none+"</option>";ivRefreshBtn();return',
+    '    }',
     '    as.insertAdjacentHTML("beforeend","<option value=\\"\\">Choose an applicant…</option>");',
-    '    list.forEach(a=>{',
-    '      const label=esc(a.name)+" ("+(a.rank===1?"1st":a.rank===2?"2nd":"3rd")+" choice, "+esc(a.email)+")";',
-    '      as.insertAdjacentHTML("beforeend","<option value=\\""+esc(a.email)+"\\">"+label+"</option>");',
-    '    });',
+    '    list.forEach(a=>as.insertAdjacentHTML("beforeend","<option value=\\""+esc(a.email)+"\\">"+interviewApplicantOptionLabel(a)+"</option>"));',
     '    as.disabled=false;ivRefreshBtn();scheduleIvDraft(false);',
     '  }).withFailureHandler(e=>setStatus($("#ivStatus"),"Could not load applicants: "+errMsg(e),"err"))',
-    '  .mgmtListApplicantsForProject(pid);',
+    '  .mgmtListInterviewApplicants(pid,scope);',
+    '}',
+    '$("#ivProjectSelect").addEventListener("change",()=>{',
+    '  $("#ivApplicantScope").value="ranked";',
+    '  loadInterviewApplicants();',
     '});',
+    '$("#ivApplicantScope").addEventListener("change",loadInterviewApplicants);',
 
     'function cleanUrlValue(v){v=String(v||"").trim().replace(/\\s+/g,"");v=v.replace(/^(?:(?:https?:)?\\/\\/)+/i,"https://");if(v&&!/^https?:\\/\\//i.test(v)&&!/^[a-z][a-z0-9+.-]*:/i.test(v)&&/^[^\\s\\/]+\\.[^\\s]+/.test(v))v="https://"+v;return v}',
     'function schedulingUrlProblem(v){',
